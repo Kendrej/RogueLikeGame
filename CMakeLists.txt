@@ -30,17 +30,17 @@ option(ENABLE_VCPKG_DEPS "Find and link deps via vcpkg (GLFW, GLM, Vulkan, ImGui
 # Dodaj swoje pliki źródłowe tutaj (na start mamy tylko main.cpp)
 add_executable(RogueLikeGame
         src/main.cpp
-        src/app/VulkanImGuiApp.cpp
-        src/app/Window.cpp
-        src/app/Instance.cpp
-        src/app/Device.cpp
-        src/app/Swapchain.cpp
-        src/app/SyncAndDescriptors.cpp
-        src/app/ImGuiInit.cpp
-        src/app/game.cpp
-        src/app/Assets.cpp
+        src/engine/gfx/VulkanImGuiApp.cpp
+        src/engine/vk/Window.cpp
+        src/engine/vk/Instance.cpp
+        src/engine/vk/Device.cpp
+        src/engine/vk/Swapchain.cpp
+        src/engine/vk/SyncAndDescriptors.cpp
+        src/engine/gfx/ImGuiInit.cpp
+        src/app/classes/entity.cpp
+        src/engine/gfx/Assets.cpp
         src/app/GameSetup.cpp
-        src/app/Player.cpp
+        src/app/classes/Player.cpp
 
 )
 

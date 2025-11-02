@@ -1,16 +1,9 @@
-#include "game.h"
-#include "Assets.h"
+#include "classes/entity.h"
+#include "../engine/gfx/Assets.h"
 #include <vector>
 #include "GameSetup.h"
-#include "Player.h"
+#include "classes/Player.h"
 
-Entity* spawn(std::vector<Entity*>& entities, Assets* assets, const char* path, uint32_t width, uint32_t height, float posX, float posY)
-{
-    int spriteId = assets->getOrLoad(path);
-    Entity* e = new Entity(spriteId, width, height, posX, posY);
-    entities.push_back(e);
-    return e;
-}
 
 void setupGameEntities(std::vector<Entity*>& entities, Assets* assets, Player*& outPlayer)
 {

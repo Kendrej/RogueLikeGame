@@ -1,7 +1,7 @@
 #include "Player.h"
 #include <imgui.h>
 #include <cmath>
-#include "Assets.h"
+#include "../../engine/gfx/Assets.h"
 
 Player::Player(int spriteId, uint32_t width, uint32_t height, float pos_x, float pos_y, float speed)
 	: Entity(spriteId, width, height, pos_x, pos_y), speed_(speed) {}

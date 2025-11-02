@@ -1,6 +1,6 @@
 #include "VulkanImGuiApp.h"
-#include "game.h"
-#include "GameSetup.h"
+#include "../../app/classes/entity.h"
+#include "../../app/GameSetup.h"
 #include <GLFW/glfw3.h>
 #include <imgui.h>
 #include <imgui_impl_glfw.h>
@@ -9,7 +9,7 @@
 #include <iostream>
 #include <stdexcept>
 #include <vector>
-#include "Player.h"
+#include "../../app/classes/Player.h"
 
 //tymczasowo tu zeby bylo widac ale kiedys do refaktoryzaji
 std::vector<Entity*> entities;
