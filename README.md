@@ -48,9 +48,9 @@ Instalacja narzędzi (przykładowo):
 Build i uruchomienie z vcpkg (PowerShell):
 
 ```powershell
-cmake --preset vs2022-debug
-cmake --build --preset vs2022-debug-build
-.\build\vs2022-debug\bin\Debug\RogueLikeGame.exe
+cmake --preset win-ninja-debug
+cmake --build --preset win-ninja-debug-build
+.\build\win-ninja-debug\bin\RogueLikeGame.exe
 ```
 
 Dla wersji Release użyj presetów `macos-release` / `win-release` i odpowiednich ścieżek do binarek.
