@@ -1,6 +1,6 @@
 #include "VulkanImGuiApp.h"
-#include "Game.h"
-#include "GameSetup.h"
+#include "../../app/classes/entity.h"
+#include "../../app/GameSetup.h"
 #include <GLFW/glfw3.h>
 #include <imgui.h>
 #include <imgui_impl_glfw.h>
@@ -8,9 +8,12 @@
 #include <vk_utils.h>
 #include <iostream>
 #include <stdexcept>
+#include <vector>
+#include "../../app/classes/Player.h"
 
 //tymczasowo tu zeby bylo widac ale kiedys do refaktoryzaji
 std::vector<Entity*> entities;
+static Player* player = nullptr;
 
 int VulkanImGuiApp::run()
 {
@@ -18,8 +21,8 @@ int VulkanImGuiApp::run()
         initWindow();
         initVulkan();
         initImGui();
-        // --- Wczytaj ikonę jako teksturę i zarejestruj w ImGui ---        
-        setupGameEntities(entities, assets_);
+        // --- Wczytaj ikone jako teksture i zarejestruj w ImGui ---
+        setupGameEntities(entities, assets_, player);
         mainLoop();
         vkDeviceWaitIdle(device_);
         cleanup();
@@ -72,9 +75,6 @@ void VulkanImGuiApp::initVulkan()
 
 void VulkanImGuiApp::mainLoop()
 {
-    bool show_demo = true;
-    bool show_window = true;
-
     while (!glfwWindowShouldClose(window_)) {
         glfwPollEvents();
 
@@ -93,17 +93,14 @@ void VulkanImGuiApp::mainLoop()
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
 
-        // --- Rysowanie świata/tła (poza oknami) ---
-        drawWorld();
-
-        if (show_window) {
-            ImGui::Begin("Hello, ImGui + Vulkan");
-            ImGui::Text("To jest podstawowe okno ImGui.");
-            ImGui::Checkbox("Pokaż Demo", &show_demo);
-            if (ImGui::Button("Zamknij")) show_window = false;
-            ImGui::End();
+        float dt = ImGui::GetIO().DeltaTime;
+        for (Entity* e : entities) {
+            if (e) e->update(dt);
         }
-        if (show_demo) ImGui::ShowDemoWindow(&show_demo);
+        if (player) player->update(dt);
+
+        // --- Rysowanie swiata/tla (poza oknami) ---
+        drawWorld();
 
         ImGui::Render();
 
@@ -140,6 +137,8 @@ void VulkanImGuiApp::cleanup()
         delete e;
     entities.clear();
 
+    if (player) { delete player; player = nullptr; }
+
     // ImGui
     ImGui_ImplVulkan_Shutdown();
     ImGui_ImplGlfw_Shutdown();
@@ -169,7 +168,7 @@ void VulkanImGuiApp::cleanup()
     glfwTerminate();
 }
 
-// --- Rysowanie tła i innych obiektów (poza oknami ImGui) ---
+// --- Rysowanie tla i innych obiektow (poza oknami ImGui) ---
 void VulkanImGuiApp::drawWorld()
 {
     ImDrawList* bg = ImGui::GetBackgroundDrawList();
@@ -183,7 +182,16 @@ void VulkanImGuiApp::drawWorld()
         uint32_t height = e->getHeight();
         auto& sprite = assets_->sprite(e->getSpriteId());
 
-        bg->AddImage(sprite.imTex, pos, ImVec2(pos.x + width, pos.y + height),
+        bg->AddImage(sprite.imTex, pos, ImVec2(pos.x + static_cast<float>(width), pos.y + static_cast<float>(height)),
+            ImVec2(0, 0), ImVec2(1, 1), IM_COL32_WHITE);
+    }
+
+    if (player) {
+        ImVec2 pos = player->getPosition();
+        uint32_t width = player->getWidth();
+        uint32_t height = player->getHeight();
+        auto& sprite = assets_->sprite(player->getSpriteId());
+        bg->AddImage(sprite.imTex, pos, ImVec2(pos.x + static_cast<float>(width), pos.y + static_cast<float>(height)),
             ImVec2(0, 0), ImVec2(1, 1), IM_COL32_WHITE);
     }
 }

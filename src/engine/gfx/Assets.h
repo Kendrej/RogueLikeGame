@@ -1,4 +1,5 @@
 #pragma once
+#include <vulkan/vulkan_core.h>
 #include <vulkan/vulkan.h>
 #include <imgui.h>
 #include <vector>
@@ -8,7 +9,7 @@
 
 using SpriteId = int;
 
-// GPU-strona sprite'a (bez pozycji/widocznoœci – to jest logika gry)
+// GPU-side of a sprite (no position/visibility - that is game logic)
 struct SpriteGPU {
     VkImage        image = VK_NULL_HANDLE;
     VkDeviceMemory memory = VK_NULL_HANDLE;
@@ -35,8 +36,8 @@ public:
     SpriteId getOrLoad(const std::string& path);
     const SpriteGPU& sprite(SpriteId id) const { return sprites_[id]; }
 
-    void removeSprite(SpriteId id);   // zostawia „dziurê” – stabilne ID
-    void clear();                     // czyœci wszystko
+    void removeSprite(SpriteId id);   // leaves a hole - stable ID
+    void clear();                     // clears everything
 
 private:
     Ctx ctx_;
@@ -45,7 +46,7 @@ private:
     std::unordered_map<std::string, SpriteId> byPath_;
     std::vector < std::string> paths_;
 
-    // Pomocnicze (przeniesione z Texture.cpp)
+    // Helpers (moved from Texture.cpp)
     uint32_t findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties) const;
     VkCommandBuffer beginSingleTimeCommands() const;
     void endSingleTimeCommands(VkCommandBuffer cmd) const;

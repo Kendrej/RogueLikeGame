@@ -51,21 +51,19 @@
       }
     },
     {
-      "name": "vs2022-debug",
-      "displayName": "VS 2022 Debug (x64)",
-      "generator": "Visual Studio 17 2022",
-      "architecture": {
-        "value": "x64",
-        "strategy": "external"
-      },
-      "binaryDir": "${sourceDir}/build/vs2022-debug",
+      "name": "win-ninja-debug",
+      "displayName": "Windows Debug (Ninja + MSVC)",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build/win-ninja-debug",
       "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
         "CMAKE_CXX_STANDARD": "20",
         "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/extern/vcpkg/scripts/buildsystems/vcpkg.cmake",
         "VCPKG_FEATURE_FLAGS": "manifests",
-        "VCPKG_TARGET_TRIPLET": "x64-windows",
-        "BUILD_TESTING": "ON",
-        "WARNINGS_AS_ERRORS": "ON"
+        "VCPKG_TARGET_TRIPLET": "x64-windows"
+      },
+      "environment": {
+        "VCPKG_ROOT": "${sourceDir}/extern/vcpkg"
       },
       "condition": {
         "type": "equals",
@@ -74,20 +72,19 @@
       }
     },
     {
-      "name": "vs2022-release",
-      "displayName": "VS 2022 Release (x64)",
-      "generator": "Visual Studio 17 2022",
-      "architecture": {
-        "value": "x64",
-        "strategy": "external"
-      },
-      "binaryDir": "${sourceDir}/build/vs2022-release",
+      "name": "win-ninja-release",
+      "displayName": "Windows Release (Ninja + MSVC)",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build/win-ninja-release",
       "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
         "CMAKE_CXX_STANDARD": "20",
         "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/extern/vcpkg/scripts/buildsystems/vcpkg.cmake",
         "VCPKG_FEATURE_FLAGS": "manifests",
-        "VCPKG_TARGET_TRIPLET": "x64-windows",
-        "BUILD_TESTING": "ON"
+        "VCPKG_TARGET_TRIPLET": "x64-windows"
+      },
+      "environment": {
+        "VCPKG_ROOT": "${sourceDir}/extern/vcpkg"
       },
       "condition": {
         "type": "equals",
@@ -99,13 +96,13 @@
   "buildPresets": [
     { "name": "macos-debug-build", "configurePreset": "macos-debug" },
     { "name": "macos-release-build", "configurePreset": "macos-release" },
-    { "name": "vs2022-debug-build", "configurePreset": "vs2022-debug", "configuration": "Debug" },
-    { "name": "vs2022-release-build", "configurePreset": "vs2022-release", "configuration": "Release" }
+    { "name": "win-ninja-debug-build", "configurePreset": "win-ninja-debug" },
+    { "name": "win-ninja-release-build", "configurePreset": "win-ninja-release" }
   ],
   "testPresets": [
     { "name": "macos-debug-test", "configurePreset": "macos-debug" },
     { "name": "macos-release-test", "configurePreset": "macos-release" },
-    { "name": "vs2022-debug-test", "configurePreset": "vs2022-debug", "configuration": "Debug" },
-    { "name": "vs2022-release-test", "configurePreset": "vs2022-release", "configuration": "Release" }
+    { "name": "win-ninja-debug-test", "configurePreset": "win-ninja-debug" },
+    { "name": "win-ninja-release-test", "configurePreset": "win-ninja-release" }
   ]
 }

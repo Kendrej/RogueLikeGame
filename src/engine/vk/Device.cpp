@@ -1,8 +1,10 @@
-#include "VulkanImGuiApp.h"
+#include "../gfx/VulkanImGuiApp.h"
 #include <vk_utils.h>
 #include <vector>
 #include <set>
 #include <iostream>
+#include <cstring>
+#include <stdexcept>
 
 void VulkanImGuiApp::pickPhysicalDevice()
 {
@@ -112,4 +114,3 @@ bool VulkanImGuiApp::isDeviceSuitable(VkPhysicalDevice device, VkSurfaceKHR surf
 
     return indices.isComplete() && fmtCount > 0 && pmCount > 0;
 }
-
