@@ -1,5 +1,5 @@
 #include "VulkanImGuiApp.h"
-#include "Game.h"
+#include "game.h"
 #include "GameSetup.h"
 #include <GLFW/glfw3.h>
 #include <imgui.h>
@@ -18,7 +18,7 @@ int VulkanImGuiApp::run()
         initWindow();
         initVulkan();
         initImGui();
-        // --- Wczytaj ikonę jako teksturę i zarejestruj w ImGui ---        
+        // --- Wczytaj ikone jako teksture i zarejestruj w ImGui ---
         setupGameEntities(entities, assets_);
         mainLoop();
         vkDeviceWaitIdle(device_);
@@ -93,13 +93,13 @@ void VulkanImGuiApp::mainLoop()
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
 
-        // --- Rysowanie świata/tła (poza oknami) ---
+        // --- Rysowanie swiata/tla (poza oknami) ---
         drawWorld();
 
         if (show_window) {
             ImGui::Begin("Hello, ImGui + Vulkan");
             ImGui::Text("To jest podstawowe okno ImGui.");
-            ImGui::Checkbox("Pokaż Demo", &show_demo);
+            ImGui::Checkbox("Pokaz Demo", &show_demo);
             if (ImGui::Button("Zamknij")) show_window = false;
             ImGui::End();
         }
@@ -169,7 +169,7 @@ void VulkanImGuiApp::cleanup()
     glfwTerminate();
 }
 
-// --- Rysowanie tła i innych obiektów (poza oknami ImGui) ---
+// --- Rysowanie tla i innych obiektow (poza oknami ImGui) ---
 void VulkanImGuiApp::drawWorld()
 {
     ImDrawList* bg = ImGui::GetBackgroundDrawList();

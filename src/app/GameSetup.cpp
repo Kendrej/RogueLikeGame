@@ -1,4 +1,4 @@
-#include "Game.h"
+#include "game.h"
 #include "Assets.h"
 #include <vector>
 #include "GameSetup.h"

@@ -1,4 +1,4 @@
-#include "Game.h"
+#include "game.h"
 
 Entity::Entity(int spriteId, uint32_t width, uint32_t height, float pos_x, float pos_y) :
 	spriteId(spriteId), width(width), height(height), pos{ pos_x,pos_y } {}

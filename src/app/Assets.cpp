@@ -10,7 +10,7 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb/stb_image.h>
 #else
-#error "Nie znaleziono stb_image.h. Zainstaluj vcpkg 'stb' lub dodaj lokalny nag³ówek."
+#error "Nie znaleziono stb_image.h. Zainstaluj vcpkg 'stb' lub dodaj lokalny naglowek."
 #endif
 
 Assets::Assets(const Ctx& ctx) : ctx_(ctx) {}
@@ -217,7 +217,7 @@ SpriteId Assets::addSpriteFromFile(const std::string& path) {
     sprites_.push_back(s);
     SpriteId id = static_cast<int>(sprites_.size() - 1);
 
-    // <<< DODAJ: zapamiêtaj œcie¿kê i zaktualizuj cache (¿eby getOrLoad widzia³ ten asset)
+    // <<< DODAJ: zapamietaj sciezke i zaktualizuj cache (zeby getOrLoad widzial ten asset)
     paths_.push_back(path);
     byPath_[path] = id;
 
@@ -230,7 +230,7 @@ SpriteId Assets::getOrLoad(const std::string& path)
         return it->second;
     SpriteId id = addSpriteFromFile(path);
     byPath_[path] = id;
-    // paths_ uzupe³nia addSpriteFromFile (patrz ni¿ej)
+    // paths_ uzupelnia addSpriteFromFile (patrz nizej)
     return id;
 }
 
@@ -246,7 +246,7 @@ void Assets::destroySprite(const Ctx& ctx, SpriteGPU& s) {
 void Assets::removeSprite(SpriteId id) {
     if (id < 0 || (size_t)id >= sprites_.size()) return;
 
-    // Usuñ z cache jeœli mamy œcie¿kê
+    // Usun z cache jesli mamy sciezke
     if (id < static_cast<SpriteId>(paths_.size())) {
         const std::string& p = paths_[id];
         if (!p.empty()) {

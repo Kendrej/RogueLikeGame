@@ -3,6 +3,9 @@ cmake_minimum_required(VERSION 3.20)
 # ===== Project =====
 project(RogueLikeGame VERSION 1.0 LANGUAGES CXX)
 
+# Przydatne dla indeksowania/clangd
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
 # C++ standard
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -35,7 +38,7 @@ add_executable(RogueLikeGame
         src/app/SyncAndDescriptors.cpp
         src/app/ImGuiInit.cpp
         src/app/game.cpp
-        src/app/assets.cpp
+        src/app/Assets.cpp
         src/app/GameSetup.cpp
 
 )
@@ -65,11 +68,16 @@ if(ENABLE_VCPKG_DEPS)
             glfw
             Vulkan::Vulkan
             glm::glm
-            # UWAGA: nie linkujemy 'stb::stb' – stb to czyste nagłówki
     )
 
-    # Dodaj include dla stb
+    # Dodaj include dla stb i Vulkan/vcpkg (jawnie, dla VS)
     target_include_directories(RogueLikeGame PRIVATE ${STB_INCLUDE_DIR})
+    if(DEFINED Vulkan_INCLUDE_DIR)
+        target_include_directories(RogueLikeGame PRIVATE ${Vulkan_INCLUDE_DIR})
+    endif()
+    if(DEFINED VCPKG_INSTALLED_DIR AND DEFINED VCPKG_TARGET_TRIPLET)
+        target_include_directories(RogueLikeGame PRIVATE ${VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/include)
+    endif()
 else()
     message(STATUS "ENABLE_VCPKG_DEPS=OFF -> budujemy bez zewnętrznych bibliotek (Hello World)")
 endif()
@@ -80,6 +88,8 @@ if(MSVC)
     if(WARNINGS_AS_ERRORS)
         target_compile_options(RogueLikeGame PRIVATE /WX)
     endif()
+    # Do not use /external:I for include dirs; put all in AdditionalIncludeDirectories for compatibility
+    set_property(TARGET RogueLikeGame PROPERTY MSVC_USE_EXTERNAL_INCLUDE_DIRS OFF)
 else()
     target_compile_options(RogueLikeGame PRIVATE -Wall -Wextra -Wpedantic)
     if(WARNINGS_AS_ERRORS)
@@ -116,4 +126,11 @@ if(WIN32 AND ENABLE_VCPKG_DEPS)
                 COMMENT "Copying vcpkg runtime DLLs to output directory")
         endif()
     endif()
+endif()
+
+# ===== Kopiowanie assets do katalogu bin (runtime) =====
+if(EXISTS "${CMAKE_SOURCE_DIR}/assets")
+    add_custom_command(TARGET RogueLikeGame POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_directory "${CMAKE_SOURCE_DIR}/assets" "$<TARGET_FILE_DIR:RogueLikeGame>/assets"
+        COMMENT "Copying assets to output directory")
 endif()
