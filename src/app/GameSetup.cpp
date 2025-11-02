@@ -12,17 +12,9 @@ Entity* spawn(std::vector<Entity*>& entities, Assets* assets, const char* path, 
     return e;
 }
 
-static Entity* spawnPlayer(std::vector<Entity*>& entities, Assets* assets, const char* path, uint32_t width, uint32_t height, float posX, float posY)
+void setupGameEntities(std::vector<Entity*>& entities, Assets* assets, Player*& outPlayer)
 {
-    int spriteId = assets->getOrLoad(path);
-    Player* p = new Player(spriteId, width, height, posX, posY);
-    entities.push_back(p);
-    return p;
-}
-
-void setupGameEntities(std::vector<Entity*>& entities, Assets* assets)
-{
-    spawnPlayer(entities, assets, "assets/characters/hero.png", 64, 64, 256.0f, 256.0f);
+    outPlayer = Player::spawn(assets, "assets/characters/hero.png", 64, 64, 256.0f, 256.0f);
     spawn(entities, assets, "assets/characters/angel.png", 64, 64, 400.0f, 256.0f);
     spawn(entities, assets, "assets/characters/angel.png", 64, 64, 400.0f, 400.0f);
 }

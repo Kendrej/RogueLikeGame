@@ -8,6 +8,7 @@ public:
 	virtual ~Entity() = default;
 
 	ImVec2 getPosition() const;
+	void setPosition(float x, float y);
 	uint32_t getWidth() const;
 	uint32_t getHeight() const;
 	int getSpriteId() const;
