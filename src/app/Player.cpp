@@ -19,7 +19,6 @@ void Player::update(float dt)
 	if (ImGui::IsKeyDown(ImGuiKey_A)) dx -= 1.0f;
 	if (ImGui::IsKeyDown(ImGuiKey_D)) dx += 1.0f;
 
-	// Normalizacja wektora kierunku, aby ruch po skosie nie był szybszy
 	if (dx != 0.0f || dy != 0.0f) {
 		float len = std::sqrt(dx * dx + dy * dy);
 		dx = (dx / len) * speed_ * dt;

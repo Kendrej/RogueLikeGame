@@ -72,9 +72,6 @@ void VulkanImGuiApp::initVulkan()
 
 void VulkanImGuiApp::mainLoop()
 {
-    bool show_demo = true;
-    bool show_window = true;
-
     while (!glfwWindowShouldClose(window_)) {
         glfwPollEvents();
 
@@ -100,15 +97,6 @@ void VulkanImGuiApp::mainLoop()
 
         // --- Rysowanie swiata/tla (poza oknami) ---
         drawWorld();
-
-        if (show_window) {
-            ImGui::Begin("Hello, ImGui + Vulkan");
-            ImGui::Text("To jest podstawowe okno ImGui.");
-            ImGui::Checkbox("Pokaz Demo", &show_demo);
-            if (ImGui::Button("Zamknij")) show_window = false;
-            ImGui::End();
-        }
-        if (show_demo) ImGui::ShowDemoWindow(&show_demo);
 
         ImGui::Render();
 
