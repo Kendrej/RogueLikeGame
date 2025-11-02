@@ -40,6 +40,7 @@ add_executable(RogueLikeGame
         src/app/game.cpp
         src/app/Assets.cpp
         src/app/GameSetup.cpp
+        src/app/Player.cpp
 
 )
 

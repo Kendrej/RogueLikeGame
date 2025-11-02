@@ -93,6 +93,11 @@ void VulkanImGuiApp::mainLoop()
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
 
+        float dt = ImGui::GetIO().DeltaTime;
+        for (Entity* e : entities) {
+            if (e) e->update(dt);
+        }
+
         // --- Rysowanie swiata/tla (poza oknami) ---
         drawWorld();
 

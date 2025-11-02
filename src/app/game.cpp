@@ -16,3 +16,8 @@ uint32_t Entity::getHeight() const {
 int Entity::getSpriteId() const {
 	return spriteId;
 }
+
+void Entity::moveBy(float dx, float dy) {
+	pos.x += dx;
+	pos.y += dy;
+}
