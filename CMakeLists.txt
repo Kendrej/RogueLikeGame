@@ -41,11 +41,16 @@ add_executable(RogueLikeGame
         src/engine/gfx/Assets.cpp
         src/app/GameSetup.cpp
         src/app/classes/Player.cpp
+        src/app/classes/Maps.cpp
 
 )
 
 # Jeśli masz własne nagłówki w ./include
-target_include_directories(RogueLikeGame PRIVATE ${CMAKE_SOURCE_DIR}/include)
+target_include_directories(RogueLikeGame PRIVATE
+    ${CMAKE_SOURCE_DIR}/include
+    ${CMAKE_SOURCE_DIR}/src/app
+    ${CMAKE_SOURCE_DIR}/src/app/classes
+)
 
 # ===== Dependencies z vcpkg (opcjonalne) =====
 if(ENABLE_VCPKG_DEPS)

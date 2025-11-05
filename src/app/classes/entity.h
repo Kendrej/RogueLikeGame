@@ -2,6 +2,7 @@
 #include <imgui.h>
 #include <cstdint>
 #include <vector>
+#include <memory>
 
 class Assets;
 
@@ -17,8 +18,13 @@ public:
 
 	void setPosition(float x, float y);
 
-	virtual void update(float dt) {}
+	virtual void update(float /*dt*/) {}
 	void moveBy(float dx, float dy);
+
+	// Factory
+	static void spawn(std::vector<std::unique_ptr<Entity>>& entities, Assets* assets,
+		const char* path, uint32_t width, uint32_t height,
+		float posX, float posY);
 private:
 	int spriteId;
 	uint32_t width = 0;
@@ -26,7 +32,3 @@ private:
 	ImVec2 pos{ 0.0f, 0.0f };
 	bool visible = true;
 };
-
-Entity* spawn(std::vector<Entity*>& entities, Assets* assets,
-	const char* path, uint32_t width, uint32_t height,
-	float posX, float posY);
