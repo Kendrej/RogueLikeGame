@@ -9,11 +9,14 @@
 #include <iostream>
 #include <stdexcept>
 #include <vector>
-#include "../../app/classes/Player.h"
+#include "Player.h"
+#include "Maps.h"
+#include <memory>
 
 //tymczasowo tu zeby bylo widac ale kiedys do refaktoryzaji
-std::vector<Entity*> entities;
-static Player* player = nullptr;
+std::vector<std::unique_ptr<Entity>> entities;
+static std::unique_ptr<Player> player = nullptr;
+std::unique_ptr<Map> map = nullptr;
 
 int VulkanImGuiApp::run()
 {
@@ -22,7 +25,8 @@ int VulkanImGuiApp::run()
         initVulkan();
         initImGui();
         // --- Wczytaj ikone jako teksture i zarejestruj w ImGui ---
-        setupGameEntities(entities, assets_, player);
+        map = std::make_unique<Map>("assets/maps/map.txt", "assets/design/wall.png", "assets/design/floor.png", assets_.get());
+        setupGameEntities(entities, assets_.get(), player);
         mainLoop();
         vkDeviceWaitIdle(device_);
         cleanup();
@@ -70,13 +74,73 @@ void VulkanImGuiApp::initVulkan()
     createDescriptorPoolForImGui();
     //tymczasowo tu zeby bylo widac ale kiedys do refaktoryzaji
     Assets::Ctx actx{ physicalDevice_, device_, graphicsQueue_, commandPool_ };
-    assets_ = new Assets(actx);
+    assets_ = std::make_unique<Assets>(actx);
+}
+
+static void drawDebugOverlay(GLFWwindow* window, const std::vector<std::unique_ptr<Entity>>& entityList, const Player* mainPlayer){
+    // Zbierz dane
+    int winW = 0, winH = 0, fbW = 0, fbH = 0;
+    glfwGetWindowSize(window, &winW, &winH);
+    glfwGetFramebufferSize(window, &fbW, &fbH);
+
+    auto& io = ImGui::GetIO();
+
+    // Ustawienia okienka (przyklejone w lewym górnym rogu, pó³przezroczyste)
+    ImGui::SetNextWindowPos(ImVec2(10, 10), ImGuiCond_Always);
+    ImGui::SetNextWindowBgAlpha(0.35f);
+
+    ImGuiWindowFlags flags =
+        ImGuiWindowFlags_NoDecoration |
+        ImGuiWindowFlags_AlwaysAutoResize |
+        ImGuiWindowFlags_NoSavedSettings |
+        ImGuiWindowFlags_NoFocusOnAppearing |
+        ImGuiWindowFlags_NoNav |
+        ImGuiWindowFlags_NoMove;
+
+    if (ImGui::Begin("Debug overlay", nullptr, flags))
+    {
+        ImGui::Text("FPS: %.1f  (dt=%.4f s)", io.Framerate, io.DeltaTime);
+        ImGui::Separator();
+
+        ImGui::Text("GLFW Window:      %d x %d", winW, winH);
+        ImGui::Text("GLFW Framebuffer: %d x %d", fbW, fbH);
+        ImGui::Text("ImGui DisplaySize: %.0f x %.0f", io.DisplaySize.x, io.DisplaySize.y);
+        ImGui::Text("ImGui FB Scale:   %.2f x %.2f", io.DisplayFramebufferScale.x, io.DisplayFramebufferScale.y);
+
+        ImGui::Separator();
+        ImGui::Text("Entities: %d", (int)entityList.size());
+        if (ImGui::TreeNode("List"))
+        {
+            for (size_t i =0; i < entityList.size(); ++i)
+            {
+                if (!entityList[i]) continue;
+                ImVec2 p = entityList[i]->getPosition();
+                ImGui::BulletText("#%zu pos=(%.0f, %.0f) size=%ux%u spriteId=%d",
+                    i, p.x, p.y, entityList[i]->getWidth(), entityList[i]->getHeight(), entityList[i]->getSpriteId());
+            }
+            ImGui::TreePop();
+        }
+
+        if (mainPlayer)
+        {
+            ImGui::Separator();
+            ImVec2 pp = mainPlayer->getPosition();
+            ImGui::Text("Player: pos=(%.0f, %.0f) size=%ux%u spriteId=%d",
+                pp.x, pp.y, mainPlayer->getWidth(), mainPlayer->getHeight(), mainPlayer->getSpriteId());
+        }
+    }
+    ImGui::End();
 }
 
 void VulkanImGuiApp::mainLoop()
 {
     while (!glfwWindowShouldClose(window_)) {
         glfwPollEvents();
+
+        if (glfwGetKey(window_, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
+            glfwSetWindowShouldClose(window_, GLFW_TRUE);
+            continue;
+        }
 
         VulkanImGuiApp::FrameSync& fs = frames_[currentFrame_];
         vkWaitForFences(device_, 1, &fs.inFlight, VK_TRUE, UINT64_MAX);
@@ -94,13 +158,15 @@ void VulkanImGuiApp::mainLoop()
         ImGui::NewFrame();
 
         float dt = ImGui::GetIO().DeltaTime;
-        for (Entity* e : entities) {
+        for (auto& e : entities) {
             if (e) e->update(dt);
         }
         if (player) player->update(dt);
 
         // --- Rysowanie swiata/tla (poza oknami) ---
         drawWorld();
+
+        drawDebugOverlay(window_, entities, player.get());
 
         ImGui::Render();
 
@@ -131,19 +197,14 @@ void VulkanImGuiApp::mainLoop()
 
 void VulkanImGuiApp::cleanup()
 {
-    if (assets_) { assets_->clear(); delete assets_; assets_ = nullptr; }
-
-    for (auto* e : entities)
-        delete e;
-    entities.clear();
-
-    if (player) { delete player; player = nullptr; }
-
     // ImGui
     ImGui_ImplVulkan_Shutdown();
     ImGui_ImplGlfw_Shutdown();
     ImGui::DestroyContext();
 
+    player.reset();
+    entities.clear();
+    assets_.reset();
     // Vulkan sync
     for (auto& f : frames_) {
         if (f.imageAvailable) vkDestroySemaphore(device_, f.imageAvailable, nullptr);
@@ -172,9 +233,20 @@ void VulkanImGuiApp::cleanup()
 void VulkanImGuiApp::drawWorld()
 {
     ImDrawList* bg = ImGui::GetBackgroundDrawList();
+    //draw map
+    for (auto& design : map->getMapTiles()) {
+        if (!design) continue;
 
+        ImVec2 pos = design->getPosition();
+        uint32_t width = design->getWidth();
+        uint32_t height = design->getHeight();
+        auto& sprite = assets_->sprite(design->getSpriteId());
+
+        bg->AddImage(sprite.imTex, pos, ImVec2(pos.x + static_cast<float>(width), pos.y + static_cast<float>(height)),
+            ImVec2(0, 0), ImVec2(1, 1), IM_COL32_WHITE);
+    }
     //wyswietlanie wszystkich spritow
-    for (Entity* e : entities) {
+    for (auto& e : entities) {
         if (!e) continue;
 
         ImVec2 pos = e->getPosition();

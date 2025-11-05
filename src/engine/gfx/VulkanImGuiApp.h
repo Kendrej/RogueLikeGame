@@ -1,12 +1,11 @@
 ﻿#pragma once
-
 #include <vulkan/vulkan_core.h>
 #include <vulkan/vulkan.h>
 #include <imgui.h>
 #include <string>
 #include "Assets.h"
+#include <memory>
 
-// Forward declaration to avoid including GLFW in public header
 struct GLFWwindow;
 
 #include <cstdint>
@@ -71,7 +70,7 @@ private:
     std::vector<FrameSync> frames_;
     uint32_t currentFrame_ = 0;
 
-    Assets* assets_ = nullptr; // lub jako wartość: Assets assets_{...}
+    std::unique_ptr<Assets> assets_ = nullptr; // lub jako wartość: Assets assets_{...}
 
 private:
     // High-level steps
