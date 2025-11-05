@@ -85,7 +85,7 @@ static void drawDebugOverlay(GLFWwindow* window, const std::vector<std::unique_p
 
     auto& io = ImGui::GetIO();
 
-    // Ustawienia okienka (przyklejone w lewym górnym rogu, pó³przezroczyste)
+    // Ustawienia okienka (przyklejone w lewym gÃ³rnym rogu, pÃ³Å‚przezroczyste)
     ImGui::SetNextWindowPos(ImVec2(10, 10), ImGuiCond_Always);
     ImGui::SetNextWindowBgAlpha(0.35f);
 
@@ -115,8 +115,8 @@ static void drawDebugOverlay(GLFWwindow* window, const std::vector<std::unique_p
             {
                 if (!entityList[i]) continue;
                 ImVec2 p = entityList[i]->getPosition();
-                ImGui::BulletText("#%zu pos=(%.0f, %.0f) size=%ux%u spriteId=%d",
-                    i, p.x, p.y, entityList[i]->getWidth(), entityList[i]->getHeight(), entityList[i]->getSpriteId());
+                ImGui::BulletText("#%zu pos=(%.0f, %.0f) size=%ux%u entityId=%d",
+                    i, p.x, p.y, entityList[i]->getWidth(), entityList[i]->getHeight(), entityList[i]->getEntityId());
             }
             ImGui::TreePop();
         }
@@ -125,8 +125,8 @@ static void drawDebugOverlay(GLFWwindow* window, const std::vector<std::unique_p
         {
             ImGui::Separator();
             ImVec2 pp = mainPlayer->getPosition();
-            ImGui::Text("Player: pos=(%.0f, %.0f) size=%ux%u spriteId=%d",
-                pp.x, pp.y, mainPlayer->getWidth(), mainPlayer->getHeight(), mainPlayer->getSpriteId());
+            ImGui::Text("Player: pos=(%.0f, %.0f) size=%ux%u entityId=%d",
+                pp.x, pp.y, mainPlayer->getWidth(), mainPlayer->getHeight(), mainPlayer->getEntityId());
         }
     }
     ImGui::End();
@@ -240,7 +240,7 @@ void VulkanImGuiApp::drawWorld()
         ImVec2 pos = design->getPosition();
         uint32_t width = design->getWidth();
         uint32_t height = design->getHeight();
-        auto& sprite = assets_->sprite(design->getSpriteId());
+        auto& sprite = assets_->icon(design->getEntityId());
 
         bg->AddImage(sprite.imTex, pos, ImVec2(pos.x + static_cast<float>(width), pos.y + static_cast<float>(height)),
             ImVec2(0, 0), ImVec2(1, 1), IM_COL32_WHITE);
@@ -252,7 +252,7 @@ void VulkanImGuiApp::drawWorld()
         ImVec2 pos = e->getPosition();
         uint32_t width = e->getWidth();
         uint32_t height = e->getHeight();
-        auto& sprite = assets_->sprite(e->getSpriteId());
+        auto& sprite = assets_->icon(e->getEntityId());
 
         bg->AddImage(sprite.imTex, pos, ImVec2(pos.x + static_cast<float>(width), pos.y + static_cast<float>(height)),
             ImVec2(0, 0), ImVec2(1, 1), IM_COL32_WHITE);
@@ -262,7 +262,7 @@ void VulkanImGuiApp::drawWorld()
         ImVec2 pos = player->getPosition();
         uint32_t width = player->getWidth();
         uint32_t height = player->getHeight();
-        auto& sprite = assets_->sprite(player->getSpriteId());
+        auto& sprite = assets_->icon(player->getEntityId());
         bg->AddImage(sprite.imTex, pos, ImVec2(pos.x + static_cast<float>(width), pos.y + static_cast<float>(height)),
             ImVec2(0, 0), ImVec2(1, 1), IM_COL32_WHITE);
     }

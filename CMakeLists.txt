@@ -42,6 +42,8 @@ add_executable(RogueLikeGame
         src/app/GameSetup.cpp
         src/app/classes/Player.cpp
         src/app/classes/Maps.cpp
+        src/app/classes/Sprite.cpp
+        src/app/classes/Sprite.h
 
 )
 

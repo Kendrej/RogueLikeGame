@@ -8,7 +8,7 @@ Player::Player(int spriteId, uint32_t width, uint32_t height, float pos_x, float
 
 void Player::spawnPlayer(std::unique_ptr<Player>& outPlayer, Assets* assets, const char* path, uint32_t width, uint32_t height, float posX, float posY)
 {
-	int spriteId = assets->getOrLoad(path);
+	int spriteId = assets->getOrLoadIcon(path);
 	outPlayer = std::make_unique<Player>(spriteId, width, height, posX, posY);
 }
 

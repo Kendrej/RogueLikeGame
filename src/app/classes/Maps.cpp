@@ -49,10 +49,10 @@ void Map::setupMap(const std::string& wallPath, const std::string& floorPath, As
 	for (int i = 0; i < rows; i++) {
 		for (int j = 0; j < columns; j++) {
 			if (mapCharacters[i][j] == '*') {
-				Entity::spawn(mapTiles, assets, wallPath.c_str(), 64, 64, posX * j, posY * i);
+				Entity::spawn(mapTiles, assets, wallPath.c_str(), 64, 64, posX * static_cast<float>(j), posY * static_cast<float>(i));
 			}
 			else if (mapCharacters[i][j] == '-') {
-				Entity::spawn(mapTiles, assets, floorPath.c_str(), 64, 64, posX * j, posY * i);
+				Entity::spawn(mapTiles, assets, floorPath.c_str(), 64, 64, posX * static_cast<float>(j), posY * static_cast<float>(i));
 			}
 			else {
 				char c = mapCharacters[i][j];
@@ -78,4 +78,3 @@ std::vector<std::unique_ptr<Entity>>& Map::getMapTiles()
 {
 	return mapTiles;
 }
-
