@@ -10,7 +10,7 @@
 #include <stdexcept>
 #include <vector>
 #include "Player.h"
-#include "Maps.h"
+#include "Map.h"
 #include <memory>
 
 //tymczasowo tu zeby bylo widac ale kiedys do refaktoryzaji
@@ -125,8 +125,8 @@ static void drawDebugOverlay(GLFWwindow* window, const std::vector<std::unique_p
         {
             ImGui::Separator();
             ImVec2 pp = mainPlayer->getPosition();
-            ImGui::Text("Player: pos=(%.0f, %.0f) size=%ux%u entityId=%d",
-                pp.x, pp.y, mainPlayer->getWidth(), mainPlayer->getHeight(), mainPlayer->getEntityId());
+            ImGui::Text("Player: pos=(%.0f, %.0f) size=%ux%u entityId=%d hp=%d",
+                pp.x, pp.y, mainPlayer->getWidth(), mainPlayer->getHeight(), mainPlayer->getEntityId(), mainPlayer->getHP());
         }
     }
     ImGui::End();

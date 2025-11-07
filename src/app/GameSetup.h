@@ -1,9 +1,10 @@
 #pragma once
 #include <vector>
 #include <memory>
+#include <Map.h>
 
 class Entity;
 class Assets;
 class Player;
 
-void setupGameEntities(std::vector<std::unique_ptr<Entity>>& entities, Assets* assets, std::unique_ptr<Player>& outPlayer);
+void setupGameEntities(World& world, Map& map, Assets& assets);

@@ -41,9 +41,13 @@ add_executable(RogueLikeGame
         src/engine/gfx/Assets.cpp
         src/app/GameSetup.cpp
         src/app/classes/Player.cpp
-        src/app/classes/Maps.cpp
-        src/app/classes/Sprite.cpp
-        src/app/classes/Sprite.h
+        src/app/classes/Map.cpp
+        src/app/classes/Npc.cpp
+        src/app/classes/Npc.h
+        src/app/classes/LivingEntity.cpp
+        src/app/classes/LivingEntity.h
+        src/app/classes/World.cpp
+        src/app/classes/World.h
 
 )
 
@@ -142,3 +146,4 @@ if(EXISTS "${CMAKE_SOURCE_DIR}/assets")
         COMMAND ${CMAKE_COMMAND} -E copy_directory "${CMAKE_SOURCE_DIR}/assets" "$<TARGET_FILE_DIR:RogueLikeGame>/assets"
         COMMENT "Copying assets to output directory")
 endif()
+
