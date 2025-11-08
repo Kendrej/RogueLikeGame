@@ -18,6 +18,13 @@ Player& World::spawnPlayer(const std::string &texturePath, uint32_t width, uint3
     return p;
 }
 
+Map& World::spawnMap(const std::string& mapPath, const std::string& wallTexturePath, const std::string& floorTexturePath) {
+    auto up = std::make_unique<Map>(mapPath, wallTexturePath, floorTexturePath, assets_);
+    Map& ref = *up;
+    maps_.emplace_back(std::move(up));
+    return ref;
+}
+
 void World::update(float dt) {
     for (auto& up : entities_) {
         if (up) up->update(dt);
@@ -44,11 +51,4 @@ bool World::remove(Entity* ptr) {
     if (removed && player_ == ptr) player_ = nullptr;
     return removed;
 }
-
-
-
-
-
-
-
 

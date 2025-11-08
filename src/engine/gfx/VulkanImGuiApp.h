@@ -73,7 +73,6 @@ private:
     uint32_t currentFrame_ = 0;
 
     std::unique_ptr<Assets> assets_ = nullptr;
-    std::unique_ptr<Map> map_;
     std::unique_ptr<World> world_;
 
 private:

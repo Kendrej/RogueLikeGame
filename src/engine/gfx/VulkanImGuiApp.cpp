@@ -22,7 +22,6 @@ int VulkanImGuiApp::run()
         initVulkan();
         initImGui();
         // --- Wczytaj ikone jako teksture i zarejestruj w ImGui ---
-        map_ = std::make_unique<Map>("assets/maps/map.txt", "assets/design/wall.png", "assets/design/floor.png", assets_.get());
 		world_ = std::make_unique<World>(assets_.get());
 		setupGame(*world_);
         mainLoop();
@@ -213,7 +212,6 @@ void VulkanImGuiApp::cleanup()
     if (device_) vkDeviceWaitIdle(device_);
 
     world_.reset();
-    map_.reset();
     // ImGui
     ImGui_ImplVulkan_Shutdown();
     ImGui_ImplGlfw_Shutdown();
@@ -249,10 +247,11 @@ void VulkanImGuiApp::drawWorld()
 {
     ImDrawList* bg = ImGui::GetBackgroundDrawList();
     if (!assets_) return;
+    
+    if (world_) {
+        Map* map = world_->getMap(world_->getCurrentMapIndex()-1);
 
-    //draw map
-    if (map_) {
-        for (auto& design : map_->getMapTiles()) {
+        for (auto& design : map->getMapTiles()) {
             if (!design) continue;
 
             ImVec2 pos = design->getPosition();
@@ -261,11 +260,9 @@ void VulkanImGuiApp::drawWorld()
             auto& sprite = assets_->icon(design->getEntityId());
 
             bg->AddImage(sprite.imTex, pos, ImVec2(pos.x + static_cast<float>(width), pos.y + static_cast<float>(height)),
-            ImVec2(0, 0), ImVec2(1, 1), IM_COL32_WHITE);
+                ImVec2(0, 0), ImVec2(1, 1), IM_COL32_WHITE);
         }
-    }
-    
-    if (world_) {
+
         for (auto& e : world_->entities()) {
             if (!e) continue;
 
