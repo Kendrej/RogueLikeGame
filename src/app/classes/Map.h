@@ -6,7 +6,6 @@
 #include <string>
 #include <vector>
 
-class Entity;
 class Assets;
 
 class Map {
@@ -17,6 +16,7 @@ public:
 	void setupMap(const std::string& wallPath, const std::string& floorPath, Assets* assets);
 	std::vector<std::unique_ptr<Entity>>& getMapTiles();
 private:
+	void spawnMapTile(const std::string& texturePath, uint32_t width, uint32_t height, float posX, float posY, Assets* assets);
 	std::vector<std::unique_ptr<Entity>> mapTiles;
 	const int rows = 17;
 	int columns = 30;

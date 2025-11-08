@@ -4,8 +4,8 @@
 #include <string>
 #include <cstdint>
 #include <functional>
+#include "entity.h"
 
-class Entity;
 class Player;
 class Assets;
 

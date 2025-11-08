@@ -4,7 +4,7 @@
 #include <iostream>
 #include <sstream>
 #include <stdexcept>
-
+#include "Assets.h"
 
 Map::Map(const std::string& path, const std::string& wallPath, const std::string& floorPath, Assets* assets) : mapCharacters(rows, std::vector<char>(columns, ' '))
 {
@@ -41,6 +41,12 @@ void Map::initializeMapCharacters(const std::string& path)
 	}
 }
 
+void Map::spawnMapTile(const std::string& texturePath, uint32_t width, uint32_t height, float posX, float posY, Assets* assets)
+{
+	int id = assets->getOrLoadIcon(texturePath);
+	mapTiles.push_back(std::make_unique<Entity>(id, width, height, posX, posY));
+}
+
 void Map::setupMap(const std::string& wallPath, const std::string& floorPath, Assets* assets)
 {
 	float posX = 1920.0f / 30.0f;
@@ -49,10 +55,10 @@ void Map::setupMap(const std::string& wallPath, const std::string& floorPath, As
 	for (int i = 0; i < rows; i++) {
 		for (int j = 0; j < columns; j++) {
 			if (mapCharacters[i][j] == '*') {
-				Entity::spawn(mapTiles, assets, wallPath.c_str(), 64, 64, posX * static_cast<float>(j), posY * static_cast<float>(i));
+				spawnMapTile(wallPath, 64, 64, posX * static_cast<float>(j), posY * static_cast<float>(i), assets);
 			}
 			else if (mapCharacters[i][j] == '-') {
-				Entity::spawn(mapTiles, assets, floorPath.c_str(), 64, 64, posX * static_cast<float>(j), posY * static_cast<float>(i));
+				spawnMapTile(floorPath, 64, 64, posX * static_cast<float>(j), posY * static_cast<float>(i), assets);
 			}
 			else {
 				char c = mapCharacters[i][j];

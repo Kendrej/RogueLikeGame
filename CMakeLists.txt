@@ -43,11 +43,8 @@ add_executable(RogueLikeGame
         src/app/classes/Player.cpp
         src/app/classes/Map.cpp
         src/app/classes/Npc.cpp
-        src/app/classes/Npc.h
         src/app/classes/LivingEntity.cpp
-        src/app/classes/LivingEntity.h
         src/app/classes/World.cpp
-        src/app/classes/World.h
 
 )
 
@@ -56,6 +53,7 @@ target_include_directories(RogueLikeGame PRIVATE
     ${CMAKE_SOURCE_DIR}/include
     ${CMAKE_SOURCE_DIR}/src/app
     ${CMAKE_SOURCE_DIR}/src/app/classes
+    ${CMAKE_SOURCE_DIR}/src/engine/gfx
 )
 
 # ===== Dependencies z vcpkg (opcjonalne) =====
