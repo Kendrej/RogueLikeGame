@@ -1,14 +1,13 @@
 #pragma once
-#include "entity.h"
+#include "Entity.h"
 #include <memory>
+
+#include "LivingEntity.h"
 
 class Assets;
 
-class Player : public Entity {
+class Player : public LivingEntity {
 public:
-	Player(int spriteId, uint32_t width, uint32_t height, float pos_x, float pos_y, float speed =200.0f);
+	Player(int playerId, uint32_t width, uint32_t height, float pos_x, float pos_y);
 	void update(float dt) override;
-	static void spawnPlayer(std::unique_ptr<Player>& outPlayer, Assets* assets, const char* path, uint32_t width, uint32_t height, float posX, float posY);
-private:
-	float speed_ =200.0f;
 };

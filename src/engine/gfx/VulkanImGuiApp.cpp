@@ -1,6 +1,6 @@
 #include "VulkanImGuiApp.h"
-#include "../../app/classes/entity.h"
-#include "../../app/GameSetup.h"
+#include "../../app/classes/Entity.h"
+#include "GameSetup.h"
 #include <GLFW/glfw3.h>
 #include <imgui.h>
 #include <imgui_impl_glfw.h>
@@ -10,13 +10,10 @@
 #include <stdexcept>
 #include <vector>
 #include "Player.h"
-#include "Maps.h"
+#include "Map.h"
 #include <memory>
-
-//tymczasowo tu zeby bylo widac ale kiedys do refaktoryzaji
-std::vector<std::unique_ptr<Entity>> entities;
-static std::unique_ptr<Player> player = nullptr;
-std::unique_ptr<Map> map = nullptr;
+#include "World.h"
+#include <cmath>
 
 int VulkanImGuiApp::run()
 {
@@ -25,8 +22,8 @@ int VulkanImGuiApp::run()
         initVulkan();
         initImGui();
         // --- Wczytaj ikone jako teksture i zarejestruj w ImGui ---
-        map = std::make_unique<Map>("assets/maps/map.txt", "assets/design/wall.png", "assets/design/floor.png", assets_.get());
-        setupGameEntities(entities, assets_.get(), player);
+		world_ = std::make_unique<World>(assets_.get());
+		setupGame(*world_);
         mainLoop();
         vkDeviceWaitIdle(device_);
         cleanup();
@@ -85,7 +82,7 @@ static void drawDebugOverlay(GLFWwindow* window, const std::vector<std::unique_p
 
     auto& io = ImGui::GetIO();
 
-    // Ustawienia okienka (przyklejone w lewym g�rnym rogu, p�przezroczyste)
+    // Ustawienia okienka (przyklejone w lewym górnym rogu, półprzezroczyste)
     ImGui::SetNextWindowPos(ImVec2(10, 10), ImGuiCond_Always);
     ImGui::SetNextWindowBgAlpha(0.35f);
 
@@ -115,8 +112,8 @@ static void drawDebugOverlay(GLFWwindow* window, const std::vector<std::unique_p
             {
                 if (!entityList[i]) continue;
                 ImVec2 p = entityList[i]->getPosition();
-                ImGui::BulletText("#%zu pos=(%.0f, %.0f) size=%ux%u spriteId=%d",
-                    i, p.x, p.y, entityList[i]->getWidth(), entityList[i]->getHeight(), entityList[i]->getSpriteId());
+                ImGui::BulletText("#%zu pos=(%.0f, %.0f) size=%ux%u entityId=%d",
+                    i, p.x, p.y, entityList[i]->getWidth(), entityList[i]->getHeight(), entityList[i]->getEntityId());
             }
             ImGui::TreePop();
         }
@@ -125,8 +122,8 @@ static void drawDebugOverlay(GLFWwindow* window, const std::vector<std::unique_p
         {
             ImGui::Separator();
             ImVec2 pp = mainPlayer->getPosition();
-            ImGui::Text("Player: pos=(%.0f, %.0f) size=%ux%u spriteId=%d",
-                pp.x, pp.y, mainPlayer->getWidth(), mainPlayer->getHeight(), mainPlayer->getSpriteId());
+            ImGui::Text("Player: pos=(%.0f, %.0f) size=%ux%u entityId=%d",
+                pp.x, pp.y, mainPlayer->getWidth(), mainPlayer->getHeight(), mainPlayer->getEntityId());
         }
     }
     ImGui::End();
@@ -137,9 +134,10 @@ void VulkanImGuiApp::mainLoop()
     while (!glfwWindowShouldClose(window_)) {
         glfwPollEvents();
 
+        // Sprawdz ESC najpierw, zanim ruszymy sync (unikanie potencjalnego czekania na fence po wyjściu)
         if (glfwGetKey(window_, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
             glfwSetWindowShouldClose(window_, GLFW_TRUE);
-            continue;
+            break; // wyjdz od razu
         }
 
         VulkanImGuiApp::FrameSync& fs = frames_[currentFrame_];
@@ -158,15 +156,24 @@ void VulkanImGuiApp::mainLoop()
         ImGui::NewFrame();
 
         float dt = ImGui::GetIO().DeltaTime;
-        for (auto& e : entities) {
-            if (e) e->update(dt);
+
+        // --- Proste sterowanie WASD oparte o GLFW (nie zależne od stanu przechwycenia klawiatury przez ImGui) ---
+        if (auto* player = world_ ? world_->getPlayer() : nullptr) {
+            float dx = 0.0f, dy = 0.0f;
+            if (glfwGetKey(window_, GLFW_KEY_W) == GLFW_PRESS) dy -= 1.0f;
+            if (glfwGetKey(window_, GLFW_KEY_S) == GLFW_PRESS) dy += 1.0f;
+            if (glfwGetKey(window_, GLFW_KEY_A) == GLFW_PRESS) dx -= 1.0f;
+            if (glfwGetKey(window_, GLFW_KEY_D) == GLFW_PRESS) dx += 1.0f;
+            player->applyInput(ImVec2(dx,dy));
         }
-        if (player) player->update(dt);
+
+		if (world_) world_->update(dt);
 
         // --- Rysowanie swiata/tla (poza oknami) ---
         drawWorld();
 
-        drawDebugOverlay(window_, entities, player.get());
+        //debug window
+        if (world_) drawDebugOverlay(window_, world_->entities(), world_->getPlayer());
 
         ImGui::Render();
 
@@ -197,13 +204,14 @@ void VulkanImGuiApp::mainLoop()
 
 void VulkanImGuiApp::cleanup()
 {
+    if (device_) vkDeviceWaitIdle(device_);
+
+    world_.reset();
     // ImGui
     ImGui_ImplVulkan_Shutdown();
     ImGui_ImplGlfw_Shutdown();
     ImGui::DestroyContext();
 
-    player.reset();
-    entities.clear();
     assets_.reset();
     // Vulkan sync
     for (auto& f : frames_) {
@@ -229,41 +237,46 @@ void VulkanImGuiApp::cleanup()
     glfwTerminate();
 }
 
-// --- Rysowanie tla i innych obiektow (poza oknami ImGui) ---
 void VulkanImGuiApp::drawWorld()
 {
+    if (!assets_ || !world_) return;
+
     ImDrawList* bg = ImGui::GetBackgroundDrawList();
-    //draw map
-    for (auto& design : map->getMapTiles()) {
-        if (!design) continue;
 
-        ImVec2 pos = design->getPosition();
-        uint32_t width = design->getWidth();
-        uint32_t height = design->getHeight();
-        auto& sprite = assets_->sprite(design->getSpriteId());
+    for (const auto& up : world_->entities()) {
+        if (!up) continue;
+        if (up.get() == world_->getPlayer()) continue;
 
-        bg->AddImage(sprite.imTex, pos, ImVec2(pos.x + static_cast<float>(width), pos.y + static_cast<float>(height)),
-            ImVec2(0, 0), ImVec2(1, 1), IM_COL32_WHITE);
-    }
-    //wyswietlanie wszystkich spritow
-    for (auto& e : entities) {
-        if (!e) continue;
+        const Entity& e = *up;
+        if (!e.isVisible()) continue;
 
-        ImVec2 pos = e->getPosition();
-        uint32_t width = e->getWidth();
-        uint32_t height = e->getHeight();
-        auto& sprite = assets_->sprite(e->getSpriteId());
+        const ImVec2 pos = e.getPosition();
+        const uint32_t w = e.getWidth();
+        const uint32_t h = e.getHeight();
 
-        bg->AddImage(sprite.imTex, pos, ImVec2(pos.x + static_cast<float>(width), pos.y + static_cast<float>(height)),
-            ImVec2(0, 0), ImVec2(1, 1), IM_COL32_WHITE);
+        const auto& entity = assets_->icon(e.getEntityId());
+        bg->AddImage(
+            entity.imTex,
+            pos,
+            ImVec2(pos.x + static_cast<float>(w), pos.y + static_cast<float>(h)),
+            ImVec2(0, 0), ImVec2(1, 1),
+            IM_COL32_WHITE
+        );
     }
 
-    if (player) {
-        ImVec2 pos = player->getPosition();
-        uint32_t width = player->getWidth();
-        uint32_t height = player->getHeight();
-        auto& sprite = assets_->sprite(player->getSpriteId());
-        bg->AddImage(sprite.imTex, pos, ImVec2(pos.x + static_cast<float>(width), pos.y + static_cast<float>(height)),
-            ImVec2(0, 0), ImVec2(1, 1), IM_COL32_WHITE);
+    if (auto* player = world_->getPlayer()) {
+        const ImVec2 pos = player->getPosition();
+        const uint32_t w = player->getWidth();
+        const uint32_t h = player->getHeight();
+
+        const auto& entity = assets_->icon(player->getEntityId());
+        bg->AddImage(
+            entity.imTex,
+            pos,
+            ImVec2(pos.x + static_cast<float>(w), pos.y + static_cast<float>(h)),
+            ImVec2(0, 0), ImVec2(1, 1),
+            IM_COL32_WHITE
+        );
     }
 }
+

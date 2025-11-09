@@ -141,7 +141,7 @@ VkImageView Assets::createImageView(VkImage image, VkFormat format) const {
     return view;
 }
 
-SpriteId Assets::addSpriteFromFile(const std::string& path) {
+IconId Assets::addIconFromFile(const std::string& path) {
     int texW = 0, texH = 0, texC = 0;
     stbi_uc* pixels = stbi_load(path.c_str(), &texW, &texH, &texC, STBI_rgb_alpha);
     if (!pixels) throw std::runtime_error("Failed to load image: " + path);
@@ -161,7 +161,7 @@ SpriteId Assets::addSpriteFromFile(const std::string& path) {
     vkUnmapMemory(ctx_.device, stagingMemory);
     stbi_image_free(pixels);
 
-    SpriteGPU s{};
+    IconGPU s{};
 
     VkImageCreateInfo ici{ VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO };
     ici.imageType = VK_IMAGE_TYPE_2D;
@@ -214,40 +214,40 @@ SpriteId Assets::addSpriteFromFile(const std::string& path) {
     vkDestroyBuffer(ctx_.device, stagingBuffer, nullptr);
     vkFreeMemory(ctx_.device, stagingMemory, nullptr);
 
-    sprites_.push_back(s);
-    SpriteId id = static_cast<int>(sprites_.size() - 1);
+    icons_.push_back(s);
+    auto id = static_cast<IconId>(icons_.size() - 1);
 
-    // <<< DODAJ: zapamietaj sciezke i zaktualizuj cache (zeby getOrLoad widzial ten asset)
+    // <<< DODAJ: zapamietaj sciezke i zaktualizuj cache (zeby getOrLoadIcon widzial ten asset)
     paths_.push_back(path);
     byPath_[path] = id;
 
     return id;
 }
 
-SpriteId Assets::getOrLoad(const std::string& path)
+IconId Assets::getOrLoadIcon(const std::string& path)
 {
     if (auto it = byPath_.find(path); it != byPath_.end())
         return it->second;
-    SpriteId id = addSpriteFromFile(path);
+    IconId id = addIconFromFile(path);
     byPath_[path] = id;
-    // paths_ uzupelnia addSpriteFromFile (patrz nizej)
+    // paths_ uzupelnia addIconFromFile (patrz nizej)
     return id;
 }
 
-void Assets::destroySprite(const Ctx& ctx, SpriteGPU& s) {
+void Assets::destroyIcon(const Ctx& ctx, IconGPU& s) {
     if (s.imTex) ImGui_ImplVulkan_RemoveTexture((VkDescriptorSet)(uintptr_t)s.imTex);
     if (s.sampler) vkDestroySampler(ctx.device, s.sampler, nullptr);
     if (s.view)    vkDestroyImageView(ctx.device, s.view, nullptr);
     if (s.image)   vkDestroyImage(ctx.device, s.image, nullptr);
     if (s.memory)  vkFreeMemory(ctx.device, s.memory, nullptr);
-    s = SpriteGPU{};
+    s = IconGPU{};
 }
 
-void Assets::removeSprite(SpriteId id) {
-    if (id < 0 || (size_t)id >= sprites_.size()) return;
+void Assets::removeIcon(IconId id) {
+    if (id < 0 || (size_t)id >= icons_.size()) return;
 
     // Usun z cache jesli mamy sciezke
-    if (id < static_cast<SpriteId>(paths_.size())) {
+    if (id < static_cast<IconId>(paths_.size())) {
         const std::string& p = paths_[id];
         if (!p.empty()) {
             auto it = byPath_.find(p);
@@ -257,13 +257,13 @@ void Assets::removeSprite(SpriteId id) {
         paths_[id].clear();
     }
 
-    destroySprite(ctx_, sprites_[id]); // stabilne ID, zostaje "dziura"
+    destroyIcon(ctx_, icons_[id]); // stabilne ID, zostaje "dziura"
 }
 
 
 void Assets::clear() {
-    for (auto& s : sprites_) destroySprite(ctx_, s);
-    sprites_.clear();
+    for (auto& s : icons_) destroyIcon(ctx_, s);
+    icons_.clear();
     byPath_.clear();     // <<< DODAJ
     paths_.clear();      // <<< DODAJ
 }
