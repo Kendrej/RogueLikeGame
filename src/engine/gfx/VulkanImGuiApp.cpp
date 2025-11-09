@@ -164,12 +164,7 @@ void VulkanImGuiApp::mainLoop()
             if (glfwGetKey(window_, GLFW_KEY_S) == GLFW_PRESS) dy += 1.0f;
             if (glfwGetKey(window_, GLFW_KEY_A) == GLFW_PRESS) dx -= 1.0f;
             if (glfwGetKey(window_, GLFW_KEY_D) == GLFW_PRESS) dx += 1.0f;
-            if (dx != 0.0f || dy != 0.0f) {
-                float len = std::sqrt(dx*dx + dy*dy);
-                if (len > 0.0f) { dx /= len; dy /= len; }
-                const float speed = 250.0f; // px/s
-                player->moveBy(dx * speed * dt, dy * speed * dt);
-            }
+            player->applyInput(ImVec2(dx,dy));
         }
 
 		if (world_) world_->update(dt);
