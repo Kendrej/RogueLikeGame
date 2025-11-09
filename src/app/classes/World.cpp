@@ -1,15 +1,15 @@
 #include "World.h"
-#include "Entity.h"
+#include "StaticEntity.h"
 #include "Player.h"
 #include "Assets.h"
 #include <algorithm>
 #include <utility>
-#include <Map.h>
+#include "Map.h"
 
 
-Entity& World::spawnTile(const std::string &texturePath, uint32_t width, uint32_t height, float pos_x, float pos_y) {
+StaticEntity& World::spawnTile(const std::string &texturePath, uint32_t width, uint32_t height, float pos_x, float pos_y, bool solid) {
     const int entityId = assets_ ? assets_->getOrLoadIcon(texturePath) : -1;
-    return addEntity<Entity>(entityId, width, height, pos_x ,pos_y);
+    return addEntity<StaticEntity>(entityId, width, height, pos_x ,pos_y, solid);
 }
 
 Player& World::spawnPlayer(const std::string &texturePath, uint32_t width, uint32_t height, float pos_x, float pos_y) {
@@ -24,9 +24,9 @@ void World::buildFromMap(const Map &map, const std::string &wallTexturePath, con
         const float x = j * static_cast<float>(tileW);
         const float y = i * static_cast<float>(tileH);
         if (t == '*') {
-            spawnTile(wallTexturePath, tileW, tileH, x, y);
+            spawnTile(wallTexturePath, tileW, tileH, x, y, true);
         } else if (t == '-') {
-            spawnTile(floorTexturePath, tileW, tileH, x , y);
+            spawnTile(floorTexturePath, tileW, tileH, x , y, false);
         }
     });
 }
