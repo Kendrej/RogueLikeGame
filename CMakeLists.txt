@@ -45,6 +45,8 @@ add_executable(RogueLikeGame
         src/app/classes/Npc.cpp
         src/app/classes/LivingEntity.cpp
         src/app/classes/World.cpp
+        src/app/classes/StaticEntity.cpp
+        src/app/classes/StaticEntity.h
 
 )
 

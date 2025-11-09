@@ -1,5 +1,5 @@
 #include "VulkanImGuiApp.h"
-#include "../../app/classes/entity.h"
+#include "../../app/classes/Entity.h"
 #include "GameSetup.h"
 #include <GLFW/glfw3.h>
 #include <imgui.h>
@@ -237,46 +237,46 @@ void VulkanImGuiApp::cleanup()
     glfwTerminate();
 }
 
-// --- Rysowanie tla i innych obiektow (poza oknami ImGui) ---
 void VulkanImGuiApp::drawWorld()
 {
+    if (!assets_ || !world_) return;
+
     ImDrawList* bg = ImGui::GetBackgroundDrawList();
-    if (!assets_) return;
-    
-    if (world_) {
-        Map* map = world_->getMap(world_->getCurrentMapIndex()-1);
 
-        for (auto& design : map->getMapTiles()) {
-            if (!design) continue;
+    for (const auto& up : world_->entities()) {
+        if (!up) continue;
+        if (up.get() == world_->getPlayer()) continue;
 
-            ImVec2 pos = design->getPosition();
-            uint32_t width = design->getWidth();
-            uint32_t height = design->getHeight();
-            auto& sprite = assets_->icon(design->getEntityId());
+        const Entity& e = *up;
+        if (!e.isVisible()) continue;
 
-            bg->AddImage(sprite.imTex, pos, ImVec2(pos.x + static_cast<float>(width), pos.y + static_cast<float>(height)),
-                ImVec2(0, 0), ImVec2(1, 1), IM_COL32_WHITE);
-        }
+        const ImVec2 pos = e.getPosition();
+        const uint32_t w = e.getWidth();
+        const uint32_t h = e.getHeight();
 
-        for (auto& e : world_->entities()) {
-            if (!e) continue;
+        const auto& entity = assets_->icon(e.getEntityId());
+        bg->AddImage(
+            entity.imTex,
+            pos,
+            ImVec2(pos.x + static_cast<float>(w), pos.y + static_cast<float>(h)),
+            ImVec2(0, 0), ImVec2(1, 1),
+            IM_COL32_WHITE
+        );
+    }
 
-            ImVec2 pos = e->getPosition();
-            uint32_t width = e->getWidth();
-            uint32_t height = e->getHeight();
-            auto& sprite = assets_->icon(e->getEntityId());
+    if (auto* player = world_->getPlayer()) {
+        const ImVec2 pos = player->getPosition();
+        const uint32_t w = player->getWidth();
+        const uint32_t h = player->getHeight();
 
-            bg->AddImage(sprite.imTex, pos, ImVec2(pos.x + static_cast<float>(width), pos.y + static_cast<float>(height)),
-            ImVec2(0, 0), ImVec2(1, 1), IM_COL32_WHITE);
-        }
-
-        if (auto* player = world_->getPlayer()) {
-            ImVec2 pos = player->getPosition();
-            uint32_t width = player->getWidth();
-            uint32_t height = player->getHeight();
-            auto& sprite = assets_->icon(player->getEntityId());
-            bg->AddImage(sprite.imTex, pos, ImVec2(pos.x + static_cast<float>(width), pos.y + static_cast<float>(height)),
-            ImVec2(0, 0), ImVec2(1, 1), IM_COL32_WHITE);
-        }
+        const auto& entity = assets_->icon(player->getEntityId());
+        bg->AddImage(
+            entity.imTex,
+            pos,
+            ImVec2(pos.x + static_cast<float>(w), pos.y + static_cast<float>(h)),
+            ImVec2(0, 0), ImVec2(1, 1),
+            IM_COL32_WHITE
+        );
     }
 }
+

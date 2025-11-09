@@ -4,7 +4,7 @@
 #include <string>
 #include <cstdint>
 #include <functional>
-#include "entity.h"
+#include "Entity.h"
 #include "Map.h" // added to ensure Map is a complete type for unique_ptr
 
 class Player;
@@ -22,10 +22,12 @@ public:
     Player& spawnPlayer(const std::string& texturePath,
                         uint32_t width, uint32_t height,
                         float pos_x, float pos_y);
-    Map& spawnMap(const std::string& mapPath,
-                  const std::string& wallTexturePath,
-		          const std::string& floorTexturePath);
 
+    void buildFromMap(const Map& map,
+                      const std::string& wallTexturePath,
+                      const std::string& floorTexturePath,
+                      uint32_t tileW, uint32_t tileH)
+    ;
     void update(float dt);
     void clear();
 
@@ -37,8 +39,8 @@ public:
     const std::vector<std::unique_ptr<Entity>>& entities() const noexcept { return entities_; }
     void forEachEntity(const std::function<void(Entity&)>& fn);
     bool remove(Entity* ptr);
-	void setCurrentMapIndex(int index) { currentMapIntex = index; }
-	int getCurrentMapIndex() const { return currentMapIntex; }
+	void setCurrentMapIndex(int index) { currentMapIndex = index; }
+	int getCurrentMapIndex() const { return currentMapIndex; }
 private:
     template <class T, class... Args>
     T& addEntity(Args&&... args) {
@@ -47,7 +49,7 @@ private:
         entities_.emplace_back(std::move(up));
         return ref;
     }
-	int currentMapIntex =0;
+	int currentMapIndex = 0;
     std::vector<std::unique_ptr<Map>> maps_;
     Assets* assets_{nullptr};
     std::vector<std::unique_ptr<Entity>> entities_;

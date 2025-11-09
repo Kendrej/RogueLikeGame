@@ -1,9 +1,10 @@
 #include "World.h"
-#include "entity.h"
+#include "Entity.h"
 #include "Player.h"
 #include "Assets.h"
 #include <algorithm>
 #include <utility>
+#include <Map.h>
 
 
 Entity& World::spawnTile(const std::string &texturePath, uint32_t width, uint32_t height, float pos_x, float pos_y) {
@@ -18,12 +19,18 @@ Player& World::spawnPlayer(const std::string &texturePath, uint32_t width, uint3
     return p;
 }
 
-Map& World::spawnMap(const std::string& mapPath, const std::string& wallTexturePath, const std::string& floorTexturePath) {
-    auto up = std::make_unique<Map>(mapPath, wallTexturePath, floorTexturePath, assets_);
-    Map& ref = *up;
-    maps_.emplace_back(std::move(up));
-    return ref;
+void World::buildFromMap(const Map &map, const std::string &wallTexturePath, const std::string &floorTexturePath, uint32_t tileW, uint32_t tileH) {
+    map.forEachTile([&](int i, int j, char t){
+        const float x = j * static_cast<float>(tileW);
+        const float y = i * static_cast<float>(tileH);
+        if (t == '*') {
+            spawnTile(wallTexturePath, tileW, tileH, x, y);
+        } else if (t == '-') {
+            spawnTile(floorTexturePath, tileW, tileH, x , y);
+        }
+    });
 }
+
 
 void World::update(float dt) {
     for (auto& up : entities_) {

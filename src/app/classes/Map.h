@@ -1,24 +1,20 @@
 #pragma once
-
-#include "entity.h"
-
-#include <memory>
 #include <string>
 #include <vector>
+#include <functional>
 
 class Assets;
 
 class Map {
 public:
-	Map(const std::string& path, const std::string& wallPath, const std::string& floorPath, Assets* assets);
-	void test();
-	void initializeMapCharacters(const std::string& path);
-	void setupMap(const std::string& wallPath, const std::string& floorPath, Assets* assets);
-	std::vector<std::unique_ptr<Entity>>& getMapTiles();
+    Map() = default;
+    bool loadFromFile(const std::string& path);
+    int getRows() const { return rows; };
+    int getColumns() const {return columns; };
+    char tileAt(int r, int c) const;
+    void forEachTile(const std::function<void(int,int,char)>& fn) const;
 private:
-	void spawnMapTile(const std::string& texturePath, uint32_t width, uint32_t height, float posX, float posY, Assets* assets);
-	std::vector<std::unique_ptr<Entity>> mapTiles;
-	const int rows = 17;
-	int columns = 30;
-	std::vector<std::vector<char>> mapCharacters;
+    int rows = 0;
+    int columns = 0;
+    std::vector<std::vector<char>> grid;
 };

@@ -1,4 +1,4 @@
-#include "entity.h"
+#include "Entity.h"
 #include "../../engine/gfx/Assets.h"
 
 Entity::Entity(int entityId, uint32_t width, uint32_t height, float pos_x, float pos_y)
