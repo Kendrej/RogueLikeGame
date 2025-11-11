@@ -1,7 +1,7 @@
 #include "LivingEntity.h"
 #include "cmath"
-LivingEntity::LivingEntity(int entityId, uint32_t width, uint32_t height, float pos_x, float pos_y)
-    : Entity(entityId, width, height, pos_x, pos_y) {}
+LivingEntity::LivingEntity(int entityId, uint32_t width, uint32_t height, float pos_x, float pos_y, int maxHp_)
+    : Entity(entityId, width, height, pos_x, pos_y), maxHp(maxHp_) {}
 
 ImVec2 LivingEntity::getVelocity() const {
     return velocity;
@@ -55,6 +55,21 @@ void LivingEntity::update(float dt) {
     }
     moveBy(velocity.x * dt, velocity.y * dt);
 }
+
+void LivingEntity::takeDamage(int dmg) {
+    if (!isAlive()) return;
+
+    hp -= dmg;
+    if (hp <= 0) hp = 0;
+}
+
+void LivingEntity::heal(int amount) {
+    if (!isAlive()) return;
+    hp += amount;
+    if (hp >= maxHp) hp = maxHp;
+}
+
+
 
 
 

@@ -12,9 +12,9 @@ StaticEntity& World::spawnTile(const std::string &texturePath, uint32_t width, u
     return addEntity<StaticEntity>(entityId, width, height, pos_x ,pos_y, solid);
 }
 
-Player& World::spawnPlayer(const std::string &texturePath, uint32_t width, uint32_t height, float pos_x, float pos_y) {
+Player& World::spawnPlayer(const std::string &texturePath, uint32_t width, uint32_t height, float pos_x, float pos_y, int maxHp) {
     const int playerId = assets_ ? assets_->getOrLoadIcon(texturePath) : -1;
-    Player& p = addEntity<Player>(playerId, width , height , pos_x, pos_y);
+    Player& p = addEntity<Player>(playerId, width , height , pos_x, pos_y,  maxHp);
     player_ = &p;
     return p;
 }
