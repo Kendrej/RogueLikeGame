@@ -7,7 +7,7 @@
 void setupGame(World& world)
 {
     Map map;
-    if (!map.loadFromFile("assets/maps/map1.txt")) {
+    if (!map.loadFromFile("assets/maps/map0.txt")) {
         throw std::runtime_error("Could not load map file!");
     }
 

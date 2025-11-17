@@ -51,6 +51,13 @@ private:
         entities_.emplace_back(std::move(up));
         return ref;
     }
+
+    // Collision helpers (renamed for clarity)
+    static bool intersectsAABB(const Entity& a, const Entity& b);
+    static bool intersectsAABBAt(const Entity& a, const Entity& b, float aPosX, float aPosY);
+    static void moveWithCollisions(Entity& mover, float dx, float dy, const std::vector<std::unique_ptr<Entity>>& entities);
+    static void pushOutOfSolids(Entity& mover, const std::vector<std::unique_ptr<Entity>>& entities);
+
 	int currentMapIndex = 0;
     std::vector<std::unique_ptr<Map>> maps_;
     Assets* assets_{nullptr};

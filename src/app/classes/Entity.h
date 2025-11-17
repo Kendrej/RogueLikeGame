@@ -17,6 +17,9 @@ public:
 	int getEntityId() const;
 	bool isVisible() const;
 
+	// Collision/property hooks
+	virtual bool isSolid() const { return false; }
+
 	void setVisible(bool visible);
 	void setPosition(float x, float y);
 
