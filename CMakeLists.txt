@@ -49,8 +49,9 @@ add_executable(RogueLikeGame
         src/app/classes/StaticEntity.h
         src/app/classes/npc/INpcController.cpp
         src/app/classes/npc/INpcController.h
-        src/app/classes/npc/ChaseController.cpp
-        src/app/classes/npc/ChaseController.h
+        src/app/classes/npc/MeleeController.cpp
+        src/app/classes/npc/MeleeController.h
+        src/app/classes/MathUtils.h
 
 )
 

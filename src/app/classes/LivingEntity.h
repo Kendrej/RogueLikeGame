@@ -32,7 +32,9 @@ public:
     float getAttackRange() const { return attackCooldown ;}
 
     void resetAttackTimer() {attackTimer = 0.0f ;}
-    bool canAttack() const {return attackTimer <= 0.f; }
+    bool canAttack() const {return attackTimer == 0.f; }
+
+    void startAttackCooldown() {attackTimer = attackCooldown ;}
 protected:
     ImVec2 velocity{ 0.0f, 0.0f };
     float maxSpeed = 5.0f;
@@ -41,9 +43,9 @@ protected:
     int hp = 0;
     int maxHp;
 
-    int attackDamage =5;
-    float attackCooldown = 0.5f;
-    float attackRange = 40.f;
+    int attackDamage ;
+    float attackCooldown;
+    float attackRange;
     float attackTimer = 0.0f;
 
 

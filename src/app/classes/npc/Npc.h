@@ -14,6 +14,8 @@ public:
     void update(float dt) override;
     void setWorld(World* w) { world_ = w;}
 
+    void setAggroRange(float aggroRange_) { aggroRange = aggroRange_ ;}
+    float getAggroRange() const { return aggroRange ;}
 
 private:
     std::unique_ptr<INpcController> controller;

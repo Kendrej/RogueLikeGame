@@ -4,7 +4,7 @@
 #include "Assets.h"
 #include <algorithm>
 #include <utility>
-#include <npc/ChaseController.h>
+#include <npc/MeleeController.h>
 #include "LivingEntity.h"
 #include "Map.h"
 
@@ -19,6 +19,10 @@ Player& World::spawnPlayer(const std::string &texturePath, uint32_t width, uint3
     Player& p = addEntity<Player>(playerId, width , height , pos_x, pos_y,  maxHp);
     player_ = &p;
     p.setSolid(true);
+
+    p.setAttackDamage(5);
+    p.setAttackRange(50.0f);
+    p.setAttackCooldown(0.7f);
     return p;
 }
 
@@ -26,8 +30,11 @@ Npc& World::spawnNpc(const std::string &texturePath, uint32_t width, uint32_t he
     const int npcId = assets_ ? assets_->getOrLoadIcon(texturePath) : -1;
     Npc& n= addEntity<Npc>(npcId, width , height , pos_x, pos_y,  maxHp);
     n.setWorld(this);
-    n.setController(std::make_unique<ChaseController>());
+    n.setController(std::make_unique<MeleeController>());
     n.setSolid(true);
+    n.setAttackDamage(5);
+    n.setAttackRange(50.0f);
+    n.setAttackCooldown(0.7f);
     return n;
 }
 
