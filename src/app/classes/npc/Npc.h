@@ -13,10 +13,16 @@ public:
     void setController(std::unique_ptr<INpcController> ctrl);
     void update(float dt) override;
     void setWorld(World* w) { world_ = w;}
+
+
 private:
     std::unique_ptr<INpcController> controller;
     State state = State::Idle;
     World* world_ = nullptr;
+
+    float aggroRange = 400.f;
+
+
 };
 
 

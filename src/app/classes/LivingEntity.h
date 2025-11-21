@@ -22,6 +22,17 @@ public:
     bool isAlive() const { return hp > 0; }
     void takeDamage(int dmg);
     void heal(int amount);
+
+    void setAttackDamage(int attackDamage_) {attackDamage = attackDamage;}
+    void setAttackCooldown(float attackCooldown_) {attackCooldown = attackCooldown;}
+    void setAttackRange(float attackRange_) {attackRange = attackRange_ ;}
+
+    int getAttackDamage() const { return attackDamage ;}
+    float getAttackCooldown() const { return attackCooldown ;}
+    float getAttackRange() const { return attackCooldown ;}
+
+    void resetAttackTimer() {attackTimer = 0.0f ;}
+    bool canAttack() const {return attackTimer <= 0.f; }
 protected:
     ImVec2 velocity{ 0.0f, 0.0f };
     float maxSpeed = 5.0f;
@@ -29,6 +40,13 @@ protected:
     ImVec2 desiredDir{0.0f, 0.0f};
     int hp = 0;
     int maxHp;
+
+    int attackDamage =5;
+    float attackCooldown = 0.5f;
+    float attackRange = 40.f;
+    float attackTimer = 0.0f;
+
+
 private:
 
 };

@@ -53,7 +53,10 @@ void LivingEntity::update(float dt) {
     } else {
         velocity = target;
     }
-
+    if (attackTimer > 0.f) {
+        attackTimer -= dt;
+        if (attackTimer < 0.f) attackTimer = 0.f;
+    }
 }
 
 void LivingEntity::takeDamage(int dmg) {
