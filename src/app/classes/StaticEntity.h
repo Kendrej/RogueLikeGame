@@ -5,10 +5,4 @@ class StaticEntity : public Entity {
 public:
     StaticEntity(int entityId, uint32_t width, uint32_t height,
                  float pos_x, float pos_y, bool solid);
-
-    bool isSolid() const override { return solid_; }
-    void setSolid(bool solid) { solid_ = solid; }
-
-private:
-    bool solid_ = true;
 };

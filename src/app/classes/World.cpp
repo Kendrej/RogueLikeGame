@@ -4,6 +4,8 @@
 #include "Assets.h"
 #include <algorithm>
 #include <utility>
+#include <npc/ChaseController.h>
+#include "LivingEntity.h"
 #include "Map.h"
 
 
@@ -16,8 +18,19 @@ Player& World::spawnPlayer(const std::string &texturePath, uint32_t width, uint3
     const int playerId = assets_ ? assets_->getOrLoadIcon(texturePath) : -1;
     Player& p = addEntity<Player>(playerId, width , height , pos_x, pos_y,  maxHp);
     player_ = &p;
+    p.setSolid(true);
     return p;
 }
+
+Npc& World::spawnNpc(const std::string &texturePath, uint32_t width, uint32_t height, float pos_x, float pos_y, int maxHp) {
+    const int npcId = assets_ ? assets_->getOrLoadIcon(texturePath) : -1;
+    Npc& n= addEntity<Npc>(npcId, width , height , pos_x, pos_y,  maxHp);
+    n.setWorld(this);
+    n.setController(std::make_unique<ChaseController>());
+    n.setSolid(true);
+    return n;
+}
+
 
 void World::buildFromMap(const Map &map, const std::string &wallTexturePath, const std::string &floorTexturePath, uint32_t tileW, uint32_t tileH) {
     map.forEachTile([&](int i, int j, char t){
@@ -106,17 +119,26 @@ void World::pushOutOfSolids(Entity &mover, const std::vector<std::unique_ptr<Ent
     mover.setPosition(p.x, p.y);
 }
 
+
 void World::update(float dt) {
+
     for (auto& up : entities_) {
         if (!up) continue;
-        else {
-            up->update(dt);
-        }
-        if (up->isSolid()) continue;
-        pushOutOfSolids(*up, entities_);
+        up->update(dt);
+    }
+
+
+    for (auto& up : entities_) {
+        if (!up) continue;
+
+        auto* living = dynamic_cast<LivingEntity*>(up.get());
+        if (!living) continue;
+        ImVec2 velocity = living ->getVelocity();
+        float dx = velocity.x * dt;
+        float dy = velocity.y * dt;
+        moveWithCollisions(*living , dx, dy ,entities_);
     }
 }
-
 void World::clear() {
     entities_.clear();
     player_ = nullptr;

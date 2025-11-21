@@ -53,7 +53,7 @@ void LivingEntity::update(float dt) {
     } else {
         velocity = target;
     }
-    moveBy(velocity.x * dt, velocity.y * dt);
+
 }
 
 void LivingEntity::takeDamage(int dmg) {
@@ -68,12 +68,3 @@ void LivingEntity::heal(int amount) {
     hp += amount;
     if (hp >= maxHp) hp = maxHp;
 }
-
-
-
-
-
-
-
-
-

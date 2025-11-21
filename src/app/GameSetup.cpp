@@ -23,5 +23,7 @@ void setupGame(World& world)
         64, 64,
         100.0f, 100.0f, 100
     );
-
+     auto& npc = world.spawnNpc("assets/characters/angel.png",
+         64, 64 ,
+         120.0f, 120.0f, 100);
 }
