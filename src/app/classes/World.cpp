@@ -5,6 +5,7 @@
 #include <algorithm>
 #include <utility>
 #include <stdexcept>
+#include <iostream>
 #include "Map.h"
 
 
@@ -34,6 +35,7 @@ void World::buildFromMap(const std::string &wallTexturePath, const std::string &
             spawnTile(floorTexturePath, tileW, tileH, x, y, false);
         } else if (t >= '0' && t <= '9') {
             spawnTile(doorTexturePath, tileW, tileH, x, y, false);
+			maps_[currentMapIndex]->addGateway(t - '0', x, y);
         }
     });
 }
@@ -113,6 +115,35 @@ void World::pushOutOfSolids(Entity &mover, const std::vector<std::unique_ptr<Ent
     mover.setPosition(p.x, p.y);
 }
 
+int World::playerInGateway() {
+    if (!player_) return -1;
+    
+    ImVec2 pos = player_->getPosition();
+    float pw = player_->getWidth();
+    float ph = player_->getHeight();
+
+  for (auto& g : maps_[currentMapIndex]->gateways()) {
+   // Gateway size is 64x64 (same as tiles)
+ float gw = 64.0f;
+  float gh = 64.0f;
+        
+        // Require significant overlap - player must be at least 70% inside
+  float overlapThreshold = 0.70f;
+   float requiredOverlapX = pw * overlapThreshold;
+     float requiredOverlapY = ph * overlapThreshold;
+        
+     // Calculate actual overlap
+     float overlapLeft = std::max(0.0f, std::min(pos.x + pw, g.posX + gw) - std::max(pos.x, g.posX));
+        float overlapTop = std::max(0.0f, std::min(pos.y + ph, g.posY + gh) - std::max(pos.y, g.posY));
+        
+        // Check if overlap is sufficient in both dimensions
+        if (overlapLeft >= requiredOverlapX && overlapTop >= requiredOverlapY) {
+    return g.targetMapIndex;
+   }
+ }
+    return -1;
+}
+
 void World::clampToScreen(Entity &mover) {
     if (screenWidth_ <= 0.0f || screenHeight_ <= 0.0f) return;
     
@@ -129,13 +160,42 @@ void World::clampToScreen(Entity &mover) {
 void World::update(float dt) {
     for (auto& up : entities_) {
      if (!up) continue;
-        else {
     up->update(dt);
-        }
+  
         if (up->isSolid()) continue;
-            clampToScreen(*up);
+        clampToScreen(*up);
         pushOutOfSolids(*up, entities_);
     }
+        this->gatewayIndex = playerInGateway();
+        if (gatewayIndex >= 0) {
+    this->newScene();
+    }
+}
+
+void World::newScene() {
+    // Validate gatewayIndex before using it
+    if (gatewayIndex < 0 || static_cast<size_t>(gatewayIndex) >= maps_.size()) {
+   std::cout << "Invalid gateway index: " << gatewayIndex << "\n";
+        gatewayIndex = -1;
+ return;
+    }
+    entities_.clear();
+    player_ = nullptr;
+    
+ this->setCurrentMapIndex(gatewayIndex);
+    
+    this->buildFromMap(
+        "assets/design/wall.png",
+        "assets/design/floor.png",
+      "assets/design/door.png",
+        64, 64
+    );
+    
+    // Spawn player at a default location on the new map
+    this->spawnPlayer( "assets/characters/hero.png",64, 64, 100.0f, 100.0f, 100 );
+    
+    std::cout << "Switched to map: " << gatewayIndex << "\n";
+    gatewayIndex = -1;
 }
 
 void World::clear() {

@@ -32,6 +32,7 @@ public:
     
     void update(float dt);
     void clear();
+	void newScene();
 
     void setScreenBounds(float width, float height) { 
         screenWidth_ = width; 
@@ -49,6 +50,7 @@ public:
 	void setCurrentMapIndex(int index) { currentMapIndex = index; }
 	int getCurrentMapIndex() const { return currentMapIndex; }
     void addMap(const std::string& path);
+    int playerInGateway();
 private:
     template <class T, class... Args>
     T& addEntity(Args&&... args) {
@@ -65,6 +67,7 @@ private:
     static void pushOutOfSolids(Entity& mover, const std::vector<std::unique_ptr<Entity>>& entities);
     void clampToScreen(Entity& mover);
 
+    int gatewayIndex = -1;
 	int currentMapIndex = 0;
     std::vector<std::unique_ptr<Map>> maps_;
     Assets* assets_{nullptr};
