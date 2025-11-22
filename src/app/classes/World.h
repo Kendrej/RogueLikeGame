@@ -7,8 +7,8 @@
 #include "StaticEntity.h"
 #include "Map.h"
 #include "Entity.h"
+#include "Player.h"
 
-class Player;
 class Assets;
 class StaticEntity;
 class Entity;
@@ -29,7 +29,7 @@ public:
         const std::string& floorTexturePath,
         const std::string& doorTexturePath,
         uint32_t tileW, uint32_t tileH);
-    
+
     void update(float dt);
     void clear();
 	void newScene();
@@ -43,7 +43,7 @@ public:
         if (index < maps_.size()) return maps_[index].get();
         return nullptr;
 	}
-    Player* getPlayer() const noexcept { return player_; }
+    Player* getPlayer() const noexcept { return player_.get(); }
     const std::vector<std::unique_ptr<Entity>>& entities() const noexcept { return entities_; }
     void forEachEntity(const std::function<void(Entity&)>& fn);
     bool remove(Entity* ptr);
@@ -66,13 +66,14 @@ private:
     static void moveWithCollisions(Entity& mover, float dx, float dy, const std::vector<std::unique_ptr<Entity>>& entities);
     static void pushOutOfSolids(Entity& mover, const std::vector<std::unique_ptr<Entity>>& entities);
     void clampToScreen(Entity& mover);
-
+    GatewaySide getSide(int gatewayIndex);
+    void spawnPlayerInNewScene(GatewaySide entrySide, float sourceGatewayX, float sourceGatewayY);
     int gatewayIndex = -1;
 	int currentMapIndex = 0;
     std::vector<std::unique_ptr<Map>> maps_;
-    Assets* assets_{nullptr};
+ Assets* assets_{nullptr};
     std::vector<std::unique_ptr<Entity>> entities_;
-    Player* player_{nullptr};
+    std::unique_ptr<Player> player_{nullptr}; 
     float screenWidth_ = 0.0f;
     float screenHeight_ = 0.0f;
 };
