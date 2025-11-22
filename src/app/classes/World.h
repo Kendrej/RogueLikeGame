@@ -34,6 +34,11 @@ public:
     void update(float dt);
     void clear();
 
+    void setScreenBounds(float width, float height) { 
+        screenWidth_ = width; 
+     screenHeight_ = height; 
+    }
+
     Map* getMap(size_t index) const noexcept {
         if (index < maps_.size()) return maps_[index].get();
         return nullptr;
@@ -58,10 +63,13 @@ private:
     static bool intersectsAABBAt(const Entity& a, const Entity& b, float aPosX, float aPosY);
     static void moveWithCollisions(Entity& mover, float dx, float dy, const std::vector<std::unique_ptr<Entity>>& entities);
     static void pushOutOfSolids(Entity& mover, const std::vector<std::unique_ptr<Entity>>& entities);
+    void clampToScreen(Entity& mover);
 
 	int currentMapIndex = 0;
     std::vector<std::unique_ptr<Map>> maps_;
     Assets* assets_{nullptr};
     std::vector<std::unique_ptr<Entity>> entities_;
     Player* player_{nullptr};
+    float screenWidth_ = 0.0f;
+    float screenHeight_ = 0.0f;
 };

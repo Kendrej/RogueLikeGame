@@ -85,36 +85,50 @@ void World::pushOutOfSolids(Entity &mover, const std::vector<std::unique_ptr<Ent
     for (const auto& up : entities) {
         if (!up || up.get() == &mover) continue;
         if (!up->isSolid()) continue;
-        if (!intersectsAABB(mover, *up)) continue;
+     if (!intersectsAABB(mover, *up)) continue;
         // Compute minimal axis separation
         ImVec2 op = up->getPosition();
         float dx1 = (op.x + up->getWidth()) - p.x; // push right
         float dx2 = (p.x + mover.getWidth()) - op.x; // push left
-        float dy1 = (op.y + up->getHeight()) - p.y; // push down
-        float dy2 = (p.y + mover.getHeight()) - op.y; // push up
-        // choose smallest move
+  float dy1 = (op.y + up->getHeight()) - p.y; // push down
+      float dy2 = (p.y + mover.getHeight()) - op.y; // push up
+  // choose smallest move
         float minX = std::min(dx1, dx2);
-        float minY = std::min(dy1, dy2);
-        if (minX < minY) {
-            // resolve horizontally
-            if (dx1 < dx2) p.x = op.x + up->getWidth();
-            else p.x = op.x - mover.getWidth();
-        } else {
-            // resolve vertically
+  float minY = std::min(dy1, dy2);
+    if (minX < minY) {
+     // resolve horizontally
+   if (dx1 < dx2) p.x = op.x + up->getWidth();
+          else p.x = op.x - mover.getWidth();
+     } else {
+    // resolve vertically
             if (dy1 < dy2) p.y = op.y + up->getHeight();
-            else p.y = op.y - mover.getHeight();
+      else p.y = op.y - mover.getHeight();
         }
     }
+    mover.setPosition(p.x, p.y);
+}
+
+void World::clampToScreen(Entity &mover) {
+    if (screenWidth_ <= 0.0f || screenHeight_ <= 0.0f) return;
+    
+    ImVec2 p = mover.getPosition();
+
+    if (p.x < 0.0f) p.x = 0.0f;
+    if (p.y < 0.0f) p.y = 0.0f;
+    if (p.x + mover.getWidth() > screenWidth_) p.x = screenWidth_ - mover.getWidth();
+    if (p.y + mover.getHeight() > screenHeight_) p.y = screenHeight_ - mover.getHeight();
+    
     mover.setPosition(p.x, p.y);
 }
 
 void World::update(float dt) {
     for (auto& up : entities_) {
         if (!up) continue;
-        else {
-            up->update(dt);
+    else {
+up->update(dt);
         }
         if (up->isSolid()) continue;
+        clampToScreen(*up);
         pushOutOfSolids(*up, entities_);
     }
 }
