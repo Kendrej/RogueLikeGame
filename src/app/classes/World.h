@@ -25,12 +25,11 @@ public:
                         uint32_t width, uint32_t height,
                         float pos_x, float pos_y, int maxHp);
 
-    void buildFromMap(const Map& map,
-                      const std::string& wallTexturePath,
-                      const std::string& floorTexturePath,
-                      const std::string& doorTexturePath,
-                      uint32_t tileW, uint32_t tileH)
-    ;
+    void buildFromMap(const std::string& wallTexturePath,
+        const std::string& floorTexturePath,
+        const std::string& doorTexturePath,
+        uint32_t tileW, uint32_t tileH);
+    
     void update(float dt);
     void clear();
 
@@ -49,6 +48,7 @@ public:
     bool remove(Entity* ptr);
 	void setCurrentMapIndex(int index) { currentMapIndex = index; }
 	int getCurrentMapIndex() const { return currentMapIndex; }
+    void addMap(const std::string& path);
 private:
     template <class T, class... Args>
     T& addEntity(Args&&... args) {

@@ -4,6 +4,7 @@
 #include "Assets.h"
 #include <algorithm>
 #include <utility>
+#include <stdexcept>
 #include "Map.h"
 
 
@@ -19,8 +20,12 @@ Player& World::spawnPlayer(const std::string &texturePath, uint32_t width, uint3
     return p;
 }
 
-void World::buildFromMap(const Map &map, const std::string &wallTexturePath, const std::string &floorTexturePath, const std::string& doorTexturePath, uint32_t tileW, uint32_t tileH) {
-    map.forEachTile([&](int i, int j, char t){
+void World::buildFromMap(const std::string &wallTexturePath, const std::string &floorTexturePath, const std::string& doorTexturePath, uint32_t tileW, uint32_t tileH) {
+    if (currentMapIndex >= maps_.size() || !maps_[currentMapIndex]) {
+        throw std::runtime_error("Invalid map index or map not loaded");
+    }
+    
+    maps_[currentMapIndex]->forEachTile([&](int i, int j, char t) {
         const float x = j * static_cast<float>(tileW);
         const float y = i * static_cast<float>(tileH);
         if (t == '*') {
@@ -123,12 +128,12 @@ void World::clampToScreen(Entity &mover) {
 
 void World::update(float dt) {
     for (auto& up : entities_) {
-        if (!up) continue;
-    else {
-up->update(dt);
+     if (!up) continue;
+        else {
+    up->update(dt);
         }
         if (up->isSolid()) continue;
-        clampToScreen(*up);
+            clampToScreen(*up);
         pushOutOfSolids(*up, entities_);
     }
 }
@@ -154,3 +159,10 @@ bool World::remove(Entity* ptr) {
     return removed;
 }
 
+void World::addMap(const std::string& path) {
+    auto m = std::make_unique<Map>();
+    if (!m->loadFromFile(path)) {
+        throw std::runtime_error("Could not load map file: " + path);
+    }
+    maps_.push_back(std::move(m));
+}
