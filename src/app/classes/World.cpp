@@ -249,7 +249,7 @@ void World::spawnPlayerInNewScene(GatewaySide entrySide, float sourceGatewayX, f
             player_->setPosition(screenWidth_ - 100.0f, sourceGatewayY);
             break;
         case GatewaySide::Right:
-            player_->setPosition(100.0f, sourceGatewayY);
+            player_->setPosition(50.0f, sourceGatewayY);
             break;
     }
 }

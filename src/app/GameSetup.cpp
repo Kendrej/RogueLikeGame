@@ -8,6 +8,9 @@ void setupGame(World& world)
 {
     world.addMap("assets/maps/map0.txt");
     world.addMap("assets/maps/map1.txt");
+    world.addMap("assets/maps/map2.txt");
+    world.addMap("assets/maps/map3.txt");
+
 
     world.setCurrentMapIndex(0);
 
