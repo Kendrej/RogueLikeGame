@@ -19,14 +19,16 @@ Player& World::spawnPlayer(const std::string &texturePath, uint32_t width, uint3
     return p;
 }
 
-void World::buildFromMap(const Map &map, const std::string &wallTexturePath, const std::string &floorTexturePath, uint32_t tileW, uint32_t tileH) {
+void World::buildFromMap(const Map &map, const std::string &wallTexturePath, const std::string &floorTexturePath, const std::string& doorTexturePath, uint32_t tileW, uint32_t tileH) {
     map.forEachTile([&](int i, int j, char t){
         const float x = j * static_cast<float>(tileW);
         const float y = i * static_cast<float>(tileH);
         if (t == '*') {
             spawnTile(wallTexturePath, tileW, tileH, x, y, true);
         } else if (t == '-') {
-            spawnTile(floorTexturePath, tileW, tileH, x , y, false);
+            spawnTile(floorTexturePath, tileW, tileH, x, y, false);
+        } else if (t >= '0' && t <= '9') {
+            spawnTile(doorTexturePath, tileW, tileH, x, y, false);
         }
     });
 }

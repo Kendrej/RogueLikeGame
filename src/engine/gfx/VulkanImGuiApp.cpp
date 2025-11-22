@@ -169,6 +169,7 @@ void VulkanImGuiApp::mainLoop()
 
 		if (world_) world_->update(dt);
 
+
         // --- Rysowanie swiata/tla (poza oknami) ---
         drawWorld();
 

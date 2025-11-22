@@ -15,6 +15,7 @@ void setupGame(World& world)
         map,
         "assets/design/wall.png",
         "assets/design/floor.png",
+        "assets/design/door.png",
         64, 64
     );
 

@@ -28,6 +28,7 @@ public:
     void buildFromMap(const Map& map,
                       const std::string& wallTexturePath,
                       const std::string& floorTexturePath,
+                      const std::string& doorTexturePath,
                       uint32_t tileW, uint32_t tileH)
     ;
     void update(float dt);
