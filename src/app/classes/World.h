@@ -7,11 +7,13 @@
 #include "StaticEntity.h"
 #include "Map.h"
 #include "Entity.h"
+#include "npc/Npc.h"
 #include "Player.h"
 
 class Assets;
 class StaticEntity;
 class Entity;
+class Npc;
 class World {
 public:
     explicit World(Assets* assets) noexcept : assets_(assets) {}
@@ -22,6 +24,10 @@ public:
                       float pos_x, float pos_y, bool solid);
 
     Player& spawnPlayer(const std::string& texturePath,
+                        uint32_t width, uint32_t height,
+                        float pos_x, float pos_y, int maxHp);
+
+    Npc& spawnNpc(const std::string& texturePath,
                         uint32_t width, uint32_t height,
                         float pos_x, float pos_y, int maxHp);
 

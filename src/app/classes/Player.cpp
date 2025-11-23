@@ -6,7 +6,3 @@ Player::Player(int playerId, uint32_t width, uint32_t height, float pos_x, float
     setAcceleration(2000.0f);
 }
 
-void Player::update(float dt)
-{
-    LivingEntity::update(dt);
-}

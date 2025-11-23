@@ -42,11 +42,16 @@ add_executable(RogueLikeGame
         src/app/GameSetup.cpp
         src/app/classes/Player.cpp
         src/app/classes/Map.cpp
-        src/app/classes/Npc.cpp
+        src/app/classes/npc/Npc.cpp
         src/app/classes/LivingEntity.cpp
         src/app/classes/World.cpp
         src/app/classes/StaticEntity.cpp
         src/app/classes/StaticEntity.h
+        src/app/classes/npc/INpcController.cpp
+        src/app/classes/npc/INpcController.h
+        src/app/classes/npc/MeleeController.cpp
+        src/app/classes/npc/MeleeController.h
+        src/app/classes/MathUtils.h
 
 )
 
