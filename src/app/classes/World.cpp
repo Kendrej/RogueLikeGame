@@ -57,8 +57,8 @@ void World::buildFromMap(const std::string &wallTexturePath, const std::string &
         } else if (t >= '0' && t <= '9') {
             // t - '0' is the TARGET map index, not the index in gateways() vector.
             auto & door = spawnTile(doorTexturePath, tileW, tileH, x, y, false);
-            std::cout << "Door at (" << x << "," << y << ") solid = "
-              << door.isSolid() << "\n";
+            /*std::cout << "Door at (" << x << "," << y << ") solid = "
+              << door.isSolid() << "\n";*/
             maps_[currentMapIndex]->addGateway(t - '0', x, y);
             int newGatewayIndex = static_cast<int>(maps_[currentMapIndex]->gateways().size()) -1; // index of newly added gateway
             maps_[currentMapIndex]->setGatewaySide(newGatewayIndex, getSide(newGatewayIndex));
@@ -104,8 +104,8 @@ void World::moveWithCollisions(Entity &mover, float dx, float dy, const std::vec
         if (!up->isSolid()) continue;
         if (intersectsAABBAt(mover, *up, newX, newY)) {
             ImVec2 ep = up->getPosition();
-            std::cout << "COLLISION with entity at ("
-                      << ep.x << ", " << ep.y << ")\n";
+            //std::cout << "COLLISION with entity at ("
+            //          << ep.x << ", " << ep.y << ")\n";
             if (dx >0) {
                 newX = up->getPosition().x - mover.getWidth();
             } else if (dx <0) {
@@ -165,25 +165,26 @@ int World::playerInGateway() {
     float pw = player_->getWidth();
     float ph = player_->getHeight();
 
-  for (auto& g : maps_[currentMapIndex]->gateways()) {
-   // Gateway size is 64x64 (same as tiles)
- float gw = 64.0f;
-  float gh = 64.0f;
+    for (auto& g : maps_[currentMapIndex]->gateways()) {
+      // Gateway size is 64x64 (same as tiles)
+        float gw = 64.0f;
+        float gh = 64.0f;
 
-        // Require significant overlap - player must be at least 70% inside
-  float overlapThreshold = 0.70f;
-   float requiredOverlapX = pw * overlapThreshold;
-     float requiredOverlapY = ph * overlapThreshold;
+      // Reduced threshold to 30% - allows easy passage through single doors
+      // Player (64x64) needs only ~19px overlap (less than 1/3 of player size)
+  float overlapThreshold = 0.50f;
+        float requiredOverlapX = pw * overlapThreshold;
+    float requiredOverlapY = ph * overlapThreshold;
 
-     // Calculate actual overlap
-     float overlapLeft = std::max(0.0f, std::min(pos.x + pw, g.posX + gw) - std::max(pos.x, g.posX));
-        float overlapTop = std::max(0.0f, std::min(pos.y + ph, g.posY + gh) - std::max(pos.y, g.posY));
+        // Calculate actual overlap
+float overlapLeft = std::max(0.0f, std::min(pos.x + pw, g.posX + gw) - std::max(pos.x, g.posX));
+      float overlapTop = std::max(0.0f, std::min(pos.y + ph, g.posY + gh) - std::max(pos.y, g.posY));
 
         // Check if overlap is sufficient in both dimensions
         if (overlapLeft >= requiredOverlapX && overlapTop >= requiredOverlapY) {
-    return g.targetMapIndex;
- }
- }
+         return g.targetMapIndex;
+        }
+    }
     return -1;
 }
 
