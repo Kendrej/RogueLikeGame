@@ -56,7 +56,9 @@ void World::buildFromMap(const std::string &wallTexturePath, const std::string &
             spawnTile(floorTexturePath, tileW, tileH, x, y, false);
         } else if (t >= '0' && t <= '9') {
             // t - '0' is the TARGET map index, not the index in gateways() vector.
-            spawnTile(doorTexturePath, tileW, tileH, x, y, false);
+            auto & door = spawnTile(doorTexturePath, tileW, tileH, x, y, false);
+            std::cout << "Door at (" << x << "," << y << ") solid = "
+              << door.isSolid() << "\n";
             maps_[currentMapIndex]->addGateway(t - '0', x, y);
             int newGatewayIndex = static_cast<int>(maps_[currentMapIndex]->gateways().size()) -1; // index of newly added gateway
             maps_[currentMapIndex]->setGatewaySide(newGatewayIndex, getSide(newGatewayIndex));
@@ -81,14 +83,16 @@ bool World::intersectsAABB(const Entity &a, const Entity &b) {
     ImVec2 ap = a.getPosition();
     ImVec2 bp = b.getPosition();
     return !(ap.x + a.getWidth() <= bp.x || bp.x + b.getWidth() <= ap.x ||
-        ap.y + a.getHeight() <= bp.y || bp.y + b.getHeight() <= ap.y);
+             ap.y + a.getHeight() <= bp.y || bp.y + b.getHeight() <= ap.y);
 }
 
 bool World::intersectsAABBAt(const Entity &a, const Entity &b, float ax, float ay) {
     ImVec2 bp = b.getPosition();
     return !(ax + a.getWidth() <= bp.x || bp.x + b.getWidth() <= ax ||
-        ay + a.getHeight() <= bp.y || bp.y + b.getHeight() <= ay);
+             ay + a.getHeight() <= bp.y || bp.y + b.getHeight() <= ay);
 }
+
+
 
 void World::moveWithCollisions(Entity &mover, float dx, float dy, const std::vector<std::unique_ptr<Entity>> &entities) {
     // move along X then Y and resolve against solids
@@ -99,6 +103,9 @@ void World::moveWithCollisions(Entity &mover, float dx, float dy, const std::vec
         if (!up || up.get() == &mover) continue;
         if (!up->isSolid()) continue;
         if (intersectsAABBAt(mover, *up, newX, newY)) {
+            ImVec2 ep = up->getPosition();
+            std::cout << "COLLISION with entity at ("
+                      << ep.x << ", " << ep.y << ")\n";
             if (dx >0) {
                 newX = up->getPosition().x - mover.getWidth();
             } else if (dx <0) {
@@ -153,7 +160,7 @@ void World::pushOutOfSolids(Entity &mover, const std::vector<std::unique_ptr<Ent
 
 int World::playerInGateway() {
     if (!player_) return -1;
-    
+
     ImVec2 pos = player_->getPosition();
     float pw = player_->getWidth();
     float ph = player_->getHeight();
@@ -162,16 +169,16 @@ int World::playerInGateway() {
    // Gateway size is 64x64 (same as tiles)
  float gw = 64.0f;
   float gh = 64.0f;
-        
+
         // Require significant overlap - player must be at least 70% inside
   float overlapThreshold = 0.70f;
    float requiredOverlapX = pw * overlapThreshold;
      float requiredOverlapY = ph * overlapThreshold;
-        
+
      // Calculate actual overlap
      float overlapLeft = std::max(0.0f, std::min(pos.x + pw, g.posX + gw) - std::max(pos.x, g.posX));
         float overlapTop = std::max(0.0f, std::min(pos.y + ph, g.posY + gh) - std::max(pos.y, g.posY));
-        
+
         // Check if overlap is sufficient in both dimensions
         if (overlapLeft >= requiredOverlapX && overlapTop >= requiredOverlapY) {
     return g.targetMapIndex;
@@ -194,26 +201,43 @@ void World::clampToScreen(Entity &mover) {
 }
 
 void World::update(float dt) {
-    // Update player separately
+
     if (player_) {
-   player_->update(dt);
-        clampToScreen(*player_);
-      pushOutOfSolids(*player_, entities_);
+        player_->update(dt);
     }
-    
-  // Update other entities
-    for (auto& up : entities_) {
+    for (auto &up : entities_) {
         if (!up) continue;
-      up->update(dt);
-        
-        if (up->isSolid()) continue;
-        clampToScreen(*up);
-    pushOutOfSolids(*up, entities_);
+        up->update(dt);
     }
+
+    if (player_) {
+        auto *livingPlayer = dynamic_cast<LivingEntity*>(player_.get());
+        if (livingPlayer) {
+            ImVec2 vel = livingPlayer->getVelocity();
+            float dx = vel.x * dt;
+            float dy = vel.y * dt;
+            moveWithCollisions(*livingPlayer, dx, dy, entities_);
+        }
+        clampToScreen(*player_);
+    }
+
+    for (auto &up : entities_) {
+        if (!up) continue;
+        auto *living = dynamic_cast<LivingEntity*>(up.get());
+        if (!living) continue;
+
+        ImVec2 vel = living->getVelocity();
+        float dx = vel.x * dt;
+        float dy = vel.y * dt;
+        moveWithCollisions(*living, dx, dy, entities_);
+
+        clampToScreen(*living);
+    }
+
     this->gatewayIndex = playerInGateway();
     if (gatewayIndex >= 0) {
         this->newScene();
-  }
+    }
 }
 
 void World::newScene() {
@@ -275,17 +299,6 @@ void World::spawnPlayerInNewScene(GatewaySide entrySide, float sourceGatewayX, f
             break;
     }
 
-
-    for (auto& up : entities_) {
-        if (!up) continue;
-
-        auto* living = dynamic_cast<LivingEntity*>(up.get());
-        if (!living) continue;
-        ImVec2 velocity = living ->getVelocity();
-        float dx = velocity.x * dt;
-        float dy = velocity.y * dt;
-        moveWithCollisions(*living , dx, dy ,entities_);
-    }
 }
 void World::clear() {
     entities_.clear();
