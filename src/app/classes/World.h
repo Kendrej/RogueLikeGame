@@ -16,6 +16,8 @@ class Entity;
 class Npc;
 class World {
 public:
+    static constexpr float UI_TOP_BAR_HEIGHT = 56.0f;  // Black bar at top for UI (1080 - 16*64 = 56px)
+
     explicit World(Assets* assets) noexcept : assets_(assets) {}
 
 

@@ -250,6 +250,13 @@ void VulkanImGuiApp::drawWorld()
 
     ImDrawList* bg = ImGui::GetBackgroundDrawList();
 
+    // Draw black bar at top for UI
+    bg->AddRectFilled(
+        ImVec2(0.0f, 0.0f),
+        ImVec2(ImGui::GetIO().DisplaySize.x, World::UI_TOP_BAR_HEIGHT),
+        IM_COL32(0, 0, 0, 255)
+    );
+
     for (const auto& up : world_->entities()) {
         if (!up) continue;
         if (up.get() == world_->getPlayer()) continue;

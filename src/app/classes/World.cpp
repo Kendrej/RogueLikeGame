@@ -49,7 +49,7 @@ void World::buildFromMap(const std::string &wallTexturePath, const std::string &
     
     maps_[currentMapIndex]->forEachTile([&](int i, int j, char t) {
         const float x = j * static_cast<float>(tileW);
-        const float y = i * static_cast<float>(tileH);
+        const float y = i * static_cast<float>(tileH) + UI_TOP_BAR_HEIGHT;  // Add UI offset
         if (t == '*') {
             spawnTile(wallTexturePath, tileW, tileH, x, y, true);
         } else if (t == '-') {
@@ -68,13 +68,13 @@ void World::buildFromMap(const std::string &wallTexturePath, const std::string &
 
 GatewaySide World::getSide(int gatewayIndex) {
     const Gateway& g = maps_[currentMapIndex]->gateways()[gatewayIndex];
-    int tileX = static_cast<int>(g.posX /64.0f); // Assuming64x64 tiles
-    int tileY = static_cast<int>(g.posY /64.0f);
+    int tileX = static_cast<int>(g.posX / 64.0f);
+    int tileY = static_cast<int>((g.posY - UI_TOP_BAR_HEIGHT) / 64.0f); // Account for UI offset
     
-  if (tileY <=1) return GatewaySide::Top;
- if (tileY >= static_cast<int>(screenHeight_ /64.0f) -2) return GatewaySide::Bottom;
-    if (tileX <=1) return GatewaySide::Left;
-    if (tileX >= static_cast<int>(screenWidth_ /64.0f) -2) return GatewaySide::Right;
+    if (tileY <= 1) return GatewaySide::Top;
+    if (tileY >= static_cast<int>((screenHeight_ - UI_TOP_BAR_HEIGHT) / 64.0f) - 2) return GatewaySide::Bottom;
+    if (tileX <= 1) return GatewaySide::Left;
+    if (tileX >= static_cast<int>(screenWidth_ / 64.0f) - 2) return GatewaySide::Right;
 
     return GatewaySide::Top;
 }
@@ -194,7 +194,7 @@ void World::clampToScreen(Entity &mover) {
     ImVec2 p = mover.getPosition();
 
     if (p.x < 0.0f) p.x = 0.0f;
-    if (p.y < 0.0f) p.y = 0.0f;
+    if (p.y < UI_TOP_BAR_HEIGHT) p.y = UI_TOP_BAR_HEIGHT;  // Clamp to UI bar bottom
     if (p.x + mover.getWidth() > screenWidth_) p.x = screenWidth_ - mover.getWidth();
     if (p.y + mover.getHeight() > screenHeight_) p.y = screenHeight_ - mover.getHeight();
     
@@ -288,13 +288,13 @@ void World::spawnPlayerInNewScene(GatewaySide entrySide, float sourceGatewayX, f
     switch (entrySide) {
         case GatewaySide::Top:
             player_->setPosition(sourceGatewayX, screenHeight_ - 100.0f);
-            break;
-        case GatewaySide::Bottom:
-            player_->setPosition(sourceGatewayX, 50.0f);
-            break;
+     break;
+     case GatewaySide::Bottom:
+  player_->setPosition(sourceGatewayX, UI_TOP_BAR_HEIGHT + 50.0f);  // Add UI offset
+  break;
         case GatewaySide::Left:
-            player_->setPosition(screenWidth_ - 100.0f, sourceGatewayY);
-            break;
+  player_->setPosition(screenWidth_ - 100.0f, sourceGatewayY);
+  break;
         case GatewaySide::Right:
             player_->setPosition(50.0f, sourceGatewayY);
             break;
