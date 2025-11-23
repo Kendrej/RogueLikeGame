@@ -6,6 +6,8 @@
 #include <utility>
 #include <npc/MeleeController.h>
 #include "LivingEntity.h"
+#include <stdexcept>
+#include <iostream>
 #include "Map.h"
 
 
@@ -16,14 +18,15 @@ StaticEntity& World::spawnTile(const std::string &texturePath, uint32_t width, u
 
 Player& World::spawnPlayer(const std::string &texturePath, uint32_t width, uint32_t height, float pos_x, float pos_y, int maxHp) {
     const int playerId = assets_ ? assets_->getOrLoadIcon(texturePath) : -1;
-    Player& p = addEntity<Player>(playerId, width , height , pos_x, pos_y,  maxHp);
-    player_ = &p;
-    p.setSolid(true);
-
-    p.setAttackDamage(5);
-    p.setAttackRange(50.0f);
-    p.setAttackCooldown(0.7f);
-    return p;
+   player_ = std::make_unique<Player>(playerId, width, height, pos_x, pos_y, maxHp);
+   Player& p = *player_;
+  
+   p.setSolid(true);
+   p.setAttackDamage(5);
+   p.setAttackRange(50.0f);
+   p.setAttackCooldown(0.7f);
+  
+   return *player_;
 }
 
 Npc& World::spawnNpc(const std::string &texturePath, uint32_t width, uint32_t height, float pos_x, float pos_y, int maxHp) {
@@ -39,18 +42,40 @@ Npc& World::spawnNpc(const std::string &texturePath, uint32_t width, uint32_t he
 }
 
 
-void World::buildFromMap(const Map &map, const std::string &wallTexturePath, const std::string &floorTexturePath, uint32_t tileW, uint32_t tileH) {
-    map.forEachTile([&](int i, int j, char t){
+void World::buildFromMap(const std::string &wallTexturePath, const std::string &floorTexturePath, const std::string& doorTexturePath, uint32_t tileW, uint32_t tileH) {
+    if (currentMapIndex >= maps_.size() || !maps_[currentMapIndex]) {
+        throw std::runtime_error("Invalid map index or map not loaded");
+    }
+    
+    maps_[currentMapIndex]->forEachTile([&](int i, int j, char t) {
         const float x = j * static_cast<float>(tileW);
         const float y = i * static_cast<float>(tileH);
         if (t == '*') {
             spawnTile(wallTexturePath, tileW, tileH, x, y, true);
         } else if (t == '-') {
-            spawnTile(floorTexturePath, tileW, tileH, x , y, false);
+            spawnTile(floorTexturePath, tileW, tileH, x, y, false);
+        } else if (t >= '0' && t <= '9') {
+            // t - '0' is the TARGET map index, not the index in gateways() vector.
+            spawnTile(doorTexturePath, tileW, tileH, x, y, false);
+            maps_[currentMapIndex]->addGateway(t - '0', x, y);
+            int newGatewayIndex = static_cast<int>(maps_[currentMapIndex]->gateways().size()) -1; // index of newly added gateway
+            maps_[currentMapIndex]->setGatewaySide(newGatewayIndex, getSide(newGatewayIndex));
         }
     });
 }
 
+GatewaySide World::getSide(int gatewayIndex) {
+    const Gateway& g = maps_[currentMapIndex]->gateways()[gatewayIndex];
+    int tileX = static_cast<int>(g.posX /64.0f); // Assuming64x64 tiles
+    int tileY = static_cast<int>(g.posY /64.0f);
+    
+  if (tileY <=1) return GatewaySide::Top;
+ if (tileY >= static_cast<int>(screenHeight_ /64.0f) -2) return GatewaySide::Bottom;
+    if (tileX <=1) return GatewaySide::Left;
+    if (tileX >= static_cast<int>(screenWidth_ /64.0f) -2) return GatewaySide::Right;
+
+    return GatewaySide::Top;
+}
 
 bool World::intersectsAABB(const Entity &a, const Entity &b) {
     ImVec2 ap = a.getPosition();
@@ -113,25 +138,141 @@ void World::pushOutOfSolids(Entity &mover, const std::vector<std::unique_ptr<Ent
         // choose smallest move
         float minX = std::min(dx1, dx2);
         float minY = std::min(dy1, dy2);
-        if (minX < minY) {
-            // resolve horizontally
-            if (dx1 < dx2) p.x = op.x + up->getWidth();
-            else p.x = op.x - mover.getWidth();
-        } else {
-            // resolve vertically
+    if (minX < minY) {
+     // resolve horizontally
+   if (dx1 < dx2) p.x = op.x + up->getWidth();
+          else p.x = op.x - mover.getWidth();
+     } else {
+    // resolve vertically
             if (dy1 < dy2) p.y = op.y + up->getHeight();
-            else p.y = op.y - mover.getHeight();
+      else p.y = op.y - mover.getHeight();
         }
     }
     mover.setPosition(p.x, p.y);
 }
 
+int World::playerInGateway() {
+    if (!player_) return -1;
+    
+    ImVec2 pos = player_->getPosition();
+    float pw = player_->getWidth();
+    float ph = player_->getHeight();
+
+  for (auto& g : maps_[currentMapIndex]->gateways()) {
+   // Gateway size is 64x64 (same as tiles)
+ float gw = 64.0f;
+  float gh = 64.0f;
+        
+        // Require significant overlap - player must be at least 70% inside
+  float overlapThreshold = 0.70f;
+   float requiredOverlapX = pw * overlapThreshold;
+     float requiredOverlapY = ph * overlapThreshold;
+        
+     // Calculate actual overlap
+     float overlapLeft = std::max(0.0f, std::min(pos.x + pw, g.posX + gw) - std::max(pos.x, g.posX));
+        float overlapTop = std::max(0.0f, std::min(pos.y + ph, g.posY + gh) - std::max(pos.y, g.posY));
+        
+        // Check if overlap is sufficient in both dimensions
+        if (overlapLeft >= requiredOverlapX && overlapTop >= requiredOverlapY) {
+    return g.targetMapIndex;
+ }
+ }
+    return -1;
+}
+
+void World::clampToScreen(Entity &mover) {
+    if (screenWidth_ <= 0.0f || screenHeight_ <= 0.0f) return;
+    
+    ImVec2 p = mover.getPosition();
+
+    if (p.x < 0.0f) p.x = 0.0f;
+    if (p.y < 0.0f) p.y = 0.0f;
+    if (p.x + mover.getWidth() > screenWidth_) p.x = screenWidth_ - mover.getWidth();
+    if (p.y + mover.getHeight() > screenHeight_) p.y = screenHeight_ - mover.getHeight();
+    
+    mover.setPosition(p.x, p.y);
+}
 
 void World::update(float dt) {
-
+    // Update player separately
+    if (player_) {
+   player_->update(dt);
+        clampToScreen(*player_);
+      pushOutOfSolids(*player_, entities_);
+    }
+    
+  // Update other entities
     for (auto& up : entities_) {
         if (!up) continue;
-        up->update(dt);
+      up->update(dt);
+        
+        if (up->isSolid()) continue;
+        clampToScreen(*up);
+    pushOutOfSolids(*up, entities_);
+    }
+    this->gatewayIndex = playerInGateway();
+    if (gatewayIndex >= 0) {
+        this->newScene();
+  }
+}
+
+void World::newScene() {
+    // Validate gatewayIndex before using it
+    if (gatewayIndex < 0 || static_cast<size_t>(gatewayIndex) >= maps_.size()) {
+        std::cout << "Invalid gateway index: " << gatewayIndex << "\n";
+        gatewayIndex = -1;
+        return;
+    }
+    
+    // Save the gateway side from the current map BEFORE switching
+    GatewaySide entrySide = GatewaySide::Top;
+    float gatewayX = 0.0f;
+    float gatewayY = 0.0f;
+    
+    for (const auto& g : maps_[currentMapIndex]->gateways()) {
+        if (g.targetMapIndex == gatewayIndex) {
+  int gwIndex = static_cast<int>(&g - &maps_[currentMapIndex]->gateways()[0]);
+        entrySide = maps_[currentMapIndex]->gatewaySide(gwIndex);
+     gatewayX = g.posX;
+      gatewayY = g.posY;
+break;
+      }
+    }
+    
+ entities_.clear();
+  
+    this->setCurrentMapIndex(gatewayIndex);
+    
+    this->buildFromMap(
+        "assets/design/wall.png",
+        "assets/design/floor.png",
+        "assets/design/door.png",
+   64, 64
+    );
+
+    // Move player to new position (player attributes are preserved!)
+    if (player_) {
+spawnPlayerInNewScene(entrySide, gatewayX, gatewayY);
+    }
+    
+    std::cout << "Switched to map: " << gatewayIndex << "\n";
+ gatewayIndex = -1;
+}
+
+void World::spawnPlayerInNewScene(GatewaySide entrySide, float sourceGatewayX, float sourceGatewayY) {
+    switch (entrySide) {
+        case GatewaySide::Top:
+            player_->setPosition(sourceGatewayX, screenHeight_ - 100.0f);
+            break;
+        case GatewaySide::Bottom:
+            player_->setPosition(sourceGatewayX, 50.0f);
+            break;
+        case GatewaySide::Left:
+            player_->setPosition(screenWidth_ - 100.0f, sourceGatewayY);
+            break;
+        case GatewaySide::Right:
+            player_->setPosition(50.0f, sourceGatewayY);
+            break;
     }
 
 
@@ -153,17 +294,29 @@ void World::clear() {
 
 void World::forEachEntity(const std::function<void(Entity &)> &fn) {
     for ( auto& up: entities_) {
-        if (up) fn(*up);
+      if (up) fn(*up);
     }
 }
 
 bool World::remove(Entity* ptr) {
     if (!ptr) return false;
+    
+    if (player_.get() == ptr) {
+        player_.reset();
+        return true;
+    }
+    
     auto it = std::remove_if(entities_.begin(), entities_.end(),
-        [&](const std::unique_ptr<Entity>& up){ return up.get() == ptr; });
+    [&](const std::unique_ptr<Entity>& up){ return up.get() == ptr; });
     const bool removed = (it != entities_.end());
     entities_.erase(it, entities_.end());
-    if (removed && player_ == ptr) player_ = nullptr;
     return removed;
 }
 
+void World::addMap(const std::string& path) {
+    auto m = std::make_unique<Map>();
+    if (!m->loadFromFile(path)) {
+        throw std::runtime_error("Could not load map file: " + path);
+    }
+    maps_.push_back(std::move(m));
+}
