@@ -1,7 +1,10 @@
 #include "LivingEntity.h"
 #include "cmath"
+#include <iostream>
 LivingEntity::LivingEntity(int entityId, uint32_t width, uint32_t height, float pos_x, float pos_y, int maxHp_)
-    : Entity(entityId, width, height, pos_x, pos_y), maxHp(maxHp_) {}
+    : Entity(entityId, width, height, pos_x, pos_y), maxHp(maxHp_) {
+    hp = maxHp;
+}
 
 ImVec2 LivingEntity::getVelocity() const {
     return velocity;
@@ -63,11 +66,13 @@ void LivingEntity::takeDamage(int dmg) {
     if (!isAlive()) return;
 
     hp -= dmg;
-    if (hp <= 0) hp = 0;
+    if (hp < 0) hp = 0;
+    std::cout << "[LivingEntity] entityId=" << this->getEntityId() << " took " << dmg << " dmg -> hp=" << hp << "/" << maxHp << std::endl;
 }
 
 void LivingEntity::heal(int amount) {
     if (!isAlive()) return;
     hp += amount;
-    if (hp >= maxHp) hp = maxHp;
+    if (hp > maxHp) hp = maxHp;
+    std::cout << "[LivingEntity] entityId=" << this->getEntityId() << " healed " << amount << " -> hp=" << hp << "/" << maxHp << std::endl;
 }

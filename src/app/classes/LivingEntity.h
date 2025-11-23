@@ -23,8 +23,8 @@ public:
     void takeDamage(int dmg);
     void heal(int amount);
 
-    void setAttackDamage(int attackDamage_) {attackDamage = attackDamage;}
-    void setAttackCooldown(float attackCooldown_) {attackCooldown = attackCooldown;}
+    void setAttackDamage(int attackDamage_) {attackDamage = attackDamage_;}
+    void setAttackCooldown(float attackCooldown_) {attackCooldown = attackCooldown_;}
     void setAttackRange(float attackRange_) {attackRange = attackRange_ ;}
 
     int getAttackDamage() const { return attackDamage ;}
@@ -43,9 +43,9 @@ protected:
     int hp = 0;
     int maxHp;
 
-    int attackDamage ;
-    float attackCooldown;
-    float attackRange;
+    int attackDamage = 0;
+    float attackCooldown = 0.f;
+    float attackRange = 0.f;
     float attackTimer = 0.0f;
 
 
