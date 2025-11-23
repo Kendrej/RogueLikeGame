@@ -113,8 +113,14 @@ static void drawDebugOverlay(GLFWwindow* window, const std::vector<std::unique_p
             {
                 if (!entityList[i]) continue;
                 ImVec2 p = entityList[i]->getPosition();
-                ImGui::BulletText("#%zu pos=(%.0f, %.0f) size=%ux%u entityId=%d",
-                    i, p.x, p.y, entityList[i]->getWidth(), entityList[i]->getHeight(), entityList[i]->getEntityId());
+                auto* living = dynamic_cast<LivingEntity*>(entityList[i].get());
+                if (living) {
+                    ImGui::BulletText("#%zu pos=(%.0f, %.0f) size=%ux%u id=%d hp=%d/%d", i, p.x, p.y,
+                        entityList[i]->getWidth(), entityList[i]->getHeight(), entityList[i]->getEntityId(), living->getHp(), living->getMaxHp());
+                } else {
+                    ImGui::BulletText("#%zu pos=(%.0f, %.0f) size=%ux%u id=%d", i, p.x, p.y,
+                        entityList[i]->getWidth(), entityList[i]->getHeight(), entityList[i]->getEntityId());
+                }
             }
             ImGui::TreePop();
         }
@@ -125,6 +131,8 @@ static void drawDebugOverlay(GLFWwindow* window, const std::vector<std::unique_p
             ImVec2 pp = mainPlayer->getPosition();
             ImGui::Text("Player: pos=(%.0f, %.0f) size=%ux%u entityId=%d",
                 pp.x, pp.y, mainPlayer->getWidth(), mainPlayer->getHeight(), mainPlayer->getEntityId());
+            auto* lp = static_cast<const LivingEntity*>(mainPlayer);
+            ImGui::Text("Player HP: %d / %d", lp->getHp(), lp->getMaxHp());
         }
     }
     ImGui::End();
@@ -272,6 +280,12 @@ void VulkanImGuiApp::drawWorld()
         ImVec2 hpFill(barMin.x + (barMax.x - barMin.x) * ratio, barMax.y);
         ImU32 col = (ratio > 0.5f) ? IM_COL32(0,200,0,220) : IM_COL32(200,50,0,220);
         bg->AddRectFilled(ImVec2(barMin.x+1, barMin.y+1), ImVec2(hpFill.x-1, barMax.y-1), col, 2.0f);
+        // Tekst HP (środek paska)
+        char buf[32];
+        snprintf(buf, sizeof(buf), "%d/%d", hp, maxHp);
+        ImVec2 textSize = ImGui::CalcTextSize(buf);
+        ImVec2 textPos(barMin.x + (barMax.x - barMin.x - textSize.x)*0.5f, barMin.y - textSize.y - 1.0f);
+        bg->AddText(textPos, IM_COL32(255,255,255,220), buf);
     };
 
     for (const auto& up : world_->entities()) {

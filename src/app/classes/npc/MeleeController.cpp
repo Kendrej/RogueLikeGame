@@ -1,9 +1,9 @@
-
 #include "MeleeController.h"
 #include "Npc.h"
 #include "Player.h"
 #include "World.h"
 #include "MathUtils.h"
+#include <iostream>
 
 void MeleeController::update(Npc &npc, World &world, float dt) {
     Player* player = world.getPlayer();
@@ -60,8 +60,11 @@ void MeleeController::update(Npc &npc, World &world, float dt) {
         npc.applyInput(ImVec2(0.0f, 0.0f));
 
         if (npc.canAttack()) {
-            player->takeDamage(npc.getAttackDamage());
+            int dmg = npc.getAttackDamage();
+            player->takeDamage(dmg);
             npc.startAttackCooldown();
+            std::cout << "[Combat] NPC(" << npc.getEntityId() << ") hits Player for " << dmg
+                      << " -> Player HP: " << player->getHp() << "/" << player->getMaxHp() << std::endl;
         }
         return;
     }
