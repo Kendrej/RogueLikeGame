@@ -43,9 +43,9 @@ protected:
     int hp = 0;
     int maxHp;
 
-    int attackDamage ;
-    float attackCooldown;
-    float attackRange;
+    int attackDamage = 0;
+    float attackCooldown = 0.f;
+    float attackRange = 0.f;
     float attackTimer = 0.0f;
 
 

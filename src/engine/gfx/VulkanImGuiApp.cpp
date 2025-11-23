@@ -14,6 +14,8 @@
 #include <memory>
 #include "World.h"
 #include <cmath>
+#include "../../app/classes/LivingEntity.h"
+#include <algorithm>
 
 int VulkanImGuiApp::run()
 {
@@ -21,9 +23,8 @@ int VulkanImGuiApp::run()
         initWindow();
         initVulkan();
         initImGui();
-        // --- Wczytaj ikone jako teksture i zarejestruj w ImGui ---
-		world_ = std::make_unique<World>(assets_.get());
-		setupGame(*world_);
+        world_ = std::make_unique<World>(assets_.get());
+        setupGame(*world_);
         mainLoop();
         vkDeviceWaitIdle(device_);
         cleanup();
@@ -257,17 +258,31 @@ void VulkanImGuiApp::drawWorld()
         IM_COL32(0, 0, 0, 255)
     );
 
+    auto drawHpBar = [bg](const LivingEntity& le, float x, float y, float w) {
+        int hp = le.getHp();
+        int maxHp = le.getMaxHp();
+        if (maxHp <= 0) return;
+        float ratio = static_cast<float>(hp) / static_cast<float>(maxHp);
+        ratio = std::clamp(ratio, 0.0f, 1.0f);
+        const float barHeight = 6.0f;
+        ImVec2 barMin(x, y - barHeight - 4.0f);
+        ImVec2 barMax(x + w, y - 4.0f);
+        bg->AddRectFilled(barMin, barMax, IM_COL32(30,30,30,200), 2.0f);
+        bg->AddRect(barMin, barMax, IM_COL32(200,200,200,255), 2.0f);
+        ImVec2 hpFill(barMin.x + (barMax.x - barMin.x) * ratio, barMax.y);
+        ImU32 col = (ratio > 0.5f) ? IM_COL32(0,200,0,220) : IM_COL32(200,50,0,220);
+        bg->AddRectFilled(ImVec2(barMin.x+1, barMin.y+1), ImVec2(hpFill.x-1, barMax.y-1), col, 2.0f);
+    };
+
     for (const auto& up : world_->entities()) {
         if (!up) continue;
         if (up.get() == world_->getPlayer()) continue;
-
         const Entity& e = *up;
         if (!e.isVisible()) continue;
 
         const ImVec2 pos = e.getPosition();
         const uint32_t w = e.getWidth();
         const uint32_t h = e.getHeight();
-
         const auto& entity = assets_->icon(e.getEntityId());
         bg->AddImage(
             entity.imTex,
@@ -276,14 +291,18 @@ void VulkanImGuiApp::drawWorld()
             ImVec2(0, 0), ImVec2(1, 1),
             IM_COL32_WHITE
         );
+        if (auto* living = dynamic_cast<LivingEntity*>(up.get())) {
+            drawHpBar(*living, pos.x, pos.y, static_cast<float>(w));
+        }
     }
 
+    // Rysuj gracza
     if (auto* player = world_->getPlayer()) {
         const ImVec2 pos = player->getPosition();
         const uint32_t w = player->getWidth();
         const uint32_t h = player->getHeight();
-
         const auto& entity = assets_->icon(player->getEntityId());
+
         bg->AddImage(
             entity.imTex,
             pos,
@@ -291,6 +310,6 @@ void VulkanImGuiApp::drawWorld()
             ImVec2(0, 0), ImVec2(1, 1),
             IM_COL32_WHITE
         );
+        drawHpBar(*player, pos.x, pos.y, static_cast<float>(w));
     }
 }
-
