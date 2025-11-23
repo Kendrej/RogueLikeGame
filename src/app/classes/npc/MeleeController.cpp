@@ -35,6 +35,9 @@ void MeleeController::update(Npc &npc, World &world, float dt) {
     npc.setAcceleration(accel);
 
     float attackRange = npc.getAttackRange();
+    // if (attackRange <= 0.0f) {
+    //     attackRange = 100.0f;
+    // }
 
     const float tolerance = 30.0f;
 
@@ -44,14 +47,14 @@ void MeleeController::update(Npc &npc, World &world, float dt) {
         return;
     }
     // npc is too close so steps back
-    if (dist < attackRange - tolerance) {
-        ImVec2 dirBack = normalize({
-        npcCenter.x - playerCenter.x,
-            npcCenter.y - playerCenter.y
-        });
-        npc.applyInput(dirBack);
-        return;
-    }
+    // if (dist < attackRange - tolerance) {
+    //     ImVec2 dirBack = normalize({
+    //     npcCenter.x - playerCenter.x,
+    //         npcCenter.y - playerCenter.y
+    //     });
+    //     npc.applyInput(dirBack);
+    //     return;
+    // }
     // npc in range, npc stays and hits player
     if (dist <= attackRange + tolerance ) {
         npc.applyInput(ImVec2(0.0f, 0.0f));

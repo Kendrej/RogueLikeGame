@@ -33,7 +33,7 @@ Npc& World::spawnNpc(const std::string &texturePath, uint32_t width, uint32_t he
     n.setController(std::make_unique<MeleeController>());
     n.setSolid(true);
     n.setAttackDamage(5);
-    n.setAttackRange(100.0f);
+    n.setAttackRange(80.0f);
     n.setAttackCooldown(0.7f);
     return n;
 }

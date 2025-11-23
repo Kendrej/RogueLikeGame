@@ -29,7 +29,7 @@ public:
 
     int getAttackDamage() const { return attackDamage ;}
     float getAttackCooldown() const { return attackCooldown ;}
-    float getAttackRange() const { return attackCooldown ;}
+    float getAttackRange() const { return attackRange ;}
 
     void resetAttackTimer() {attackTimer = 0.0f ;}
     bool canAttack() const {return attackTimer == 0.f; }
