@@ -48,14 +48,14 @@ Player& World::spawnPlayer(const std::string& texturePath, uint32_t width, uint3
     return *player_;
 }
 
-Npc& World::spawnNpc(const std::string &texturePath, uint32_t width, uint32_t height, float pos_x, float pos_y, int maxHp) {
+Npc& World::spawnNpc(const std::string &texturePath, uint32_t width, uint32_t height, float pos_x, float pos_y, int maxHp, std::unique_ptr<INpcController> controller, float attackRange) {
     const int npcId = assets_ ? assets_->getOrLoadIcon(texturePath) : -1;
     Npc& n= addEntity<Npc>(npcId, width , height , pos_x, pos_y,  maxHp);
     n.setWorld(this);
-    n.setController(std::make_unique<RangeController>());
+    n.setController(std::move(controller));
     n.setSolid(true);
     n.setAttackDamage(5);
-    n.setAttackRange(400.0f);
+    n.setAttackRange(attackRange);
     n.setAttackCooldown(0.7f);
     return n;
 }

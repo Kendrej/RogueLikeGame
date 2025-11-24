@@ -41,7 +41,7 @@ public:
 
     Npc& spawnNpc(const std::string& texturePath,
                         uint32_t width, uint32_t height,
-                        float pos_x, float pos_y, int maxHp);
+                        float pos_x, float pos_y, int maxHp, std::unique_ptr<INpcController> controller, float attackRange);
 
     void buildFromMap(const std::string& wallTexturePath,
         const std::string& floorTexturePath,

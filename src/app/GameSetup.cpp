@@ -3,6 +3,9 @@
 #include "Map.h"
 #include <stdexcept>
 #include <string>
+#include <memory>
+#include "npc/MeleeController.h"
+#include "npc/RangeController.h"
 
 void setupGame(World& world)
 {
@@ -25,8 +28,13 @@ void setupGame(World& world)
         100, "assets/animations/Soldier-Walk-right.png", 8, "assets/animations/Soldier-Walk-left.png", 8, "assets/animations/Soldier-Idle.png", 6
     );
 
-    auto& npc = world.spawnNpc("assets/characters/angel.png",
+    auto& npc1 = world.spawnNpc("assets/characters/angel.png",
         64, 64,
         180.0f, 180.0f + World::UI_TOP_BAR_HEIGHT,  // Add UI offset to NPC spawn
-        100);
+        100, std::make_unique<MeleeController>(), 100.0f);
+
+    auto& npc2 = world.spawnNpc("assets/characters/hero.png",
+        64, 64,
+        180.0f, 180.0f + World::UI_TOP_BAR_HEIGHT,  // Add UI offset to NPC spawn
+        100, std::make_unique<RangeController>(), 300.0f);
 }
