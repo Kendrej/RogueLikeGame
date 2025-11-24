@@ -1,10 +1,12 @@
 #include "LivingEntity.h"
-#include "cmath"
+#include "AnimationController.h"
+#include <cmath>
 #include <iostream>
+
 LivingEntity::LivingEntity(int entityId, uint32_t width, uint32_t height, float pos_x, float pos_y, int maxHp_)
-    : Entity(entityId, width, height, pos_x, pos_y), maxHp(maxHp_) {
-    hp = maxHp;
-}
+    : Entity(entityId, width, height, pos_x, pos_y), maxHp(maxHp_), hp(maxHp_) {}
+
+LivingEntity::~LivingEntity() = default;
 
 ImVec2 LivingEntity::getVelocity() const {
     return velocity;
@@ -15,17 +17,18 @@ float LivingEntity::getMaxSpeed() const {
 }
 
 float LivingEntity::getAcceleration() const {
-    return acceleration;
+  return acceleration;
 }
 
 void LivingEntity::setVelocity(const ImVec2& v) {
     float speed = std::sqrt(v.x * v.x + v.y * v.y);
     if (speed > maxSpeed) {
-        velocity = ImVec2(v.x * (maxSpeed/speed), v.y * (maxSpeed/speed));
+  velocity = ImVec2(v.x * (maxSpeed/speed), v.y * (maxSpeed/speed));
     } else {
         velocity = v;
     }
 }
+
 void LivingEntity::setAcceleration(float acceleration) {
     this->acceleration = acceleration;
 }
@@ -36,10 +39,10 @@ void LivingEntity::setMaxSpeed(float maxSpeed) {
 
 void LivingEntity::applyInput(const ImVec2 &dir) {
     if (dir.x != 0.0f || dir.y != 0.0f) {
-        float len = std::sqrt(dir.x * dir.x + dir.y * dir.y);
-        desiredDir = ImVec2(dir.x/len , dir.y/len);
+      float len = std::sqrt(dir.x * dir.x + dir.y * dir.y);
+      desiredDir = ImVec2(dir.x/len , dir.y/len);
     } else {
-        desiredDir= ImVec2(0.0f, 0.0f);
+   desiredDir = ImVec2(0.0f, 0.0f);
     }
 }
 
@@ -51,13 +54,13 @@ void LivingEntity::update(float dt) {
     float len2 = delta.x * delta.x + delta.y * delta.y;
     if (len2 > step * step) {
         float len = std::sqrt(len2);
-        velocity.x += (delta.x / len) * step;
+     velocity.x += (delta.x / len) * step;
         velocity.y += (delta.y / len) * step;
     } else {
-        velocity = target;
+  velocity = target;
     }
     if (attackTimer > 0.f) {
-        attackTimer -= dt;
+     attackTimer -= dt;
         if (attackTimer < 0.f) attackTimer = 0.f;
     }
 }
@@ -75,4 +78,9 @@ void LivingEntity::heal(int amount) {
     hp += amount;
     if (hp > maxHp) hp = maxHp;
     std::cout << "[LivingEntity] entityId=" << this->getEntityId() << " healed " << amount << " -> hp=" << hp << "/" << maxHp << std::endl;
+}
+
+AnimationController& LivingEntity::createAnimationController(Assets* assets, const std::string& walkRightPath, int walkRightFrameAmount, const std::string& walkLeftPath, int walkLeftFrameAmount, const std::string& idlePath, int idleFrameAmount) {
+    animationController_ = std::make_unique<AnimationController>(assets, walkRightPath, walkRightFrameAmount, walkLeftPath, walkLeftFrameAmount, idlePath, idleFrameAmount);
+    return *animationController_;
 }

@@ -1,4 +1,4 @@
-#include "World.h"
+﻿#include "World.h"
 #include "StaticEntity.h"
 #include "Player.h"
 #include "Assets.h"
@@ -10,7 +10,7 @@
 #include <stdexcept>
 #include <iostream>
 #include "Map.h"
-
+#include "AnimationController.h"
 
 StaticEntity& World::spawnTile(const std::string &texturePath, uint32_t width, uint32_t height, float pos_x, float pos_y, bool solid) {
     const int entityId = assets_ ? assets_->getOrLoadIcon(texturePath) : -1;
@@ -28,6 +28,24 @@ Player& World::spawnPlayer(const std::string &texturePath, uint32_t width, uint3
    p.setAttackCooldown(0.7f);
   
    return *player_;
+}
+
+Player& World::spawnPlayer(const std::string& texturePath, uint32_t width, uint32_t height,
+    float pos_x, float pos_y, int maxHp,
+    const std::string& walkRightPath, int walkRightFrameAmount,
+    const std::string& walkLeftPath, int walkLeftFrameAmount,
+    const std::string& idlePath, int idleFrameAmount){
+
+    const int playerId = assets_ ? assets_->getOrLoadIcon(texturePath) : -1;
+    player_ = std::make_unique<Player>(playerId, width, height, pos_x, pos_y, maxHp);
+    Player& p = *player_;
+
+    p.setSolid(true);
+    p.setAttackDamage(5);
+    p.setAttackRange(50.0f);
+    p.setAttackCooldown(0.7f);
+	p.createAnimationController(assets_, walkRightPath, walkRightFrameAmount, walkLeftPath, walkLeftFrameAmount,  idlePath, idleFrameAmount);
+    return *player_;
 }
 
 Npc& World::spawnNpc(const std::string &texturePath, uint32_t width, uint32_t height, float pos_x, float pos_y, int maxHp) {
@@ -206,38 +224,52 @@ void World::update(float dt) {
 
     if (player_) {
         player_->update(dt);
+        if (auto* animationController = player_->getAnimationController()) {
+			ImVec2 vel = player_->getVelocity();
+            if(vel.x != 0.0f || vel.y != 0.0f) {
+                if(vel.x<0.0f)
+                    animationController->setCurrentAnimationType(AnimationType::WalkLeft);
+                else {
+                    animationController->setCurrentAnimationType(AnimationType::WalkRight);
+                }
+            }
+            else {
+                animationController->setCurrentAnimationType(AnimationType::Idle);
+            }
+			animationController->update(dt);
+        }
     }
     for (auto &up : entities_) {
-        if (!up) continue;
+      if (!up) continue;
         up->update(dt);
     }
 
     if (player_) {
         auto *livingPlayer = dynamic_cast<LivingEntity*>(player_.get());
         if (livingPlayer) {
-            ImVec2 vel = livingPlayer->getVelocity();
-            float dx = vel.x * dt;
-            float dy = vel.y * dt;
+ ImVec2 vel = livingPlayer->getVelocity();
+          float dx = vel.x * dt;
+     float dy = vel.y * dt;
             moveWithCollisions(*livingPlayer, dx, dy, entities_);
-        }
-        clampToScreen(*player_);
+ }
+      clampToScreen(*player_);
     }
 
     for (auto &up : entities_) {
         if (!up) continue;
         auto *living = dynamic_cast<LivingEntity*>(up.get());
-        if (!living) continue;
+      if (!living) continue;
 
-        ImVec2 vel = living->getVelocity();
-        float dx = vel.x * dt;
+     ImVec2 vel = living->getVelocity();
+     float dx = vel.x * dt;
         float dy = vel.y * dt;
-        moveWithCollisions(*living, dx, dy, entities_);
+    moveWithCollisions(*living, dx, dy, entities_);
 
-        clampToScreen(*living);
+      clampToScreen(*living);
     }
 
     this->gatewayIndex = playerInGateway();
-    if (gatewayIndex >= 0) {
+  if (gatewayIndex >= 0) {
         this->newScene();
     }
 }

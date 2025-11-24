@@ -2,6 +2,7 @@
 #include <imgui_impl_vulkan.h>
 #include <stdexcept>
 #include <cstring>
+#include <vector>
 
 #if __has_include(<stb_image.h>)
 #define STB_IMAGE_IMPLEMENTATION
@@ -264,6 +265,146 @@ void Assets::removeIcon(IconId id) {
 void Assets::clear() {
     for (auto& s : icons_) destroyIcon(ctx_, s);
     icons_.clear();
-    byPath_.clear();     // <<< DODAJ
-    paths_.clear();      // <<< DODAJ
+    byPath_.clear();
+    paths_.clear();
+}
+
+IconId Assets::createIconFromPixels(const unsigned char* pixels, int width, int height, const std::string& cacheName) {
+    VkDeviceSize imageSize = static_cast<VkDeviceSize>(width) * height * 4;
+
+    VkBuffer stagingBuffer = VK_NULL_HANDLE;
+    VkDeviceMemory stagingMemory = VK_NULL_HANDLE;
+    createBuffer(imageSize,
+        VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+        VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+        stagingBuffer, stagingMemory);
+
+    void* data = nullptr;
+    vkMapMemory(ctx_.device, stagingMemory, 0, imageSize, 0, &data);
+    std::memcpy(data, pixels, static_cast<size_t>(imageSize));
+    vkUnmapMemory(ctx_.device, stagingMemory);
+
+    IconGPU s{};
+
+    VkImageCreateInfo ici{ VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO };
+    ici.imageType = VK_IMAGE_TYPE_2D;
+    ici.extent = { static_cast<uint32_t>(width), static_cast<uint32_t>(height), 1 };
+    ici.mipLevels = 1;
+    ici.arrayLayers = 1;
+    ici.format = VK_FORMAT_R8G8B8A8_UNORM;
+    ici.tiling = VK_IMAGE_TILING_OPTIMAL;
+    ici.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+    ici.usage = VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
+    ici.samples = VK_SAMPLE_COUNT_1_BIT;
+    ici.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+
+    vkCreateImage(ctx_.device, &ici, nullptr, &s.image);
+
+    VkMemoryRequirements memReq{};
+    vkGetImageMemoryRequirements(ctx_.device, s.image, &memReq);
+    VkMemoryAllocateInfo mai{ VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO };
+    mai.allocationSize = memReq.size;
+    mai.memoryTypeIndex = findMemoryType(memReq.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+    vkAllocateMemory(ctx_.device, &mai, nullptr, &s.memory);
+    vkBindImageMemory(ctx_.device, s.image, s.memory, 0);
+
+    transitionImageLayout(s.image, ici.format, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
+    copyBufferToImage(stagingBuffer, s.image, static_cast<uint32_t>(width), static_cast<uint32_t>(height));
+    transitionImageLayout(s.image, ici.format, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+
+    s.view = createImageView(s.image, ici.format);
+
+    VkSamplerCreateInfo sci{ VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO };
+    sci.magFilter = VK_FILTER_LINEAR;
+    sci.minFilter = VK_FILTER_LINEAR;
+    sci.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
+    sci.addressModeU = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
+    sci.addressModeV = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
+    sci.addressModeW = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
+    sci.maxAnisotropy = 1.0f;
+    sci.anisotropyEnable = VK_FALSE;
+    sci.borderColor = VK_BORDER_COLOR_INT_OPAQUE_BLACK;
+    sci.unnormalizedCoordinates = VK_FALSE;
+
+    vkCreateSampler(ctx_.device, &sci, nullptr, &s.sampler);
+
+    VkDescriptorSet ds = ImGui_ImplVulkan_AddTexture(s.sampler, s.view, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+    s.imTex = (ImTextureID)(uintptr_t)ds;
+
+    s.width = static_cast<uint32_t>(width);
+    s.height = static_cast<uint32_t>(height);
+
+    vkDestroyBuffer(ctx_.device, stagingBuffer, nullptr);
+    vkFreeMemory(ctx_.device, stagingMemory, nullptr);
+
+    icons_.push_back(s);
+    auto id = static_cast<IconId>(icons_.size() - 1);
+
+    paths_.push_back(cacheName);
+    byPath_[cacheName] = id;
+
+    return id;
+}
+
+IconId Assets::loadSpriteSheet(const std::string& path, int frameCount, int frameWidth, int frameHeight) {
+    // Check cache first
+    std::string cacheKey = path + "_spritesheet_" + std::to_string(frameCount) + "x" + std::to_string(frameWidth) + "x" + std::to_string(frameHeight);
+    if (auto it = byPath_.find(cacheKey); it != byPath_.end()) {
+        return it->second;  // Return cached base ID
+    }
+
+    // Load entire sprite sheet
+    int texW = 0, texH = 0, texC = 0;
+    stbi_uc* pixels = stbi_load(path.c_str(), &texW, &texH, &texC, STBI_rgb_alpha);
+    if (!pixels) {
+        throw std::runtime_error("Failed to load sprite sheet: " + path);
+    }
+
+    // Validate dimensions
+    if (texW < frameWidth * frameCount) {
+        stbi_image_free(pixels);
+        throw std::runtime_error("Sprite sheet width (" + std::to_string(texW) + 
+         ") is less than expected (" + std::to_string(frameWidth * frameCount) + ")");
+    }
+    if (texH < frameHeight) {
+      stbi_image_free(pixels);
+     throw std::runtime_error("Sprite sheet height (" + std::to_string(texH) + 
+        ") is less than frame height (" + std::to_string(frameHeight) + ")");
+ }
+
+    IconId baseId = -1;
+
+    // Extract each frame and create separate icon
+    for (int i = 0; i < frameCount; ++i) {
+        // Allocate buffer for single frame
+        std::vector<unsigned char> framePixels(frameWidth * frameHeight * 4);
+
+        // Copy pixels for this frame
+        for (int y = 0; y < frameHeight; ++y) {
+            for (int x = 0; x < frameWidth; ++x) {
+   int srcX = i * frameWidth + x;
+   int srcY = y;
+    int srcIdx = (srcY * texW + srcX) * 4;
+     int dstIdx = (y * frameWidth + x) * 4;
+
+     framePixels[dstIdx + 0] = pixels[srcIdx + 0]; // R
+ framePixels[dstIdx + 1] = pixels[srcIdx + 1]; // G
+      framePixels[dstIdx + 2] = pixels[srcIdx + 2]; // B
+                framePixels[dstIdx + 3] = pixels[srcIdx + 3]; // A
+            }
+ }
+
+        // Create icon from frame pixels
+        std::string frameCacheName = path + "_frame_" + std::to_string(i);
+        IconId frameId = createIconFromPixels(framePixels.data(), frameWidth, frameHeight, frameCacheName);
+
+        if (i == 0) {
+            baseId = frameId;  // Store base ID (first frame)
+        // Cache the sprite sheet under the composite key
+         byPath_[cacheKey] = baseId;
+        }
+    }
+
+    stbi_image_free(pixels);
+    return baseId;
 }
