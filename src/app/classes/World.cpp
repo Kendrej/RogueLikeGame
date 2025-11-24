@@ -5,6 +5,7 @@
 #include <algorithm>
 #include <utility>
 #include <npc/MeleeController.h>
+#include <npc/RangeController.h>
 #include "LivingEntity.h"
 #include <stdexcept>
 #include <iostream>
@@ -33,10 +34,10 @@ Npc& World::spawnNpc(const std::string &texturePath, uint32_t width, uint32_t he
     const int npcId = assets_ ? assets_->getOrLoadIcon(texturePath) : -1;
     Npc& n= addEntity<Npc>(npcId, width , height , pos_x, pos_y,  maxHp);
     n.setWorld(this);
-    n.setController(std::make_unique<MeleeController>());
+    n.setController(std::make_unique<RangeController>());
     n.setSolid(true);
     n.setAttackDamage(5);
-    n.setAttackRange(80.0f);
+    n.setAttackRange(400.0f);
     n.setAttackCooldown(0.7f);
     return n;
 }
