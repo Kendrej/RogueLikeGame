@@ -1,11 +1,15 @@
 #pragma once
 #include "Entity.h"
+#include <memory>
+#include <string>
+
+class AnimationController;
 
 class LivingEntity: public Entity {
 public:
     LivingEntity(int entityId, uint32_t width, uint32_t height, float pos_x, float pos_y, int maxHp_);
 
-    virtual ~LivingEntity() = default;
+    ~LivingEntity(); // Declare destructor
 
     void update(float dt) override;
     ImVec2 getVelocity() const;
@@ -35,6 +39,15 @@ public:
     bool canAttack() const {return attackTimer == 0.f; }
 
     void startAttackCooldown() {attackTimer = attackCooldown ;}
+
+    AnimationController& createAnimationController(Assets* assets, const std::string& walkPath,
+        int walkFrameAmount,
+        const std::string& idlePath,
+        int idleFrameAmount);
+
+    AnimationController* getAnimationController() const {
+        return animationController_.get();
+    }
 protected:
     ImVec2 velocity{ 0.0f, 0.0f };
     float maxSpeed = 5.0f;
@@ -50,7 +63,7 @@ protected:
 
 
 private:
-
+    std::unique_ptr<AnimationController> animationController_{ nullptr };
 };
 
 

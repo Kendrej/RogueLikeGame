@@ -34,6 +34,11 @@ public:
 
     IconId addIconFromFile(const std::string& path);
     IconId getOrLoadIcon(const std::string& path);
+    
+    // Load sprite sheet and split into frames
+    // Returns base IconId (ID of first frame)
+    IconId loadSpriteSheet(const std::string& path, int frameCount, int frameWidth, int frameHeight);
+    
     const IconGPU& icon(IconId id) const { return icons_[id]; }
 
     void removeIcon(IconId id);   // leaves a hole - stable ID
@@ -55,6 +60,9 @@ private:
     void transitionImageLayout(VkImage image, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout) const;
     void copyBufferToImage(VkBuffer buffer, VkImage image, uint32_t width, uint32_t height) const;
     VkImageView createImageView(VkImage image, VkFormat format) const;
+
+    // Helper to create icon from pixel data
+    IconId createIconFromPixels(const unsigned char* pixels, int width, int height, const std::string& cacheName);
 
     static void destroyIcon(const Ctx& ctx, IconGPU& s);
 };

@@ -27,7 +27,15 @@ public:
 
     Player& spawnPlayer(const std::string& texturePath,
                         uint32_t width, uint32_t height,
-                        float pos_x, float pos_y, int maxHp);
+                        float pos_x, float pos_y, int maxHp,
+                        const std::string& walkPath,
+                        int walkFrameAmount,
+                        const std::string& idlePath,
+                        int idleFrameAmount);
+
+    Player& spawnPlayer(const std::string& texturePath,
+        uint32_t width, uint32_t height,
+        float pos_x, float pos_y, int maxHp);
 
     Npc& spawnNpc(const std::string& texturePath,
                         uint32_t width, uint32_t height,
@@ -79,7 +87,7 @@ private:
     int gatewayIndex = -1;
 	int currentMapIndex = 0;
     std::vector<std::unique_ptr<Map>> maps_;
- Assets* assets_{nullptr};
+    Assets* assets_{nullptr};
     std::vector<std::unique_ptr<Entity>> entities_;
     std::unique_ptr<Player> player_{nullptr}; 
     float screenWidth_ = 0.0f;

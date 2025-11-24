@@ -16,6 +16,7 @@
 #include <cmath>
 #include "../../app/classes/LivingEntity.h"
 #include <algorithm>
+#include "AnimationController.h"
 
 int VulkanImGuiApp::run()
 {
@@ -315,14 +316,22 @@ void VulkanImGuiApp::drawWorld()
         const ImVec2 pos = player->getPosition();
         const uint32_t w = player->getWidth();
         const uint32_t h = player->getHeight();
-        const auto& entity = assets_->icon(player->getEntityId());
+        int iconId;
+     if (auto* animationController = player->getAnimationController()) {
+          iconId = animationController->getCurrentFrameIconId();
+        }
+        else {
+			iconId = player->getEntityId();
+        }
+
+        const auto& entity = assets_->icon(iconId);
 
         bg->AddImage(
-            entity.imTex,
+       entity.imTex,
             pos,
             ImVec2(pos.x + static_cast<float>(w), pos.y + static_cast<float>(h)),
             ImVec2(0, 0), ImVec2(1, 1),
-            IM_COL32_WHITE
+    IM_COL32_WHITE
         );
         drawHpBar(*player, pos.x, pos.y, static_cast<float>(w));
     }

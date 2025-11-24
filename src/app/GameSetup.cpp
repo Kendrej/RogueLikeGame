@@ -11,9 +11,6 @@ void setupGame(World& world)
     world.addMap("assets/maps/map2.txt");
     world.addMap("assets/maps/map3.txt");
 
-
-    world.setCurrentMapIndex(0);
-
     world.buildFromMap(
         "assets/design/wall.png",
         "assets/design/floor.png",
@@ -23,12 +20,12 @@ void setupGame(World& world)
 
     world.spawnPlayer(
         "assets/characters/hero.png",
-        64, 64,
+        200, 200,
         100.0f, 100.0f + World::UI_TOP_BAR_HEIGHT,  // Add UI offset to initial spawn
-        100
+        100, "assets/animations/Soldier-Walk-right.png", 8, "assets/animations/Soldier-Idle.png", 6
     );
-     auto& npc = world.spawnNpc("assets/characters/angel.png",
-         64, 64,
-         180.0f, 180.0f + World::UI_TOP_BAR_HEIGHT,  // Add UI offset to NPC spawn
-         100);
+     //auto& npc = world.spawnNpc("assets/characters/angel.png",
+     //    64, 64,
+     //    180.0f, 180.0f + World::UI_TOP_BAR_HEIGHT,  // Add UI offset to NPC spawn
+     //    100);
 }

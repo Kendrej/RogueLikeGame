@@ -52,6 +52,7 @@ add_executable(RogueLikeGame
         src/app/classes/npc/MeleeController.cpp
         src/app/classes/npc/MeleeController.h
         src/app/classes/MathUtils.h
+        src/app/classes/AnimationController.cpp
 
 )
 
