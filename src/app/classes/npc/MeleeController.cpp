@@ -1,11 +1,12 @@
+
 #include "MeleeController.h"
 #include "Npc.h"
 #include "Player.h"
 #include "World.h"
 #include "MathUtils.h"
-#include <iostream>
 
 void MeleeController::update(Npc &npc, World &world, float dt) {
+
     Player* player = world.getPlayer();
     if (!player) {
         npc.applyInput(ImVec2(0.0f, 0.0f));
@@ -35,46 +36,38 @@ void MeleeController::update(Npc &npc, World &world, float dt) {
     npc.setAcceleration(accel);
 
     float attackRange = npc.getAttackRange();
-    // if (attackRange <= 0.0f) {
-    //     attackRange = 100.0f;
-    // }
-
     const float tolerance = 30.0f;
 
-    //npc is out of aggro range so just doesnt move
     if ( dist > aggroRange) {
-        npc.applyInput(ImVec2(0.0f, 0.0f));
-        return;
+        npc.setState(Npc::State::Idle);
     }
-    // npc is too close so steps back
-    // if (dist < attackRange - tolerance) {
-    //     ImVec2 dirBack = normalize({
-    //     npcCenter.x - playerCenter.x,
-    //         npcCenter.y - playerCenter.y
-    //     });
-    //     npc.applyInput(dirBack);
-    //     return;
-    // }
-    // npc in range, npc stays and hits player
-    if (dist <= attackRange + tolerance ) {
-        npc.applyInput(ImVec2(0.0f, 0.0f));
+    else if (dist <= attackRange + tolerance ) {
+       npc.setState(Npc::State::Attack);
+    }
+    else if (dist > 0.001f) {
+        npc.setState(Npc::State::Chase);
+    }
 
-        if (npc.canAttack()) {
-            int dmg = npc.getAttackDamage();
-            player->takeDamage(dmg);
-            npc.startAttackCooldown();
-            std::cout << "[Combat] NPC(" << npc.getEntityId() << ") hits Player for " << dmg
-                      << " -> Player HP: " << player->getHp() << "/" << player->getMaxHp() << std::endl;
-        }
-        return;
-    }
-    if (dist > 0.001f) {
-        ImVec2 dir = normalize(ImVec2{
+    switch (npc.getState()) {
+        case Npc::State::Idle:
+            npc.applyInput(ImVec2(0.0f, 0.0f));
+            break;
+        case Npc::State::Attack:
+            npc.applyInput(ImVec2(0.0f, 0.0f));
+
+            if (npc.canAttack()) {
+                player->takeDamage(npc.getAttackDamage());
+                npc.startAttackCooldown();
+            }
+            break;
+        case Npc::State::Chase:
+            ImVec2 dir = normalize(ImVec2{
         playerCenter.x - npcCenter.x,
             playerCenter.y - npcCenter.y
         });
-        npc.applyInput(dir);
-    } else {
-        npc.applyInput(ImVec2(0.0f, 0.0f));
+            npc.applyInput(dir);
+            break;
     }
+
+
 }

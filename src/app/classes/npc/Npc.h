@@ -11,11 +11,14 @@ public:
     enum class State { Idle, Chase , Attack};
 
     void setController(std::unique_ptr<INpcController> ctrl);
-    void update(float dt) override;
+    void setState(State state_) {state = state_ ;}
+    void setAggroRange(float aggroRange_) { aggroRange = aggroRange_ ;}
     void setWorld(World* w) { world_ = w;}
 
-    void setAggroRange(float aggroRange_) { aggroRange = aggroRange_ ;}
+    void update(float dt) override;
+
     float getAggroRange() const { return aggroRange ;}
+    State getState() const { return  state ;}
 
 private:
     std::unique_ptr<INpcController> controller;
