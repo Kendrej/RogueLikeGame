@@ -58,6 +58,12 @@ void RangeController::update(Npc &npc, World &world, float dt) {
                    npcCenter.y - playerCenter.y
                });
             npc.applyInput(stepBack);
+
+            if (npc.canAttack()) {
+                player->takeDamage(npc.getAttackDamage());
+                npc.startAttackCooldown();
+            }
+
             break;
         }
 
