@@ -80,7 +80,7 @@ void LivingEntity::heal(int amount) {
     std::cout << "[LivingEntity] entityId=" << this->getEntityId() << " healed " << amount << " -> hp=" << hp << "/" << maxHp << std::endl;
 }
 
-AnimationController& LivingEntity::createAnimationController(Assets* assets, const std::string& walkPath, int walkFrameAmount, const std::string& idlePath, int idleFrameAmount) {
-    animationController_ = std::make_unique<AnimationController>(assets, walkPath, walkFrameAmount, idlePath, idleFrameAmount);
+AnimationController& LivingEntity::createAnimationController(Assets* assets, const std::string& walkRightPath, int walkRightFrameAmount, const std::string& walkLeftPath, int walkLeftFrameAmount, const std::string& idlePath, int idleFrameAmount) {
+    animationController_ = std::make_unique<AnimationController>(assets, walkRightPath, walkRightFrameAmount, walkLeftPath, walkLeftFrameAmount, idlePath, idleFrameAmount);
     return *animationController_;
 }

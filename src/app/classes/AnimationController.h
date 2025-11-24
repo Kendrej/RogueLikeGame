@@ -5,13 +5,14 @@
 class Assets;
 
 enum class AnimationType {
-	Walk,
+	WalkRight,
+	WalkLeft,
 	Idle
 };
 
 class AnimationController {
 public:
-	AnimationController(Assets* assets, const std::string walkPath, const int walkframeAmount, const std::string idlePath, const int idlesframeAmount);
+	AnimationController(Assets* assets, const std::string walkRightPath, const int walkRightframeAmount, const std::string walkLeftPath, const int walkLeftframeAmount, const std::string idlePath, const int idlesframeAmount);
 	~AnimationController() = default;
 	void setCurrentAnimationType(AnimationType type) {
 		if (currentAnimationType_ == type) {
@@ -39,7 +40,8 @@ private:
 
 
 	Assets* assets_;
-	int walkFrameAmount_;
+	int walkRightFrameAmount_;
+	int walkLeftFrameAmount_;
 	int idleFrameAmount_;
 
 	AnimationType currentAnimationType_ = AnimationType::Idle;

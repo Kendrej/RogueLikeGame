@@ -22,7 +22,7 @@ void setupGame(World& world)
         "assets/characters/hero.png",
         64, 64,
         100.0f, 100.0f + World::UI_TOP_BAR_HEIGHT,  // Add UI offset to initial spawn
-        100, "assets/animations/Soldier-Walk-right.png", 8, "assets/animations/Soldier-Idle.png", 6
+        100, "assets/animations/Soldier-Walk-right.png", 8, "assets/animations/Soldier-Walk-left.png", 8, "assets/animations/Soldier-Idle.png", 6
     );
 
     auto& npc = world.spawnNpc("assets/characters/angel.png",

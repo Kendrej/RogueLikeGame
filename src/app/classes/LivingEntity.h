@@ -40,8 +40,10 @@ public:
 
     void startAttackCooldown() {attackTimer = attackCooldown ;}
 
-    AnimationController& createAnimationController(Assets* assets, const std::string& walkPath,
-        int walkFrameAmount,
+    AnimationController& createAnimationController(Assets* assets, const std::string& walkRightPath,
+        int walkRightFrameAmount,
+        const std::string& walkLeftPath,
+        int walkLeftFrameAmount,
         const std::string& idlePath,
         int idleFrameAmount);
 

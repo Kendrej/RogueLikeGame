@@ -29,7 +29,12 @@ Player& World::spawnPlayer(const std::string &texturePath, uint32_t width, uint3
    return *player_;
 }
 
-Player& World::spawnPlayer(const std::string& texturePath, uint32_t width, uint32_t height, float pos_x, float pos_y, int maxHp, const std::string& walkPath, int walkFrameAmount, const std::string& idlePath, int idleFrameAmount) {
+Player& World::spawnPlayer(const std::string& texturePath, uint32_t width, uint32_t height,
+    float pos_x, float pos_y, int maxHp,
+    const std::string& walkRightPath, int walkRightFrameAmount,
+    const std::string& walkLeftPath, int walkLeftFrameAmount,
+    const std::string& idlePath, int idleFrameAmount){
+
     const int playerId = assets_ ? assets_->getOrLoadIcon(texturePath) : -1;
     player_ = std::make_unique<Player>(playerId, width, height, pos_x, pos_y, maxHp);
     Player& p = *player_;
@@ -38,7 +43,7 @@ Player& World::spawnPlayer(const std::string& texturePath, uint32_t width, uint3
     p.setAttackDamage(5);
     p.setAttackRange(50.0f);
     p.setAttackCooldown(0.7f);
-	p.createAnimationController(assets_, walkPath, walkFrameAmount, idlePath, idleFrameAmount);
+	p.createAnimationController(assets_, walkRightPath, walkRightFrameAmount, walkLeftPath, walkLeftFrameAmount,  idlePath, idleFrameAmount);
     return *player_;
 }
 
@@ -221,11 +226,15 @@ void World::update(float dt) {
         if (auto* animationController = player_->getAnimationController()) {
 			ImVec2 vel = player_->getVelocity();
             if(vel.x != 0.0f || vel.y != 0.0f) {
-				animationController->setCurrentAnimationType(AnimationType::Walk);
+                if(vel.x<0.0f)
+                    animationController->setCurrentAnimationType(AnimationType::WalkLeft);
+                else {
+                    animationController->setCurrentAnimationType(AnimationType::WalkRight);
+                }
             }
-   else {
-      animationController->setCurrentAnimationType(AnimationType::Idle);
-   }
+            else {
+                animationController->setCurrentAnimationType(AnimationType::Idle);
+            }
 			animationController->update(dt);
         }
     }
