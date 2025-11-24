@@ -273,41 +273,64 @@ void VulkanImGuiApp::drawWorld()
         if (maxHp <= 0) return;
         float ratio = static_cast<float>(hp) / static_cast<float>(maxHp);
         ratio = std::clamp(ratio, 0.0f, 1.0f);
-        const float barHeight = 6.0f;
+  const float barHeight = 6.0f;
         ImVec2 barMin(x, y - barHeight - 4.0f);
-        ImVec2 barMax(x + w, y - 4.0f);
+   ImVec2 barMax(x + w, y - 4.0f);
         bg->AddRectFilled(barMin, barMax, IM_COL32(30,30,30,200), 2.0f);
-        bg->AddRect(barMin, barMax, IM_COL32(200,200,200,255), 2.0f);
+ bg->AddRect(barMin, barMax, IM_COL32(200,200,200,255), 2.0f);
         ImVec2 hpFill(barMin.x + (barMax.x - barMin.x) * ratio, barMax.y);
         ImU32 col = (ratio > 0.5f) ? IM_COL32(0,200,0,220) : IM_COL32(200,50,0,220);
-        bg->AddRectFilled(ImVec2(barMin.x+1, barMin.y+1), ImVec2(hpFill.x-1, barMax.y-1), col, 2.0f);
-        // Tekst HP (środek paska)
+bg->AddRectFilled(ImVec2(barMin.x+1, barMin.y+1), ImVec2(hpFill.x-1, barMax.y-1), col, 2.0f);
+     // Tekst HP (środek paska)
         char buf[32];
         snprintf(buf, sizeof(buf), "%d/%d", hp, maxHp);
-        ImVec2 textSize = ImGui::CalcTextSize(buf);
-        ImVec2 textPos(barMin.x + (barMax.x - barMin.x - textSize.x)*0.5f, barMin.y - textSize.y - 1.0f);
+      ImVec2 textSize = ImGui::CalcTextSize(buf);
+     ImVec2 textPos(barMin.x + (barMax.x - barMin.x - textSize.x)*0.5f, barMin.y - textSize.y - 1.0f);
         bg->AddText(textPos, IM_COL32(255,255,255,220), buf);
     };
 
+    // Helper function to draw scaled sprite centered on position
+auto drawScaledSprite = [bg, this](int iconId, ImVec2 pos, float width, float height, float scale) {
+    const auto& entity = assets_->icon(iconId);
+        
+    const float renderW = width * scale;
+    const float renderH = height * scale;
+        
+       // Center the larger sprite on the hitbox
+    const float offsetX = (renderW - width) * 0.5f;
+    const float offsetY = (renderH - height) * 0.5f;
+        
+    ImVec2 renderPos(pos.x - offsetX, pos.y - offsetY);
+        
+    bg->AddImage(
+        entity.imTex,
+        renderPos,
+        ImVec2(renderPos.x + renderW, renderPos.y + renderH),
+        ImVec2(0, 0), ImVec2(1, 1),
+        IM_COL32_WHITE
+    );
+};
+
+
     for (const auto& up : world_->entities()) {
-        if (!up) continue;
+  if (!up) continue;
         if (up.get() == world_->getPlayer()) continue;
-        const Entity& e = *up;
+    const Entity& e = *up;
         if (!e.isVisible()) continue;
 
         const ImVec2 pos = e.getPosition();
         const uint32_t w = e.getWidth();
-        const uint32_t h = e.getHeight();
+    const uint32_t h = e.getHeight();
         const auto& entity = assets_->icon(e.getEntityId());
         bg->AddImage(
             entity.imTex,
             pos,
-            ImVec2(pos.x + static_cast<float>(w), pos.y + static_cast<float>(h)),
-            ImVec2(0, 0), ImVec2(1, 1),
-            IM_COL32_WHITE
+    ImVec2(pos.x + static_cast<float>(w), pos.y + static_cast<float>(h)),
+  ImVec2(0, 0), ImVec2(1, 1),
+   IM_COL32_WHITE
         );
-        if (auto* living = dynamic_cast<LivingEntity*>(up.get())) {
-            drawHpBar(*living, pos.x, pos.y, static_cast<float>(w));
+     if (auto* living = dynamic_cast<LivingEntity*>(up.get())) {
+    drawHpBar(*living, pos.x, pos.y, static_cast<float>(w));
         }
     }
 
@@ -317,22 +340,16 @@ void VulkanImGuiApp::drawWorld()
         const uint32_t w = player->getWidth();
         const uint32_t h = player->getHeight();
         int iconId;
-     if (auto* animationController = player->getAnimationController()) {
-          iconId = animationController->getCurrentFrameIconId();
-        }
-        else {
-			iconId = player->getEntityId();
-        }
+            if (auto* animationController = player->getAnimationController()) {
+                iconId = animationController->getCurrentFrameIconId();
+            }
+            else {
+                iconId = player->getEntityId();
+            }
 
-        const auto& entity = assets_->icon(iconId);
-
-        bg->AddImage(
-       entity.imTex,
-            pos,
-            ImVec2(pos.x + static_cast<float>(w), pos.y + static_cast<float>(h)),
-            ImVec2(0, 0), ImVec2(1, 1),
-    IM_COL32_WHITE
-        );
+        // Draw player sprite with 5x scale
+        const float PLAYER_SPRITE_SCALE = 5.0f;
+        drawScaledSprite(iconId, pos, static_cast<float>(w), static_cast<float>(h), PLAYER_SPRITE_SCALE);
         drawHpBar(*player, pos.x, pos.y, static_cast<float>(w));
     }
 }
