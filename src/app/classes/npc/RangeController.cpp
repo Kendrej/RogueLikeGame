@@ -1,32 +1,28 @@
-
-#include "MeleeController.h"
-#include "Npc.h"
+#include "RangeController.h"
 #include "Player.h"
 #include "World.h"
 #include "MathUtils.h"
+#include "Npc.h"
 
-void MeleeController::update(Npc &npc, World &world, float dt) {
-
+void RangeController::update(Npc &npc, World &world, float dt) {
     Player* player = world.getPlayer();
     if (!player) {
         npc.applyInput(ImVec2(0.0f, 0.0f));
         return;
     }
-
     ImVec2 npcPos = npc.getPosition();
     ImVec2 playerPos = player->getPosition();
 
     ImVec2 npcCenter{
-    npcPos.x + npc.getWidth() * 0.5f,
-        npcPos.y + npc.getHeight() * 0.5f
-    };
+        npcPos.x + npc.getWidth() * 0.5f,
+            npcPos.y + npc.getHeight() * 0.5f
+        };
 
     ImVec2 playerCenter{
         playerPos.x + player->getWidth() * 0.5f,
         playerPos.y + player->getHeight() * 0.5f
     };
     float dist = distance(npcCenter, playerCenter);
-
 
     const float aggroRange  = 500.0f;
     const float maxSpeed    = 250.0f;
@@ -40,9 +36,11 @@ void MeleeController::update(Npc &npc, World &world, float dt) {
 
     if ( dist > aggroRange) {
         npc.setState(Npc::State::Idle);
+    } else if ( dist <= attackRange - tolerance) {
+        npc.setState(Npc::State::Kite);
     }
     else if (dist <= attackRange + tolerance ) {
-       npc.setState(Npc::State::Attack);
+        npc.setState(Npc::State::Attack);
     }
     else if (dist > 0.001f) {
         npc.setState(Npc::State::Chase);
@@ -51,6 +49,15 @@ void MeleeController::update(Npc &npc, World &world, float dt) {
     switch (npc.getState()) {
         case Npc::State::Idle: {
              npc.applyInput(ImVec2(0.0f, 0.0f));
+            break;
+        }
+
+        case Npc::State::Kite: {
+            ImVec2 stepBack = normalize(ImVec2{
+               npcCenter.x - playerCenter.x,
+                   npcCenter.y - playerCenter.y
+               });
+            npc.applyInput(stepBack);
             break;
         }
 
