@@ -7,12 +7,16 @@ class Assets;
 enum class AnimationType {
 	WalkRight,
 	WalkLeft,
-	Idle
+	IdleRight,
+	IdleLeft
 };
 
 class AnimationController {
 public:
-	AnimationController(Assets* assets, const std::string walkRightPath, const int walkRightframeAmount, const std::string walkLeftPath, const int walkLeftframeAmount, const std::string idlePath, const int idlesframeAmount);
+	AnimationController(Assets* assets,const int squareSize, const std::string walkRightPath, const int walkRightframeAmount,
+						const std::string walkLeftPath, const int walkLeftframeAmount,
+						const std::string idleRightPath, const int idlesRightframeAmount,
+						const std::string idleLeftPath, const int idlesLeftframeAmount);
 	~AnimationController() = default;
 	void setCurrentAnimationType(AnimationType type) {
 		if (currentAnimationType_ == type) {
@@ -28,6 +32,9 @@ public:
 		int baseIconId = getAnimationIconId(currentAnimationType_);
 		return baseIconId + currentFrameIndex_;
 	}
+	AnimationType getCurrentAnimationType() const {
+		return currentAnimationType_;
+	}
 
 private:
 	void setAnimationIconId(AnimationType type, int iconId) {
@@ -42,9 +49,10 @@ private:
 	Assets* assets_;
 	int walkRightFrameAmount_;
 	int walkLeftFrameAmount_;
-	int idleFrameAmount_;
+	int idleRightFrameAmount_;
+	int idleLeftFrameAmount_;
 
-	AnimationType currentAnimationType_ = AnimationType::Idle;
+	AnimationType currentAnimationType_ = AnimationType::IdleRight;
 	std::unordered_map<AnimationType, int> animationIconIds_;
 
 	int currentFrameIndex_ = 0;
