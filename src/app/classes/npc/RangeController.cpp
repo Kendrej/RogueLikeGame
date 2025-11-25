@@ -1,8 +1,11 @@
 #include "RangeController.h"
+
+#include "CombatUtils.h"
 #include "Player.h"
 #include "World.h"
 #include "MathUtils.h"
 #include "Npc.h"
+#include "Assets.h"
 
 void RangeController::update(Npc &npc, World &world, float dt) {
     Player* player = world.getPlayer();
@@ -46,6 +49,14 @@ void RangeController::update(Npc &npc, World &world, float dt) {
         npc.setState(Npc::State::Chase);
     }
 
+    ImVec2 dirToPlayer{ playerCenter.x - npcCenter.x, playerCenter.y - npcCenter.y};
+
+    const std::string projectileTexture = "assets/design/Arrow01.png" ;
+    const uint32_t projW = 32;
+    const uint32_t projH = 32;
+    const float projSpeed = 600.0f;
+    const float projLifetime = 3.0f;
+
     switch (npc.getState()) {
         case Npc::State::Idle: {
              npc.applyInput(ImVec2(0.0f, 0.0f));
@@ -60,7 +71,21 @@ void RangeController::update(Npc &npc, World &world, float dt) {
             npc.applyInput(stepBack);
 
             if (npc.canAttack()) {
-                player->takeDamage(npc.getAttackDamage());
+                ImVec2 shootDir{playerCenter.x - npcCenter.x, playerCenter.y - npcCenter.y};
+                ImVec2 dirNorm = normalize(shootDir);
+
+                const float spawnOffset = npc.getWidth() * 0.5f + 10.0f;
+                ImVec2 spawnPos{
+                    npcCenter.x + dirNorm.x * spawnOffset,
+                    npcCenter.y + dirNorm.y * spawnOffset
+                };
+
+                shootProjectile(
+                    world, npc, projectileTexture, projW, projH,
+                    spawnPos,
+                    shootDir,
+                    projSpeed, projLifetime, npc.getAttackDamage()
+                );
                 npc.startAttackCooldown();
             }
 
@@ -69,9 +94,22 @@ void RangeController::update(Npc &npc, World &world, float dt) {
 
         case Npc::State::Attack: {
             npc.applyInput(ImVec2(0.0f, 0.0f));
-
             if (npc.canAttack()) {
-                player->takeDamage(npc.getAttackDamage());
+                ImVec2 shootDir{playerCenter.x - npcCenter.x, playerCenter.y - npcCenter.y};
+                ImVec2 dirNorm = normalize(shootDir);
+
+                const float spawnOffset = npc.getWidth() * 0.5f + 10.0f;
+                ImVec2 spawnPos{
+                    npcCenter.x + dirNorm.x * spawnOffset,
+                    npcCenter.y + dirNorm.y * spawnOffset
+                };
+
+                shootProjectile(
+                    world, npc, projectileTexture, projW, projH,
+                    spawnPos,
+                    shootDir,
+                    projSpeed, projLifetime, npc.getAttackDamage()
+                );
                 npc.startAttackCooldown();
             }
             break;

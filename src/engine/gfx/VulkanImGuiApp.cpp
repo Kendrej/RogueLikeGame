@@ -292,10 +292,10 @@ bg->AddRectFilled(ImVec2(barMin.x+1, barMin.y+1), ImVec2(hpFill.x-1, barMax.y-1)
     // Helper function to draw scaled sprite centered on position
 auto drawScaledSprite = [bg, this](int iconId, ImVec2 pos, float width, float height, float scale) {
     const auto& entity = assets_->icon(iconId);
-        
+
     const float renderW = width * scale;
     const float renderH = height * scale;
-        
+
        // Center the larger sprite on the hitbox
     const float offsetX = (renderW - width) * 0.5f;
     const float offsetY = (renderH - height) * 0.5f;
