@@ -11,6 +11,7 @@
 #include <iostream>
 #include "Map.h"
 #include "AnimationController.h"
+#include "Projectile.h"
 
 StaticEntity& World::spawnTile(const std::string &texturePath, uint32_t width, uint32_t height, float pos_x, float pos_y, bool solid) {
     const int entityId = assets_ ? assets_->getOrLoadIcon(texturePath) : -1;
@@ -58,6 +59,18 @@ Npc& World::spawnNpc(const std::string &texturePath, uint32_t width, uint32_t he
     n.setAttackRange(attackRange);
     n.setAttackCooldown(0.7f);
     return n;
+}
+
+Projectile& World::spawnProjectile(uint32_t width,uint32_t height,
+    float pos_x,float pos_y,ImVec2 velocity,float lifetime,int damage, LivingEntity* owner, const std::string &texturePath)
+{
+    const int projId =  assets_ ? assets_->getOrLoadIcon(texturePath) : -1;
+    auto& projectile = addEntity<Projectile>(
+        projId, width, height,
+        pos_x, pos_y,
+        velocity, lifetime, damage, owner
+    );
+    return projectile;
 }
 
 
@@ -221,7 +234,9 @@ void World::clampToScreen(Entity &mover) {
 }
 
 void World::update(float dt) {
+    std::vector<Entity*> toRemove;
 
+    //player update and animations
     if (player_) {
         player_->update(dt);
         if (auto* animationController = player_->getAnimationController()) {
@@ -239,12 +254,69 @@ void World::update(float dt) {
 			animationController->update(dt);
         }
     }
-    for (auto &up : entities_) {
-      if (!up) continue;
+
+    //update all the entities
+    for (auto& up : entities_) {
+        if (!up) continue;
         up->update(dt);
     }
 
-    if (player_) {
+    //projectile
+    for (auto &up : entities_) {
+        auto* proj = dynamic_cast<Projectile*>(up.get());
+        if (!proj) continue;
+
+        if (proj->isDead()) {
+            toRemove.push_back(proj);
+            continue;
+        }
+
+        //projectile collision with solid tiles / solid entities
+        for (auto& other: entities_) {
+            if ( !other || other.get() == proj) continue;
+            if (!other->isSolid()) continue;
+            // Ignore collision with projectile owner to avoid immediate self-collision on spawn
+            if (other.get() == proj->getOwner()) continue;
+
+            if (intersectsAABB(*proj, *other)) {
+                proj->kill();
+                toRemove.push_back(proj);
+                break;
+            }
+        }
+        if (proj->isDead()) continue;
+
+        //projectile collision with Living Entity
+        for (auto& other: entities_) {
+            auto* living = dynamic_cast<LivingEntity*>(other.get());
+            if (!living) continue;
+            if (living == proj->getOwner()) continue;
+
+            if (intersectsAABB(*proj, *living) ){
+                living->takeDamage(proj->getDamage());
+                proj->kill();
+                toRemove.push_back(proj);
+                break;
+            }
+        }
+        if (proj->isDead()) continue;
+
+        //projectile collision with player
+        if ( player_ ) {
+            auto* livingPlayer = dynamic_cast<LivingEntity*>(getPlayer());
+            if (livingPlayer &&
+                livingPlayer != proj->getOwner() &&
+                intersectsAABB(*proj, *livingPlayer))
+            {
+                livingPlayer->takeDamage(proj->getDamage());
+                proj->kill();
+                toRemove.push_back(proj);
+            }
+        }
+    }
+//player movement
+    if (player_)
+    {
         auto *livingPlayer = dynamic_cast<LivingEntity*>(player_.get());
         if (livingPlayer) {
  ImVec2 vel = livingPlayer->getVelocity();
@@ -254,6 +326,7 @@ void World::update(float dt) {
  }
       clampToScreen(*player_);
     }
+    //npc movement
 
     for (auto &up : entities_) {
         if (!up) continue;
@@ -264,10 +337,15 @@ void World::update(float dt) {
      float dx = vel.x * dt;
         float dy = vel.y * dt;
     moveWithCollisions(*living, dx, dy, entities_);
-
       clampToScreen(*living);
     }
 
+    // Remove dead projectiles
+    for (auto* e : toRemove) {
+        remove(e);
+    }
+
+    // doors-teleports
     this->gatewayIndex = playerInGateway();
   if (gatewayIndex >= 0) {
         this->newScene();

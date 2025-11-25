@@ -10,6 +10,7 @@
 #include "npc/Npc.h"
 #include "Player.h"
 
+class Projectile;
 class Assets;
 class StaticEntity;
 class Entity;
@@ -42,6 +43,9 @@ public:
     Npc& spawnNpc(const std::string& texturePath,
                         uint32_t width, uint32_t height,
                         float pos_x, float pos_y, int maxHp, std::unique_ptr<INpcController> controller, float attackRange);
+
+    Projectile& spawnProjectile(uint32_t width,uint32_t height,
+    float pos_x,float pos_y,ImVec2 velocity,float lifetime,int damage, LivingEntity* owner, const std::string &texturePath);
 
     void buildFromMap(const std::string& wallTexturePath,
         const std::string& floorTexturePath,
