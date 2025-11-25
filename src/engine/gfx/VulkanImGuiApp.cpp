@@ -313,25 +313,30 @@ auto drawScaledSprite = [bg, this](int iconId, ImVec2 pos, float width, float he
 
 
     for (const auto& up : world_->entities()) {
-  if (!up) continue;
-        if (up.get() == world_->getPlayer()) continue;
+    if (!up) continue;
+    if (up.get() == world_->getPlayer()) continue;
     const Entity& e = *up;
-        if (!e.isVisible()) continue;
+    if (!e.isVisible()) continue;
 
-        const ImVec2 pos = e.getPosition();
-        const uint32_t w = e.getWidth();
+    const ImVec2 pos = e.getPosition();
+    const uint32_t w = e.getWidth();
     const uint32_t h = e.getHeight();
-        const auto& entity = assets_->icon(e.getEntityId());
-        bg->AddImage(
-            entity.imTex,
-            pos,
-    ImVec2(pos.x + static_cast<float>(w), pos.y + static_cast<float>(h)),
-  ImVec2(0, 0), ImVec2(1, 1),
-   IM_COL32_WHITE
-        );
-     if (auto* living = dynamic_cast<LivingEntity*>(up.get())) {
-    drawHpBar(*living, pos.x, pos.y, static_cast<float>(w));
+    int iconId;
+    float ENTITY_SPRITE_SCALE = 1.0f;
+    if (auto* living = dynamic_cast<LivingEntity*>(up.get())) {
+        if (auto* animationController = living->getAnimationController()) {
+            ENTITY_SPRITE_SCALE = 5.0f;
+            iconId = animationController->getCurrentFrameIconId();
         }
+        else {
+            iconId = living->getEntityId();
+        }
+        drawHpBar(*living, pos.x, pos.y, static_cast<float>(w));
+    }
+    else {
+        iconId = e.getEntityId();
+    }
+    drawScaledSprite(iconId, pos, static_cast<float>(w), static_cast<float>(h), ENTITY_SPRITE_SCALE);
     }
 
     // Rysuj gracza
@@ -340,12 +345,12 @@ auto drawScaledSprite = [bg, this](int iconId, ImVec2 pos, float width, float he
         const uint32_t w = player->getWidth();
         const uint32_t h = player->getHeight();
         int iconId;
-            if (auto* animationController = player->getAnimationController()) {
-                iconId = animationController->getCurrentFrameIconId();
-            }
-            else {
-                iconId = player->getEntityId();
-            }
+        if (auto* animationController = player->getAnimationController()) {
+            iconId = animationController->getCurrentFrameIconId();
+        }
+        else {
+            iconId = player->getEntityId();
+        }
 
         // Draw player sprite with 5x scale
         const float PLAYER_SPRITE_SCALE = 5.0f;

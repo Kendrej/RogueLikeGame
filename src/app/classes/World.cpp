@@ -30,24 +30,6 @@ Player& World::spawnPlayer(const std::string &texturePath, uint32_t width, uint3
    return *player_;
 }
 
-Player& World::spawnPlayer(const std::string& texturePath, uint32_t width, uint32_t height,
-    float pos_x, float pos_y, int maxHp,
-    const std::string& walkRightPath, int walkRightFrameAmount,
-    const std::string& walkLeftPath, int walkLeftFrameAmount,
-    const std::string& idlePath, int idleFrameAmount){
-
-    const int playerId = assets_ ? assets_->getOrLoadIcon(texturePath) : -1;
-    player_ = std::make_unique<Player>(playerId, width, height, pos_x, pos_y, maxHp);
-    Player& p = *player_;
-
-    p.setSolid(true);
-    p.setAttackDamage(5);
-    p.setAttackRange(50.0f);
-    p.setAttackCooldown(0.7f);
-	p.createAnimationController(assets_, walkRightPath, walkRightFrameAmount, walkLeftPath, walkLeftFrameAmount,  idlePath, idleFrameAmount);
-    return *player_;
-}
-
 Npc& World::spawnNpc(const std::string &texturePath, uint32_t width, uint32_t height, float pos_x, float pos_y, int maxHp, std::unique_ptr<INpcController> controller, float attackRange) {
     const int npcId = assets_ ? assets_->getOrLoadIcon(texturePath) : -1;
     Npc& n= addEntity<Npc>(npcId, width , height , pos_x, pos_y,  maxHp);
@@ -229,12 +211,17 @@ void World::update(float dt) {
             if(vel.x != 0.0f || vel.y != 0.0f) {
                 if(vel.x<0.0f)
                     animationController->setCurrentAnimationType(AnimationType::WalkLeft);
-                else {
+                else if(vel.x > 0.0f){
                     animationController->setCurrentAnimationType(AnimationType::WalkRight);
                 }
             }
             else {
-                animationController->setCurrentAnimationType(AnimationType::Idle);
+                AnimationType type = animationController->getCurrentAnimationType();
+                if(type == AnimationType::WalkLeft || type == AnimationType::IdleLeft)
+                    animationController->setCurrentAnimationType(AnimationType::IdleLeft);
+                else{
+                    animationController->setCurrentAnimationType(AnimationType::IdleRight);
+                }
             }
 			animationController->update(dt);
         }
@@ -242,6 +229,27 @@ void World::update(float dt) {
     for (auto &up : entities_) {
       if (!up) continue;
         up->update(dt);
+        if(auto* livingEntity = dynamic_cast<LivingEntity*>(up.get())) {
+            if (auto* animationController = livingEntity->getAnimationController()) {
+                ImVec2 vel = livingEntity->getVelocity();
+                if (vel.x != 0.0f || vel.y != 0.0f) {
+                    if (vel.x < 0.0f)
+                        animationController->setCurrentAnimationType(AnimationType::WalkLeft);
+                    else if (vel.x > 0.0f) {
+                        animationController->setCurrentAnimationType(AnimationType::WalkRight);
+                    }
+                }
+                else  {
+                    AnimationType type = animationController->getCurrentAnimationType();
+                    if (type == AnimationType::WalkLeft || type == AnimationType::IdleLeft)
+                        animationController->setCurrentAnimationType(AnimationType::IdleLeft);
+                    else {
+                        animationController->setCurrentAnimationType(AnimationType::IdleRight);
+                    }
+                }
+                animationController->update(dt);
+            }
+        }
     }
 
     if (player_) {
