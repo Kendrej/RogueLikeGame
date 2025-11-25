@@ -26,16 +26,6 @@ public:
                       float pos_x, float pos_y, bool solid);
 
     Player& spawnPlayer(const std::string& texturePath,
-                        uint32_t width, uint32_t height,
-                        float pos_x, float pos_y, int maxHp,
-                        const std::string& walkRightPath,
-                        int walkRightFrameAmount,
-                        const std::string& walkLeftPath,
-                        int walkLeftFrameAmount,
-                        const std::string& idlePath,
-                        int idleFrameAmount);
-
-    Player& spawnPlayer(const std::string& texturePath,
         uint32_t width, uint32_t height,
         float pos_x, float pos_y, int maxHp);
 
@@ -69,6 +59,7 @@ public:
 	int getCurrentMapIndex() const { return currentMapIndex; }
     void addMap(const std::string& path);
     int playerInGateway();
+	Assets* getAssets() const noexcept { return assets_; }
 private:
     template <class T, class... Args>
     T& addEntity(Args&&... args) {
@@ -86,6 +77,7 @@ private:
     void clampToScreen(Entity& mover);
     GatewaySide getSide(int gatewayIndex);
     void spawnPlayerInNewScene(GatewaySide entrySide, float sourceGatewayX, float sourceGatewayY);
+    void spawnNpcs();
     int gatewayIndex = -1;
 	int currentMapIndex = 0;
     std::vector<std::unique_ptr<Map>> maps_;

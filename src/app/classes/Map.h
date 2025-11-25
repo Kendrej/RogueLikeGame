@@ -39,8 +39,11 @@ public:
             gateways_[gatewayIndex].side = side;
         }
     }
+	void setVisited(bool v) { visited = v; }
+	bool isVisited() const { return visited; }
 private:
- int rows = 0;
+    bool visited = 0;
+    int rows = 0;
     int columns = 0;
     std::vector<std::vector<char>> grid;
     std::vector<Gateway> gateways_;

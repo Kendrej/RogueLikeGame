@@ -40,12 +40,11 @@ public:
 
     void startAttackCooldown() {attackTimer = attackCooldown ;}
 
-    AnimationController& createAnimationController(Assets* assets, const std::string& walkRightPath,
-        int walkRightFrameAmount,
-        const std::string& walkLeftPath,
-        int walkLeftFrameAmount,
-        const std::string& idlePath,
-        int idleFrameAmount);
+    AnimationController& createAnimationController(Assets* assets,const int squareSize,
+        const std::string& walkRightPath, int walkRightFrameAmount,
+        const std::string& walkLeftPath, int walkLeftFrameAmount,
+        const std::string& idleRightPath, int idleFrameRightAmount,
+        const std::string& idleLeftPath, int idleLeftFrameAmount);
 
     AnimationController* getAnimationController() const {
         return animationController_.get();

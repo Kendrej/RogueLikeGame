@@ -30,24 +30,6 @@ Player& World::spawnPlayer(const std::string &texturePath, uint32_t width, uint3
    return *player_;
 }
 
-Player& World::spawnPlayer(const std::string& texturePath, uint32_t width, uint32_t height,
-    float pos_x, float pos_y, int maxHp,
-    const std::string& walkRightPath, int walkRightFrameAmount,
-    const std::string& walkLeftPath, int walkLeftFrameAmount,
-    const std::string& idlePath, int idleFrameAmount){
-
-    const int playerId = assets_ ? assets_->getOrLoadIcon(texturePath) : -1;
-    player_ = std::make_unique<Player>(playerId, width, height, pos_x, pos_y, maxHp);
-    Player& p = *player_;
-
-    p.setSolid(true);
-    p.setAttackDamage(5);
-    p.setAttackRange(50.0f);
-    p.setAttackCooldown(0.7f);
-	p.createAnimationController(assets_, walkRightPath, walkRightFrameAmount, walkLeftPath, walkLeftFrameAmount,  idlePath, idleFrameAmount);
-    return *player_;
-}
-
 Npc& World::spawnNpc(const std::string &texturePath, uint32_t width, uint32_t height, float pos_x, float pos_y, int maxHp, std::unique_ptr<INpcController> controller, float attackRange) {
     const int npcId = assets_ ? assets_->getOrLoadIcon(texturePath) : -1;
     Npc& n= addEntity<Npc>(npcId, width , height , pos_x, pos_y,  maxHp);
@@ -71,7 +53,7 @@ void World::buildFromMap(const std::string &wallTexturePath, const std::string &
         const float y = i * static_cast<float>(tileH) + UI_TOP_BAR_HEIGHT;  // Add UI offset
         if (t == '*') {
             spawnTile(wallTexturePath, tileW, tileH, x, y, true);
-        } else if (t == '-') {
+        } else if (t == '-'|| t == 'r' || t == 'm') {
             spawnTile(floorTexturePath, tileW, tileH, x, y, false);
         } else if (t >= '0' && t <= '9') {
             // t - '0' is the TARGET map index, not the index in gateways() vector.
@@ -229,12 +211,17 @@ void World::update(float dt) {
             if(vel.x != 0.0f || vel.y != 0.0f) {
                 if(vel.x<0.0f)
                     animationController->setCurrentAnimationType(AnimationType::WalkLeft);
-                else {
+                else if(vel.x > 0.0f){
                     animationController->setCurrentAnimationType(AnimationType::WalkRight);
                 }
             }
             else {
-                animationController->setCurrentAnimationType(AnimationType::Idle);
+                AnimationType type = animationController->getCurrentAnimationType();
+                if(type == AnimationType::WalkLeft || type == AnimationType::IdleLeft)
+                    animationController->setCurrentAnimationType(AnimationType::IdleLeft);
+                else{
+                    animationController->setCurrentAnimationType(AnimationType::IdleRight);
+                }
             }
 			animationController->update(dt);
         }
@@ -242,6 +229,27 @@ void World::update(float dt) {
     for (auto &up : entities_) {
       if (!up) continue;
         up->update(dt);
+        if(auto* livingEntity = dynamic_cast<LivingEntity*>(up.get())) {
+            if (auto* animationController = livingEntity->getAnimationController()) {
+                ImVec2 vel = livingEntity->getVelocity();
+                if (vel.x != 0.0f || vel.y != 0.0f) {
+                    if (vel.x < 0.0f)
+                        animationController->setCurrentAnimationType(AnimationType::WalkLeft);
+                    else if (vel.x > 0.0f) {
+                        animationController->setCurrentAnimationType(AnimationType::WalkRight);
+                    }
+                }
+                else  {
+                    AnimationType type = animationController->getCurrentAnimationType();
+                    if (type == AnimationType::WalkLeft || type == AnimationType::IdleLeft)
+                        animationController->setCurrentAnimationType(AnimationType::IdleLeft);
+                    else {
+                        animationController->setCurrentAnimationType(AnimationType::IdleRight);
+                    }
+                }
+                animationController->update(dt);
+            }
+        }
     }
 
     if (player_) {
@@ -289,12 +297,12 @@ void World::newScene() {
     
     for (const auto& g : maps_[currentMapIndex]->gateways()) {
         if (g.targetMapIndex == gatewayIndex) {
-  int gwIndex = static_cast<int>(&g - &maps_[currentMapIndex]->gateways()[0]);
-        entrySide = maps_[currentMapIndex]->gatewaySide(gwIndex);
-     gatewayX = g.posX;
-      gatewayY = g.posY;
-break;
-      }
+            int gwIndex = static_cast<int>(&g - &maps_[currentMapIndex]->gateways()[0]);
+            entrySide = maps_[currentMapIndex]->gatewaySide(gwIndex);
+            gatewayX = g.posX;
+            gatewayY = g.posY;
+            break;
+        }
     }
     
  entities_.clear();
@@ -305,8 +313,12 @@ break;
         "assets/design/wall.png",
         "assets/design/floor.png",
         "assets/design/door.png",
-   64, 64
+        64, 64
     );
+    if (!maps_[currentMapIndex]->isVisited()) {
+        spawnNpcs();
+        
+    }
 
     // Move player to new position (player attributes are preserved!)
     if (player_) {
@@ -315,6 +327,30 @@ spawnPlayerInNewScene(entrySide, gatewayX, gatewayY);
     
     std::cout << "Switched to map: " << gatewayIndex << "\n";
  gatewayIndex = -1;
+}
+
+void World::spawnNpcs() {
+    maps_[currentMapIndex]->forEachTile([&](int i, int j, char t) {
+        const float x = j * static_cast<float>(64);
+        const float y = i * static_cast<float>(64) + UI_TOP_BAR_HEIGHT;  // Add UI offset
+        if (t == 'm') {
+            auto& npc = this->spawnNpc("assets/characters/angel.png",
+                64, 64,
+                x, y + World::UI_TOP_BAR_HEIGHT,  // Add UI offset to NPC spawn
+                100, std::make_unique<MeleeController>(), 70.0f);
+            npc.createAnimationController(assets_, 100, "assets/animations/Orc-Walk-right.png", 8, "assets/animations/Orc-Walk-left.png", 8,
+                "assets/animations/Orc-Idle-right.png", 6, "assets/animations/Orc-Idle-left.png", 6);
+        }
+        else if (t == 'r') {
+            auto& npc = this->spawnNpc("assets/characters/hero.png",
+                64, 64,
+                x, y + World::UI_TOP_BAR_HEIGHT,  // Add UI offset to NPC spawn
+                100, std::make_unique<RangeController>(), 300.0f);
+            npc.createAnimationController(assets_, 96, "assets/animations/Slime-Walk-right.png", 8, "assets/animations/Slime-Walk-left.png", 8,
+                "assets/animations/Slime-Idle-right.png", 6, "assets/animations/Slime-Idle-left.png", 6);
+        }
+    });
+    maps_[currentMapIndex]->setVisited(true);
 }
 
 void World::spawnPlayerInNewScene(GatewaySide entrySide, float sourceGatewayX, float sourceGatewayY) {
