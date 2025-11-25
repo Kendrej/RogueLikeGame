@@ -55,6 +55,8 @@ add_executable(RogueLikeGame
         src/app/classes/AnimationController.cpp
         src/app/classes/npc/RangeController.cpp
         src/app/classes/npc/RangeController.h
+        src/app/classes/Projectile.cpp
+        src/app/classes/Projectile.h
 
 )
 
