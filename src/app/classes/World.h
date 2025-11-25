@@ -77,6 +77,7 @@ private:
     void clampToScreen(Entity& mover);
     GatewaySide getSide(int gatewayIndex);
     void spawnPlayerInNewScene(GatewaySide entrySide, float sourceGatewayX, float sourceGatewayY);
+    void spawnNpcs();
     int gatewayIndex = -1;
 	int currentMapIndex = 0;
     std::vector<std::unique_ptr<Map>> maps_;
