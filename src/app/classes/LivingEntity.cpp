@@ -70,6 +70,7 @@ void LivingEntity::takeDamage(int dmg) {
 
     hp -= dmg;
     if (hp < 0) hp = 0;
+	damaged = true;
     std::cout << "[LivingEntity] entityId=" << this->getEntityId() << " took " << dmg << " dmg -> hp=" << hp << "/" << maxHp << std::endl;
 }
 
@@ -83,8 +84,10 @@ void LivingEntity::heal(int amount) {
 AnimationController& LivingEntity::createAnimationController(Assets* assets, const int squareSize, const std::string& walkRightPath, int walkRightFrameAmount,
                                                             const std::string& walkLeftPath, int walkLeftFrameAmount,
                                                             const std::string& idleRightPath, int idleFrameRightAmount,
-                                                            const std::string& idleLeftPath, int idleLeftFrameAmount) {
+                                                            const std::string& idleLeftPath, int idleLeftFrameAmount,
+                                                            const std::string hurtRightPath, const int hurtRightframeAmount,
+                                                            const std::string hurtLeftPath, const int hurtLeftframeAmount) {
     animationController_ = std::make_unique<AnimationController>(assets,squareSize, walkRightPath, walkRightFrameAmount, walkLeftPath, walkLeftFrameAmount,
-                                                                idleRightPath, idleFrameRightAmount, idleLeftPath, idleLeftFrameAmount);
+                                                                idleRightPath, idleFrameRightAmount, idleLeftPath, idleLeftFrameAmount, hurtRightPath, hurtRightframeAmount, hurtLeftPath, hurtLeftframeAmount);
     return *animationController_;
 }

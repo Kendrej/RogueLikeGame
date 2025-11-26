@@ -223,19 +223,30 @@ void World::update(float dt) {
         player_->update(dt);
         if (auto* animationController = player_->getAnimationController()) {
 			ImVec2 vel = player_->getVelocity();
-            if(vel.x != 0.0f || vel.y != 0.0f) {
-                if(vel.x<0.0f)
-                    animationController->setCurrentAnimationType(AnimationType::WalkLeft);
-                else if(vel.x > 0.0f){
-                    animationController->setCurrentAnimationType(AnimationType::WalkRight);
+            AnimationType type = animationController->getCurrentAnimationType();
+
+            if (player_->isDamaged()) {
+				player_->setDamaged(false);
+                if(type == AnimationType::WalkLeft || type == AnimationType::IdleLeft)
+                    animationController->setCurrentAnimationType(AnimationType::HurtLeft);
+                else{
+                    animationController->setCurrentAnimationType(AnimationType::HurtRight);
                 }
             }
-            else {
-                AnimationType type = animationController->getCurrentAnimationType();
-                if(type == AnimationType::WalkLeft || type == AnimationType::IdleLeft)
-                    animationController->setCurrentAnimationType(AnimationType::IdleLeft);
-                else{
-                    animationController->setCurrentAnimationType(AnimationType::IdleRight);
+            else if (type != AnimationType::HurtRight && type != AnimationType::HurtLeft){
+                if (vel.x != 0.0f || vel.y != 0.0f) {
+                    if (vel.x < 0.0f)
+                        animationController->setCurrentAnimationType(AnimationType::WalkLeft);
+                    else if (vel.x > 0.0f) {
+                        animationController->setCurrentAnimationType(AnimationType::WalkRight);
+                    }
+                }
+                else {
+                    if (type == AnimationType::WalkLeft || type == AnimationType::IdleLeft)
+                        animationController->setCurrentAnimationType(AnimationType::IdleLeft);
+                    else {
+                        animationController->setCurrentAnimationType(AnimationType::IdleRight);
+                    }
                 }
             }
 			animationController->update(dt);
@@ -249,19 +260,30 @@ void World::update(float dt) {
         if(auto* livingEntity = dynamic_cast<LivingEntity*>(up.get())) {
             if (auto* animationController = livingEntity->getAnimationController()) {
                 ImVec2 vel = livingEntity->getVelocity();
-                if (vel.x != 0.0f || vel.y != 0.0f) {
-                    if (vel.x < 0.0f)
-                        animationController->setCurrentAnimationType(AnimationType::WalkLeft);
-                    else if (vel.x > 0.0f) {
-                        animationController->setCurrentAnimationType(AnimationType::WalkRight);
+                AnimationType type = animationController->getCurrentAnimationType();
+
+                if (livingEntity->isDamaged()) {
+                    livingEntity->setDamaged(false);
+                    if (type == AnimationType::WalkLeft || type == AnimationType::IdleLeft)
+                        animationController->setCurrentAnimationType(AnimationType::HurtLeft);
+                    else {
+                        animationController->setCurrentAnimationType(AnimationType::HurtRight);
                     }
                 }
-                else  {
-                    AnimationType type = animationController->getCurrentAnimationType();
-                    if (type == AnimationType::WalkLeft || type == AnimationType::IdleLeft)
-                        animationController->setCurrentAnimationType(AnimationType::IdleLeft);
+                else if (type != AnimationType::HurtRight && type != AnimationType::HurtLeft) {
+                    if (vel.x != 0.0f || vel.y != 0.0f) {
+                        if (vel.x < 0.0f)
+                            animationController->setCurrentAnimationType(AnimationType::WalkLeft);
+                        else if (vel.x > 0.0f) {
+                            animationController->setCurrentAnimationType(AnimationType::WalkRight);
+                        }
+                    }
                     else {
-                        animationController->setCurrentAnimationType(AnimationType::IdleRight);
+                        if (type == AnimationType::WalkLeft || type == AnimationType::IdleLeft)
+                            animationController->setCurrentAnimationType(AnimationType::IdleLeft);
+                        else {
+                            animationController->setCurrentAnimationType(AnimationType::IdleRight);
+                        }
                     }
                 }
                 animationController->update(dt);
@@ -407,16 +429,20 @@ void World::spawnNpcs() {
                 64, 64,
                 x, y + World::UI_TOP_BAR_HEIGHT,  // Add UI offset to NPC spawn
                 100, std::make_unique<MeleeController>(), 70.0f);
-            npc.createAnimationController(assets_, 100, "assets/animations/Orc-Walk-right.png", 8, "assets/animations/Orc-Walk-left.png", 8,
-                "assets/animations/Orc-Idle-right.png", 6, "assets/animations/Orc-Idle-left.png", 6);
+            npc.createAnimationController(assets_, 100,
+                "assets/animations/Orc-Walk-right.png", 8, "assets/animations/Orc-Walk-left.png", 8,
+                "assets/animations/Orc-Idle-right.png", 6, "assets/animations/Orc-Idle-left.png", 6,
+                "assets/animations/Orc-Hurt-right.png", 4, "assets/animations/Orc-Hurt-left.png", 4);
         }
         else if (t == 'r') {
             auto& npc = this->spawnNpc("assets/characters/hero.png",
                 64, 64,
                 x, y + World::UI_TOP_BAR_HEIGHT,  // Add UI offset to NPC spawn
                 100, std::make_unique<RangeController>(), 300.0f);
-            npc.createAnimationController(assets_, 96, "assets/animations/Slime-Walk-right.png", 8, "assets/animations/Slime-Walk-left.png", 8,
-                "assets/animations/Slime-Idle-right.png", 6, "assets/animations/Slime-Idle-left.png", 6);
+            npc.createAnimationController(assets_, 100,
+                "assets/animations/SkeletonArcher-Walk-right.png", 8, "assets/animations/SkeletonArcher-Walk-left.png", 8,
+                "assets/animations/SkeletonArcher-Idle-right.png", 6, "assets/animations/SkeletonArcher-Idle-left.png", 6,
+                "assets/animations/SkeletonArcher-Hurt-right.png", 4, "assets/animations/SkeletonArcher-Hurt-left.png", 4);
         }
     });
     maps_[currentMapIndex]->setVisited(true);
