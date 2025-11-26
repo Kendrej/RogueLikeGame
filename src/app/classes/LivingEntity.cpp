@@ -38,6 +38,8 @@ void LivingEntity::setMaxSpeed(float maxSpeed) {
 }
 
 void LivingEntity::applyInput(const ImVec2 &dir) {
+    if (!isAlive()) return;
+
     if (dir.x != 0.0f || dir.y != 0.0f) {
         float len = std::sqrt(dir.x * dir.x + dir.y * dir.y);
         ImVec2 norm{ dir.x / len, dir.y / len };
@@ -49,6 +51,8 @@ void LivingEntity::applyInput(const ImVec2 &dir) {
 }
 
 void LivingEntity::update(float dt) {
+    if (!isAlive()) return;
+
     ImVec2 target{ desiredDir.x * maxSpeed, desiredDir.y * maxSpeed};
 
     ImVec2 delta {target.x - velocity.x, target.y - velocity.y};
@@ -93,8 +97,11 @@ AnimationController& LivingEntity::createAnimationController(Assets* assets, con
                                                             const std::string& idleRightPath, int idleFrameRightAmount,
                                                             const std::string& idleLeftPath, int idleLeftFrameAmount,
                                                             const std::string hurtRightPath, const int hurtRightframeAmount,
-                                                            const std::string hurtLeftPath, const int hurtLeftframeAmount) {
+                                                            const std::string hurtLeftPath, const int hurtLeftframeAmount,
+                                                            const std::string deathRightPath, const int deathRightframeAmount,
+                                                            const std::string deathLeftPath, const int deathLeftframeAmount) {
     animationController_ = std::make_unique<AnimationController>(assets,squareSize, walkRightPath, walkRightFrameAmount, walkLeftPath, walkLeftFrameAmount,
-                                                                idleRightPath, idleFrameRightAmount, idleLeftPath, idleLeftFrameAmount, hurtRightPath, hurtRightframeAmount, hurtLeftPath, hurtLeftframeAmount);
+                                                                idleRightPath, idleFrameRightAmount, idleLeftPath, idleLeftFrameAmount, hurtRightPath, hurtRightframeAmount,
+                                                                hurtLeftPath, hurtLeftframeAmount, deathRightPath, deathRightframeAmount, deathLeftPath, deathLeftframeAmount);
     return *animationController_;
 }

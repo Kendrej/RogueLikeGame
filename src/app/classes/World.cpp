@@ -161,6 +161,7 @@ void World::performMeleeAttack(LivingEntity& attacker)
 
 
 void World::buildFromMap(const std::string &wallTexturePath, const std::string &floorTexturePath, const std::string& doorTexturePath, uint32_t tileW, uint32_t tileH) {
+	gatewayIndexes_.clear();
     if (currentMapIndex >= maps_.size() || !maps_[currentMapIndex]) {
         throw std::runtime_error("Invalid map index or map not loaded");
     }
@@ -174,9 +175,11 @@ void World::buildFromMap(const std::string &wallTexturePath, const std::string &
             spawnTile(floorTexturePath, tileW, tileH, x, y, false);
         } else if (t >= '0' && t <= '9') {
             // t - '0' is the TARGET map index, not the index in gateways() vector.
-            auto & door = spawnTile(doorTexturePath, tileW, tileH, x, y, false);
-            /*std::cout << "Door at (" << x << "," << y << ") solid = "
-              << door.isSolid() << "\n";*/
+            auto & door = spawnTile(doorTexturePath, tileW, tileH, x, y, true);
+            const int id = door.getEntityId();
+            if (std::find(gatewayIndexes_.begin(), gatewayIndexes_.end(), id) == gatewayIndexes_.end()) {
+            gatewayIndexes_.push_back(id);
+            }
             maps_[currentMapIndex]->addGateway(t - '0', x, y);
             int newGatewayIndex = static_cast<int>(maps_[currentMapIndex]->gateways().size()) -1; // index of newly added gateway
             maps_[currentMapIndex]->setGatewaySide(newGatewayIndex, getSide(newGatewayIndex));
@@ -338,7 +341,16 @@ void World::update(float dt) {
 			ImVec2 vel = player_->getVelocity();
             AnimationType type = animationController->getCurrentAnimationType();
 
-            if (player_->isDamaged()) {
+            if (!player_->isAlive()) {
+                if(type == AnimationType::WalkLeft || type == AnimationType::IdleLeft || type == AnimationType::DeathLeft)
+                    animationController->setCurrentAnimationType(AnimationType::DeathLeft);
+                else{
+                    animationController->setCurrentAnimationType(AnimationType::DeathRight);
+                }
+                animationController->update(dt);
+				return;
+            }
+            else if (player_->isDamaged()) {
 				player_->setDamaged(false);
                 if(type == AnimationType::WalkLeft || type == AnimationType::IdleLeft)
                     animationController->setCurrentAnimationType(AnimationType::HurtLeft);
@@ -375,7 +387,17 @@ void World::update(float dt) {
                 ImVec2 vel = livingEntity->getVelocity();
                 AnimationType type = animationController->getCurrentAnimationType();
 
-                if (livingEntity->isDamaged()) {
+                if (!livingEntity->isAlive()){
+					livingEntity->setSolid(false);
+                    if (type == AnimationType::WalkLeft || type == AnimationType::IdleLeft || type == AnimationType::DeathLeft)
+                        animationController->setCurrentAnimationType(AnimationType::DeathLeft);
+                    else {
+                        animationController->setCurrentAnimationType(AnimationType::DeathRight);
+                    }
+                    animationController->update(dt);
+                    continue;
+                }
+                else if (livingEntity->isDamaged()) {
                     livingEntity->setDamaged(false);
                     if (type == AnimationType::WalkLeft || type == AnimationType::IdleLeft)
                         animationController->setCurrentAnimationType(AnimationType::HurtLeft);
@@ -453,19 +475,20 @@ void World::update(float dt) {
     {
         auto *livingPlayer = dynamic_cast<LivingEntity*>(player_.get());
         if (livingPlayer) {
- ImVec2 vel = livingPlayer->getVelocity();
-          float dx = vel.x * dt;
-     float dy = vel.y * dt;
+        ImVec2 vel = livingPlayer->getVelocity();
+            float dx = vel.x * dt;
+            float dy = vel.y * dt;
             moveWithCollisions(*livingPlayer, dx, dy, entities_);
- }
-      clampToScreen(*player_);
+        }
+        clampToScreen(*player_);
     }
     //npc movement
 
     for (auto &up : entities_) {
         if (!up) continue;
         auto *living = dynamic_cast<LivingEntity*>(up.get());
-      if (!living) continue;
+        if (!living) continue;
+        if (!living->isAlive()) continue;
 
      ImVec2 oldPos = living->getPosition();
      ImVec2 vel = living->getVelocity();
@@ -489,9 +512,31 @@ void World::update(float dt) {
         remove(e);
     }
 
+	int aliveNpcCount = 0;
+    for(auto& up : entities_) {
+		if (!up) continue;
+        auto* npc = dynamic_cast<Npc*>(up.get());
+        if (npc && npc->isAlive()) {
+            aliveNpcCount++;
+        }
+	}
+    if (aliveNpcCount ==0 && !doorsUnlocked_) {
+        // Unlock every entity whose entityId matches any collected door id
+            for (int doorEntityId : gatewayIndexes_) {
+                for (auto &up : entities_) {
+                    if (!up) continue;
+                        if (up->getEntityId() == doorEntityId) {
+                        up->setSolid(false);
+                        }
+                    }
+            }
+        doorsUnlocked_ = true;
+	}
+    
+
     // doors-teleports
     this->gatewayIndex = playerInGateway();
-  if (gatewayIndex >= 0) {
+    if (gatewayIndex >= 0) {
         this->newScene();
     }
 }
@@ -519,10 +564,11 @@ void World::newScene() {
         }
     }
     
- entities_.clear();
+    entities_.clear();
   
     this->setCurrentMapIndex(gatewayIndex);
-    
+    doorsUnlocked_ = false;
+
     this->buildFromMap(
         "assets/design/wall.png",
         "assets/design/floor.png",
@@ -530,17 +576,16 @@ void World::newScene() {
         64, 64
     );
     if (!maps_[currentMapIndex]->isVisited()) {
-        spawnNpcs();
-        
+        spawnNpcs();  
     }
 
     // Move player to new position (player attributes are preserved!)
     if (player_) {
-spawnPlayerInNewScene(entrySide, gatewayX, gatewayY);
+        spawnPlayerInNewScene(entrySide, gatewayX, gatewayY);
     }
     
-    std::cout << "Switched to map: " << gatewayIndex << "\n";
- gatewayIndex = -1;
+    //std::cout << "Switched to map: " << gatewayIndex << "\n";
+    gatewayIndex = -1;
 }
 
 void World::spawnNpcs() {
@@ -555,7 +600,8 @@ void World::spawnNpcs() {
             npc.createAnimationController(assets_, 100,
                 "assets/animations/Orc-Walk-right.png", 8, "assets/animations/Orc-Walk-left.png", 8,
                 "assets/animations/Orc-Idle-right.png", 6, "assets/animations/Orc-Idle-left.png", 6,
-                "assets/animations/Orc-Hurt-right.png", 4, "assets/animations/Orc-Hurt-left.png", 4);
+                "assets/animations/Orc-Hurt-right.png", 4, "assets/animations/Orc-Hurt-left.png", 4,
+                "assets/animations/Orc-Death-right.png", 4, "assets/animations/Orc-Death-left.png", 4);
         }
         else if (t == 'r') {
             auto& npc = this->spawnNpc("assets/characters/hero.png",
@@ -565,29 +611,40 @@ void World::spawnNpcs() {
             npc.createAnimationController(assets_, 100,
                 "assets/animations/SkeletonArcher-Walk-right.png", 8, "assets/animations/SkeletonArcher-Walk-left.png", 8,
                 "assets/animations/SkeletonArcher-Idle-right.png", 6, "assets/animations/SkeletonArcher-Idle-left.png", 6,
-                "assets/animations/SkeletonArcher-Hurt-right.png", 4, "assets/animations/SkeletonArcher-Hurt-left.png", 4);
+                "assets/animations/SkeletonArcher-Hurt-right.png", 4, "assets/animations/SkeletonArcher-Hurt-left.png", 4,
+                "assets/animations/SkeletonArcher-Death-right.png", 4, "assets/animations/SkeletonArcher-Death-left.png", 4);
         }
     });
     maps_[currentMapIndex]->setVisited(true);
 }
 
 void World::spawnPlayerInNewScene(GatewaySide entrySide, float sourceGatewayX, float sourceGatewayY) {
+    constexpr float tile = 64.0f;
+     //std::cout << screenHeight_;
     switch (entrySide) {
         case GatewaySide::Top:
-            player_->setPosition(sourceGatewayX, screenHeight_ - 100.0f);
-     break;
-     case GatewaySide::Bottom:
-  player_->setPosition(sourceGatewayX, UI_TOP_BAR_HEIGHT + 50.0f);  // Add UI offset
-  break;
+            // Entering from top, exit at bottom - spawn as close to bottom edge as possible
+			sourceGatewayX = player_->getPosition().x; 
+            player_->setPosition(sourceGatewayX, screenHeight_ - tile - tile); //1080 - sciana - gracz
+            break;
+        case GatewaySide::Bottom:
+            // Entering from bottom, exit at top - spawn as close to top edge as possible (after UI bar)
+            sourceGatewayX = player_->getPosition().x;
+            player_->setPosition(sourceGatewayX, UI_TOP_BAR_HEIGHT +   tile ); // sciana + pasek
+            break;
         case GatewaySide::Left:
-  player_->setPosition(screenWidth_ - 100.0f, sourceGatewayY);
-  break;
+            // Entering from left, exit at right - spawn as close to right edge as possible
+            sourceGatewayY = player_->getPosition().y;
+            player_->setPosition(screenWidth_ - tile- tile, sourceGatewayY);
+            break;
         case GatewaySide::Right:
-            player_->setPosition(50.0f, sourceGatewayY);
+            // Entering from right, exit at left - spawn as close to left edge as possible
+            sourceGatewayY = player_->getPosition().y;
+            player_->setPosition(tile, sourceGatewayY);
             break;
     }
-
 }
+
 void World::clear() {
     entities_.clear();
     player_ = nullptr;
