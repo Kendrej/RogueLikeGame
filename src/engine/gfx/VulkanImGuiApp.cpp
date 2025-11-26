@@ -175,13 +175,20 @@ void VulkanImGuiApp::mainLoop()
 
       // --- Proste sterowanie WASD oparte o GLFW (nie zależne od stanu przechwycenia klawiatury przez ImGui) ---
       if (auto* player = world_ ? world_->getPlayer() : nullptr) {
-        float dx = 0.0f, dy = 0.0f;
-            if (glfwGetKey(window_, GLFW_KEY_W) == GLFW_PRESS) dy -= 1.0f;
-            if (glfwGetKey(window_, GLFW_KEY_S) == GLFW_PRESS) dy += 1.0f;
-            if (glfwGetKey(window_, GLFW_KEY_A) == GLFW_PRESS) dx -= 1.0f;
-      if (glfwGetKey(window_, GLFW_KEY_D) == GLFW_PRESS) dx += 1.0f;
-         player->applyInput(ImVec2(dx,dy));
-   }
+          float dx = 0.0f, dy = 0.0f;
+          if (glfwGetKey(window_, GLFW_KEY_W) == GLFW_PRESS) dy -= 1.0f;
+          if (glfwGetKey(window_, GLFW_KEY_S) == GLFW_PRESS) dy += 1.0f;
+          if (glfwGetKey(window_, GLFW_KEY_A) == GLFW_PRESS) dx -= 1.0f;
+          if (glfwGetKey(window_, GLFW_KEY_D) == GLFW_PRESS) dx += 1.0f;
+          player->applyInput(ImVec2(dx,dy));
+          if (glfwGetKey(window_, GLFW_KEY_SPACE) == GLFW_PRESS) {
+              if (player->canAttack())
+              {
+                  player->shoot(*world_);
+                  player->startAttackCooldown();
+              }
+          }
+      }
 
 		if (world_) world_->update(dt);
 

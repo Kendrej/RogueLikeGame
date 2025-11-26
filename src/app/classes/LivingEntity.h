@@ -40,6 +40,8 @@ public:
 
     void startAttackCooldown() {attackTimer = attackCooldown ;}
 
+    ImVec2 getDesiredDir() const { return desiredDir; }
+
     AnimationController& createAnimationController(Assets* assets,const int squareSize,
         const std::string& walkRightPath, int walkRightFrameAmount,
         const std::string& walkLeftPath, int walkLeftFrameAmount,
@@ -66,5 +68,3 @@ protected:
 private:
     std::unique_ptr<AnimationController> animationController_{ nullptr };
 };
-
-
