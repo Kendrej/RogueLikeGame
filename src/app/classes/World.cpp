@@ -24,22 +24,26 @@ Player& World::spawnPlayer(const std::string &texturePath, uint32_t width, uint3
    Player& p = *player_;
   
    p.setSolid(true);
-   p.setAttackDamage(5);
-   p.setAttackRange(50.0f);
-   p.setAttackCooldown(0.7f);
+   p.setRangedDamage(5);
+   p.setRangedRange(200.0f);
+   p.setRangedCooldown(0.7f);
+
+
+    p.setMeleeDamage(5);
+    p.setMeleeRange(50.0f);
+    p.setMeleeCooldown(0.7f);
   
    return *player_;
 }
 
-Npc& World::spawnNpc(const std::string &texturePath, uint32_t width, uint32_t height, float pos_x, float pos_y, int maxHp, std::unique_ptr<INpcController> controller, float attackRange) {
+//do refaktoryzacji
+Npc& World::spawnNpc(const std::string &texturePath, uint32_t width, uint32_t height, float pos_x, float pos_y, int maxHp, std::unique_ptr<INpcController> controller) {
     const int npcId = assets_ ? assets_->getOrLoadIcon(texturePath) : -1;
     Npc& n= addEntity<Npc>(npcId, width , height , pos_x, pos_y,  maxHp);
     n.setWorld(this);
     n.setController(std::move(controller));
     n.setSolid(true);
-    n.setAttackDamage(5);
-    n.setAttackRange(attackRange);
-    n.setAttackCooldown(0.7f);
+
     return n;
 }
 
@@ -54,6 +58,106 @@ Projectile& World::spawnProjectile(uint32_t width,uint32_t height,
     );
     return projectile;
 }
+
+
+void World::performMeleeAttack(LivingEntity& attacker)
+{
+    const float range  = attacker.getMeleeRange();
+    const int   damage = attacker.getMeleeDamage();
+
+    // brak zasięgu albo dmg = brak ataku
+    if (range <= 0.0f || damage <= 0) {
+        return;
+    }
+
+    ImVec2 pos = attacker.getPosition();
+    float w = attacker.getWidth();
+    float h = attacker.getHeight();
+
+    // Kierunek ataku oparty głównie na facingDir (ostatni kierunek ruchu / patrzenia).
+    ImVec2 dir = attacker.getFacingDir();
+    if (dir.x == 0.0f && dir.y == 0.0f) {
+        // awaryjnie użyj desiredDir
+        dir = attacker.getDesiredDir();
+    }
+    if (dir.x == 0.0f && dir.y == 0.0f) {
+        // jeszcze awaryjniej użyj velocity
+        dir = attacker.getVelocity();
+    }
+    if (dir.x == 0.0f && dir.y == 0.0f) {
+        // ostateczny fallback: w prawo
+        dir = ImVec2(1.0f, 0.0f);
+    }
+
+    float attackX = 0.0f;
+    float attackY = 0.0f;
+    float attackW = 0.0f;
+    float attackH = 0.0f;
+
+    // Jeśli |x| >= |y| → atak poziomy (lewo/prawo),
+    // w przeciwnym razie pionowy (góra/dół)
+    if (std::abs(dir.x) >= std::abs(dir.y)) {
+        // poziomo
+        if (dir.x >= 0.0f) {
+            // w prawo
+            attackX = pos.x + w;
+            attackY = pos.y;
+            attackW = range;
+            attackH = h;
+        } else {
+            // w lewo
+            attackX = pos.x - range;
+            attackY = pos.y;
+            attackW = range;
+            attackH = h;
+        }
+    } else {
+        // pionowo
+        if (dir.y >= 0.0f) {
+            // w dół
+            attackX = pos.x;
+            attackY = pos.y + h;
+            attackW = w;
+            attackH = range;
+        } else {
+            // w górę
+            attackX = pos.x;
+            attackY = pos.y - range;
+            attackW = w;
+            attackH = range;
+        }
+    }
+
+    // --- Trafienia w encje w entities_ (NPC itd.) ---
+    for (auto& up : entities_) {
+        if (!up) continue;
+
+        auto* target = dynamic_cast<LivingEntity*>(up.get());
+        if (!target) continue;
+        if (target == &attacker) continue;
+        if (!target->isAlive()) continue;
+
+        if (intersectsRectWithEntity(*target, attackX, attackY, attackW, attackH)) {
+            target->takeDamage(damage);
+            target->setDamaged(true); // możesz wykorzystać do animacji 'Hurt'
+        }
+    }
+
+    // --- Trafienie w playera (jeśli attacker to NPC, a player_ nie jest w entities_) ---
+    if (player_) {
+        auto* playerLiving = dynamic_cast<LivingEntity*>(player_.get());
+        if (playerLiving &&
+            playerLiving != &attacker &&
+            playerLiving->isAlive())
+        {
+            if (intersectsRectWithEntity(*playerLiving, attackX, attackY, attackW, attackH)) {
+                playerLiving->takeDamage(damage);
+                playerLiving->setDamaged(true);
+            }
+        }
+    }
+}
+
 
 
 void World::buildFromMap(const std::string &wallTexturePath, const std::string &floorTexturePath, const std::string& doorTexturePath, uint32_t tileW, uint32_t tileH) {
@@ -107,6 +211,15 @@ bool World::intersectsAABBAt(const Entity &a, const Entity &b, float ax, float a
     ImVec2 bp = b.getPosition();
     return !(ax + a.getWidth() <= bp.x || bp.x + b.getWidth() <= ax ||
              ay + a.getHeight() <= bp.y || bp.y + b.getHeight() <= ay);
+}
+
+bool World::intersectsRectWithEntity(const Entity &e, float rx, float ry, float rw, float rh)
+{
+    ImVec2 p = e.getPosition();
+    float eh = e.getHeight();
+    float ew = e.getWidth();
+
+    return !(p.x + ew <= rx || rx + rw <= p.x || p.y + eh <= ry || ry + rh <= p.y);
 }
 
 
@@ -265,7 +378,7 @@ void World::update(float dt) {
         }
     }
 
-    //update all the entities
+    //update all the entities (AI, timers, etc.)
     for (auto& up : entities_) {
         if (!up) continue;
         up->update(dt);
@@ -377,11 +490,21 @@ void World::update(float dt) {
         if (!living) continue;
         if (!living->isAlive()) continue;
 
-        ImVec2 vel = living->getVelocity();
-        float dx = vel.x * dt;
+     ImVec2 oldPos = living->getPosition();
+     ImVec2 vel = living->getVelocity();
+     float dx = vel.x * dt;
         float dy = vel.y * dt;
-        moveWithCollisions(*living, dx, dy, entities_);
-        clampToScreen(*living);
+    moveWithCollisions(*living, dx, dy, entities_);
+
+        // dodatkowo: nie pozwól NPC/innym LivingEntity wejść w playera
+        if (player_) {
+            if (intersectsAABB(*living, *player_)) {
+                // cofnij ruch tej klatki względem gracza
+                living->setPosition(oldPos.x, oldPos.y);
+            }
+        }
+
+      clampToScreen(*living);
     }
 
     // Remove dead projectiles
@@ -473,7 +596,7 @@ void World::spawnNpcs() {
             auto& npc = this->spawnNpc("assets/characters/angel.png",
                 64, 64,
                 x, y + World::UI_TOP_BAR_HEIGHT,  // Add UI offset to NPC spawn
-                10, std::make_unique<MeleeController>(), 70.0f);
+                100, std::make_unique<MeleeController>());
             npc.createAnimationController(assets_, 100,
                 "assets/animations/Orc-Walk-right.png", 8, "assets/animations/Orc-Walk-left.png", 8,
                 "assets/animations/Orc-Idle-right.png", 6, "assets/animations/Orc-Idle-left.png", 6,
@@ -484,7 +607,7 @@ void World::spawnNpcs() {
             auto& npc = this->spawnNpc("assets/characters/hero.png",
                 64, 64,
                 x, y + World::UI_TOP_BAR_HEIGHT,  // Add UI offset to NPC spawn
-                10, std::make_unique<RangeController>(), 300.0f);
+                100, std::make_unique<RangeController>());
             npc.createAnimationController(assets_, 100,
                 "assets/animations/SkeletonArcher-Walk-right.png", 8, "assets/animations/SkeletonArcher-Walk-left.png", 8,
                 "assets/animations/SkeletonArcher-Idle-right.png", 6, "assets/animations/SkeletonArcher-Idle-left.png", 6,

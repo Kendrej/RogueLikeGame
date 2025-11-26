@@ -33,23 +33,25 @@ void setupGame(World& world)
                                     "assets/animations/Soldier-Hurt-right.png", 4, "assets/animations/Soldier-Hurt-left.png", 4,
                                     "assets/animations/Soldier-Death-right.png", 4, "assets/animations/Soldier-Death-left.png", 4);
 
-    //auto& npc1 = world.spawnNpc("assets/characters/angel.png",
-    //    64, 64,
-    //    780.0f, 180.0f + World::UI_TOP_BAR_HEIGHT,  // Add UI offset to NPC spawn
-    //    10, std::make_unique<MeleeController>(), 70.0f);
-    //npc1.createAnimationController(world.getAssets(),100,
-    //                                "assets/animations/Orc-Walk-right.png", 8, "assets/animations/Orc-Walk-left.png", 8,
-    //                                "assets/animations/Orc-Idle-right.png", 6, "assets/animations/Orc-Idle-left.png", 6,
-    //                                "assets/animations/Orc-Hurt-right.png", 4, "assets/animations/Orc-Hurt-left.png", 4,
-    //                                "assets/animations/Orc-Death-right.png", 4, "assets/animations/Orc-Death-left.png", 4);
+    auto& npc1 = world.spawnNpc("assets/characters/angel.png",
+        64, 64,
+        780.0f, 180.0f + World::UI_TOP_BAR_HEIGHT,  // Add UI offset to NPC spawn
+        10, std::make_unique<MeleeController>());
+    npc1.createAnimationController(world.getAssets(),100,
+                                    "assets/animations/Orc-Walk-right.png", 8, "assets/animations/Orc-Walk-left.png", 8,
+                                    "assets/animations/Orc-Idle-right.png", 6, "assets/animations/Orc-Idle-left.png", 6,
+                                    "assets/animations/Orc-Hurt-right.png", 4, "assets/animations/Orc-Hurt-left.png", 4,
+                                    "assets/animations/Orc-Death-right.png", 4, "assets/animations/Orc-Death-left.png", 4);
 
-    //auto& npc2 = world.spawnNpc("assets/characters/hero.png",
-    //    64, 64,
-    //    1280.0f, 180.0f + World::UI_TOP_BAR_HEIGHT,  // Add UI offset to NPC spawn
-    //    10, std::make_unique<RangeController>(), 300.0f);
-    //npc2.createAnimationController(world.getAssets(), 100,
-    //    "assets/animations/SkeletonArcher-Walk-right.png", 8, "assets/animations/SkeletonArcher-Walk-left.png", 8,
-    //    "assets/animations/SkeletonArcher-Idle-right.png", 6, "assets/animations/SkeletonArcher-Idle-left.png", 6,
-    //    "assets/animations/SkeletonArcher-Hurt-right.png", 4, "assets/animations/SkeletonArcher-Hurt-left.png", 4,
-    //    "assets/animations/SkeletonArcher-Death-right.png", 4, "assets/animations/SkeletonArcher-Death-left.png", 4);
+    auto& npc2 = world.spawnNpc("assets/characters/hero.png",
+        64, 64,
+        1080.0f, 180.0f + World::UI_TOP_BAR_HEIGHT,  // Add UI offset to NPC spawn
+        10, std::make_unique<RangeController>());
+    npc2.setRangedRange(300.0f);
+    npc2.createAnimationController(world.getAssets(), 100,
+        "assets/animations/SkeletonArcher-Walk-right.png", 8, "assets/animations/SkeletonArcher-Walk-left.png", 8,
+        "assets/animations/SkeletonArcher-Idle-right.png", 6, "assets/animations/SkeletonArcher-Idle-left.png", 6,
+        "assets/animations/SkeletonArcher-Hurt-right.png", 4, "assets/animations/SkeletonArcher-Hurt-left.png", 4,
+        "assets/animations/SkeletonArcher-Death-right.png", 4, "assets/animations/SkeletonArcher-Death-left.png", 4);
+
 }

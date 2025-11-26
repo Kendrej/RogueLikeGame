@@ -31,25 +31,29 @@ void RangeController::update(Npc &npc, World &world, float dt) {
     const float maxSpeed    = 250.0f;
     const float accel       = 2000.0f;
 
+    npc.setRangedDamage(5);
+    npc.setRangedRange(300.0f);
+    npc.setRangedCooldown(1.0f);
+
     npc.setMaxSpeed(maxSpeed);
     npc.setAcceleration(accel);
 
-    float attackRange = npc.getAttackRange();
+    float attackRange = npc.getRangedRange();
     const float tolerance = 30.0f;
 
     if ( dist > aggroRange) {
         npc.setState(Npc::State::Idle);
-    } else if ( dist <= attackRange - tolerance) {
+    } else if ( dist <= attackRange * 0.8f) {
         npc.setState(Npc::State::Kite);
     }
-    else if (dist <= attackRange + tolerance ) {
+    else if (dist <= attackRange * 1.2f ) {
         npc.setState(Npc::State::Attack);
     }
-    else if (dist > 0.001f) {
+    else {
         npc.setState(Npc::State::Chase);
     }
 
-    ImVec2 dirToPlayer{ playerCenter.x - npcCenter.x, playerCenter.y - npcCenter.y};
+    ImVec2 dirToPlayer = normalize(ImVec2{ playerCenter.x - npcCenter.x, playerCenter.y - npcCenter.y});
 
     const std::string projectileTexture = "assets/design/Arrow01.png" ;
     const uint32_t projW = 32;
@@ -70,57 +74,53 @@ void RangeController::update(Npc &npc, World &world, float dt) {
                });
             npc.applyInput(stepBack);
 
-            if (npc.canAttack()) {
-                ImVec2 shootDir{playerCenter.x - npcCenter.x, playerCenter.y - npcCenter.y};
-                ImVec2 dirNorm = normalize(shootDir);
+            if (npc.canShoot()) {
+                ImVec2 shootDir = dirToPlayer;
 
                 const float spawnOffset = npc.getWidth() * 0.5f + 10.0f;
                 ImVec2 spawnPos{
-                    npcCenter.x + dirNorm.x * spawnOffset,
-                    npcCenter.y + dirNorm.y * spawnOffset
+                    npcCenter.x + shootDir.x * spawnOffset,
+                    npcCenter.y + shootDir.y * spawnOffset
                 };
 
                 shootProjectile(
                     world, npc, projectileTexture, projW, projH,
                     spawnPos,
                     shootDir,
-                    projSpeed, projLifetime, npc.getAttackDamage()
+                    projSpeed, projLifetime, npc.getRangedDamage()
                 );
-                npc.startAttackCooldown();
+                npc.startRangedCooldown();
             }
 
             break;
         }
 
         case Npc::State::Attack: {
+
             npc.applyInput(ImVec2(0.0f, 0.0f));
-            if (npc.canAttack()) {
-                ImVec2 shootDir{playerCenter.x - npcCenter.x, playerCenter.y - npcCenter.y};
-                ImVec2 dirNorm = normalize(shootDir);
+            npc.setVelocity(ImVec2(0.0f, 0.0f));
+            if (npc.canShoot()) {
+                ImVec2 shootDir = dirToPlayer;
 
                 const float spawnOffset = npc.getWidth() * 0.5f + 10.0f;
                 ImVec2 spawnPos{
-                    npcCenter.x + dirNorm.x * spawnOffset,
-                    npcCenter.y + dirNorm.y * spawnOffset
+                    npcCenter.x + shootDir.x * spawnOffset,
+                    npcCenter.y + shootDir.y * spawnOffset
                 };
 
                 shootProjectile(
                     world, npc, projectileTexture, projW, projH,
                     spawnPos,
                     shootDir,
-                    projSpeed, projLifetime, npc.getAttackDamage()
+                    projSpeed, projLifetime, npc.getRangedDamage()
                 );
-                npc.startAttackCooldown();
+                npc.startRangedCooldown();
             }
             break;
         }
 
         case Npc::State::Chase: {
-            ImVec2 dir = normalize(ImVec2{
-        playerCenter.x - npcCenter.x,
-            playerCenter.y - npcCenter.y
-        });
-            npc.applyInput(dir);
+            npc.applyInput(dirToPlayer);
             break;
         }
     }

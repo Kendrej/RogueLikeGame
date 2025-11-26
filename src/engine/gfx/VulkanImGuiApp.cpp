@@ -181,12 +181,32 @@ void VulkanImGuiApp::mainLoop()
           if (glfwGetKey(window_, GLFW_KEY_A) == GLFW_PRESS) dx -= 1.0f;
           if (glfwGetKey(window_, GLFW_KEY_D) == GLFW_PRESS) dx += 1.0f;
           player->applyInput(ImVec2(dx,dy));
+
+          // change attack mode
+          static bool lastQ = false;
+          bool qPressed = glfwGetKey(window_, GLFW_KEY_Q) == GLFW_PRESS;
+          if ( qPressed && !lastQ) {
+              player->toggleAttackMode();
+          }
+          lastQ = qPressed;
+
+          // player attack
           if (glfwGetKey(window_, GLFW_KEY_SPACE) == GLFW_PRESS) {
-              if (player->canAttack())
+              if (player->isMeleeMode())
               {
-                  player->shoot(*world_);
-                  player->startAttackCooldown();
+                if (player->canMelee()) {
+                    world_->performMeleeAttack(*player);
+                    player->startMeleeCooldown();
+                }
               }
+              else if (player->isRangedMode()) {
+                    if (player->canShoot())
+                  {
+                      player->shoot(*world_);
+                      player->startRangedCooldown();
+                  }
+              }
+
           }
       }
 
