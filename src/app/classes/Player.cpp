@@ -31,3 +31,15 @@ void Player::shoot(World &world) {
 
 	shootProjectile(world, *this, projTexture, projW, projH, spawnPos, facingDir, projSpeed, projLifetime, getRangedDamage());
 }
+
+void Player::toggleAttackMode() {
+	if (attackMode == AttackMode::Melee)
+	{
+		attackMode = AttackMode::Ranged;
+	}
+	else
+	{
+		attackMode = AttackMode::Melee;
+	}
+}
+

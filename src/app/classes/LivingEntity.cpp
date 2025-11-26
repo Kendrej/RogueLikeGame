@@ -39,10 +39,12 @@ void LivingEntity::setMaxSpeed(float maxSpeed) {
 
 void LivingEntity::applyInput(const ImVec2 &dir) {
     if (dir.x != 0.0f || dir.y != 0.0f) {
-      float len = std::sqrt(dir.x * dir.x + dir.y * dir.y);
-      desiredDir = ImVec2(dir.x/len , dir.y/len);
+        float len = std::sqrt(dir.x * dir.x + dir.y * dir.y);
+        ImVec2 norm{ dir.x / len, dir.y / len };
+        desiredDir = norm;
+        facingDir = norm;
     } else {
-   desiredDir = ImVec2(0.0f, 0.0f);
+        desiredDir = ImVec2(0.0f, 0.0f);
     }
 }
 
@@ -59,9 +61,14 @@ void LivingEntity::update(float dt) {
     } else {
   velocity = target;
     }
-    if (attackTimer > 0.f) {
-     attackTimer -= dt;
-        if (attackTimer < 0.f) attackTimer = 0.f;
+    if (rangedTimer > 0.f) {
+     rangedTimer -= dt;
+        if (rangedTimer < 0.f) rangedTimer = 0.f;
+    }
+
+    if ( meleeTimer > 0.f ) {
+        meleeTimer -= dt;
+        if ( meleeTimer < 0.f) meleeTimer = 0.f;
     }
 }
 

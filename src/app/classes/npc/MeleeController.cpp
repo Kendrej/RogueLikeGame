@@ -1,5 +1,7 @@
-
 #include "MeleeController.h"
+
+#include <vulkan/vulkan_core.h>
+
 #include "Npc.h"
 #include "Player.h"
 #include "World.h"
@@ -27,49 +29,49 @@ void MeleeController::update(Npc &npc, World &world, float dt) {
     };
     float dist = distance(npcCenter, playerCenter);
 
+    ImVec2 dirToPlayer = normalize(ImVec2{ playerCenter.x - npcCenter.x, playerCenter.y - npcCenter.y});
 
     const float aggroRange  = 500.0f;
     const float maxSpeed    = 250.0f;
     const float accel       = 2000.0f;
+    npc.setMeleeRange(80.0f);
+    npc.setMeleeDamage(5);
+    npc.setMeleeCooldown(1.0f);
 
     npc.setMaxSpeed(maxSpeed);
     npc.setAcceleration(accel);
 
-    float attackRange = npc.getAttackRange();
-    const float tolerance = 30.0f;
+    float attackRange = npc.getMeleeRange();
 
     if ( dist > aggroRange) {
         npc.setState(Npc::State::Idle);
     }
-    else if (dist <= attackRange + tolerance ) {
+    else if (dist <= attackRange) {
        npc.setState(Npc::State::Attack);
     }
-    else if (dist > 0.001f) {
+    else {
         npc.setState(Npc::State::Chase);
     }
 
     switch (npc.getState()) {
         case Npc::State::Idle: {
-             npc.applyInput(ImVec2(0.0f, 0.0f));
+            npc.applyInput(ImVec2(0.0f, 0.0f));
             break;
         }
 
         case Npc::State::Attack: {
             npc.applyInput(ImVec2(0.0f, 0.0f));
-
-            if (npc.canAttack()) {
-                player->takeDamage(npc.getAttackDamage());
-                npc.startAttackCooldown();
+            npc.setVelocity(ImVec2(0.0f, 0.0f));
+            if (npc.canMelee()) {
+                world.performMeleeAttack(npc);
+                npc.startMeleeCooldown();
             }
             break;
         }
 
         case Npc::State::Chase: {
-            ImVec2 dir = normalize(ImVec2{
-        playerCenter.x - npcCenter.x,
-            playerCenter.y - npcCenter.y
-        });
-            npc.applyInput(dir);
+
+            npc.applyInput(dirToPlayer);
             break;
         }
     }

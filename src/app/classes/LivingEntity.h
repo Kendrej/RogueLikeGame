@@ -58,6 +58,7 @@ public:
 
 
     ImVec2 getDesiredDir() const { return desiredDir; }
+    ImVec2 getFacingDir() const { return facingDir; }
 
     AnimationController& createAnimationController(Assets* assets,const int squareSize,
         const std::string& walkRightPath, int walkRightFrameAmount,
@@ -75,6 +76,7 @@ protected:
     float maxSpeed = 5.0f;
     float acceleration = 0.5f;
     ImVec2 desiredDir{0.0f, 0.0f};
+    ImVec2 facingDir{1.0f, 0.0f};
     int hp = 0;
     int maxHp;
 	bool damaged = false;

@@ -32,10 +32,12 @@ public:
 
     Npc& spawnNpc(const std::string& texturePath,
                         uint32_t width, uint32_t height,
-                        float pos_x, float pos_y, int maxHp, std::unique_ptr<INpcController> controller, float attackRange);
+                        float pos_x, float pos_y, int maxHp, std::unique_ptr<INpcController> controller);
 
     Projectile& spawnProjectile(uint32_t width,uint32_t height,
     float pos_x,float pos_y,ImVec2 velocity,float lifetime,int damage, LivingEntity* owner, const std::string &texturePath);
+
+    void performMeleeAttack( LivingEntity& attacker );
 
     void buildFromMap(const std::string& wallTexturePath,
         const std::string& floorTexturePath,
@@ -76,6 +78,7 @@ private:
     // Collision helpers (renamed for clarity)
     static bool intersectsAABB(const Entity& a, const Entity& b);
     static bool intersectsAABBAt(const Entity& a, const Entity& b, float aPosX, float aPosY);
+    static bool intersectsRectWithEntity(const Entity& e, float rx, float ry, float rw, float rh);
     static void moveWithCollisions(Entity& mover, float dx, float dy, const std::vector<std::unique_ptr<Entity>>& entities);
     static void pushOutOfSolids(Entity& mover, const std::vector<std::unique_ptr<Entity>>& entities);
     void clampToScreen(Entity& mover);
