@@ -279,7 +279,7 @@ void World::update(float dt) {
             continue;
         }
 
-        //projectile collision with solid tiles / solid entities
+        //projectile collision with solid tiles / solid entities / livingEntity
         for (auto& other: entities_) {
             if ( !other || other.get() == proj) continue;
             if (!other->isSolid()) continue;
@@ -287,6 +287,11 @@ void World::update(float dt) {
             if (other.get() == proj->getOwner()) continue;
 
             if (intersectsAABB(*proj, *other)) {
+                if (auto* living = dynamic_cast<LivingEntity*>(other.get())) {
+                    if (living != proj -> getOwner()) {
+                        living->takeDamage(proj->getDamage());
+                    }
+                }
                 proj->kill();
                 toRemove.push_back(proj);
                 break;
@@ -294,20 +299,6 @@ void World::update(float dt) {
         }
         if (proj->isDead()) continue;
 
-        //projectile collision with Living Entity
-        for (auto& other: entities_) {
-            auto* living = dynamic_cast<LivingEntity*>(other.get());
-            if (!living) continue;
-            if (living == proj->getOwner()) continue;
-
-            if (intersectsAABB(*proj, *living) ){
-                living->takeDamage(proj->getDamage());
-                proj->kill();
-                toRemove.push_back(proj);
-                break;
-            }
-        }
-        if (proj->isDead()) continue;
 
         //projectile collision with player
         if ( player_ ) {
