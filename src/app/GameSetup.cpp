@@ -35,7 +35,7 @@ void setupGame(World& world)
 
     auto& npc1 = world.spawnNpc("assets/characters/angel.png",
         64, 64,
-        180.0f, 180.0f + World::UI_TOP_BAR_HEIGHT,  // Add UI offset to NPC spawn
+        780.0f, 180.0f + World::UI_TOP_BAR_HEIGHT,  // Add UI offset to NPC spawn
         10, std::make_unique<MeleeController>());
     npc1.createAnimationController(world.getAssets(),100,
                                     "assets/animations/Orc-Walk-right.png", 8, "assets/animations/Orc-Walk-left.png", 8,
@@ -45,7 +45,7 @@ void setupGame(World& world)
 
     auto& npc2 = world.spawnNpc("assets/characters/hero.png",
         64, 64,
-        180.0f, 180.0f + World::UI_TOP_BAR_HEIGHT,  // Add UI offset to NPC spawn
+        1080.0f, 180.0f + World::UI_TOP_BAR_HEIGHT,  // Add UI offset to NPC spawn
         10, std::make_unique<RangeController>());
     npc2.setRangedRange(300.0f);
     npc2.createAnimationController(world.getAssets(), 100,
