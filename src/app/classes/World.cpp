@@ -225,7 +225,16 @@ void World::update(float dt) {
 			ImVec2 vel = player_->getVelocity();
             AnimationType type = animationController->getCurrentAnimationType();
 
-            if (player_->isDamaged()) {
+            if (!player_->isAlive()) {
+                if(type == AnimationType::WalkLeft || type == AnimationType::IdleLeft || type == AnimationType::DeathLeft)
+                    animationController->setCurrentAnimationType(AnimationType::DeathLeft);
+                else{
+                    animationController->setCurrentAnimationType(AnimationType::DeathRight);
+                }
+                animationController->update(dt);
+				return;
+            }
+            else if (player_->isDamaged()) {
 				player_->setDamaged(false);
                 if(type == AnimationType::WalkLeft || type == AnimationType::IdleLeft)
                     animationController->setCurrentAnimationType(AnimationType::HurtLeft);
@@ -262,7 +271,17 @@ void World::update(float dt) {
                 ImVec2 vel = livingEntity->getVelocity();
                 AnimationType type = animationController->getCurrentAnimationType();
 
-                if (livingEntity->isDamaged()) {
+                if (!livingEntity->isAlive()){
+					livingEntity->setSolid(false);
+                    if (type == AnimationType::WalkLeft || type == AnimationType::IdleLeft || type == AnimationType::DeathLeft)
+                        animationController->setCurrentAnimationType(AnimationType::DeathLeft);
+                    else {
+                        animationController->setCurrentAnimationType(AnimationType::DeathRight);
+                    }
+                    animationController->update(dt);
+                    continue;
+                }
+                else if (livingEntity->isDamaged()) {
                     livingEntity->setDamaged(false);
                     if (type == AnimationType::WalkLeft || type == AnimationType::IdleLeft)
                         animationController->setCurrentAnimationType(AnimationType::HurtLeft);
@@ -340,25 +359,26 @@ void World::update(float dt) {
     {
         auto *livingPlayer = dynamic_cast<LivingEntity*>(player_.get());
         if (livingPlayer) {
- ImVec2 vel = livingPlayer->getVelocity();
-          float dx = vel.x * dt;
-     float dy = vel.y * dt;
+        ImVec2 vel = livingPlayer->getVelocity();
+            float dx = vel.x * dt;
+            float dy = vel.y * dt;
             moveWithCollisions(*livingPlayer, dx, dy, entities_);
- }
-      clampToScreen(*player_);
+        }
+        clampToScreen(*player_);
     }
     //npc movement
 
     for (auto &up : entities_) {
         if (!up) continue;
         auto *living = dynamic_cast<LivingEntity*>(up.get());
-      if (!living) continue;
+        if (!living) continue;
+        if (!living->isAlive()) continue;
 
-     ImVec2 vel = living->getVelocity();
-     float dx = vel.x * dt;
+        ImVec2 vel = living->getVelocity();
+        float dx = vel.x * dt;
         float dy = vel.y * dt;
-    moveWithCollisions(*living, dx, dy, entities_);
-      clampToScreen(*living);
+        moveWithCollisions(*living, dx, dy, entities_);
+        clampToScreen(*living);
     }
 
     // Remove dead projectiles
@@ -428,21 +448,23 @@ void World::spawnNpcs() {
             auto& npc = this->spawnNpc("assets/characters/angel.png",
                 64, 64,
                 x, y + World::UI_TOP_BAR_HEIGHT,  // Add UI offset to NPC spawn
-                100, std::make_unique<MeleeController>(), 70.0f);
+                10, std::make_unique<MeleeController>(), 70.0f);
             npc.createAnimationController(assets_, 100,
                 "assets/animations/Orc-Walk-right.png", 8, "assets/animations/Orc-Walk-left.png", 8,
                 "assets/animations/Orc-Idle-right.png", 6, "assets/animations/Orc-Idle-left.png", 6,
-                "assets/animations/Orc-Hurt-right.png", 4, "assets/animations/Orc-Hurt-left.png", 4);
+                "assets/animations/Orc-Hurt-right.png", 4, "assets/animations/Orc-Hurt-left.png", 4,
+                "assets/animations/Orc-Death-right.png", 4, "assets/animations/Orc-Death-left.png", 4);
         }
         else if (t == 'r') {
             auto& npc = this->spawnNpc("assets/characters/hero.png",
                 64, 64,
                 x, y + World::UI_TOP_BAR_HEIGHT,  // Add UI offset to NPC spawn
-                100, std::make_unique<RangeController>(), 300.0f);
+                10, std::make_unique<RangeController>(), 300.0f);
             npc.createAnimationController(assets_, 100,
                 "assets/animations/SkeletonArcher-Walk-right.png", 8, "assets/animations/SkeletonArcher-Walk-left.png", 8,
                 "assets/animations/SkeletonArcher-Idle-right.png", 6, "assets/animations/SkeletonArcher-Idle-left.png", 6,
-                "assets/animations/SkeletonArcher-Hurt-right.png", 4, "assets/animations/SkeletonArcher-Hurt-left.png", 4);
+                "assets/animations/SkeletonArcher-Hurt-right.png", 4, "assets/animations/SkeletonArcher-Hurt-left.png", 4,
+                "assets/animations/SkeletonArcher-Death-right.png", 4, "assets/animations/SkeletonArcher-Death-left.png", 4);
         }
     });
     maps_[currentMapIndex]->setVisited(true);

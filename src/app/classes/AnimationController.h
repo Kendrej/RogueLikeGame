@@ -10,7 +10,9 @@ enum class AnimationType {
 	IdleRight,
 	IdleLeft,
 	HurtRight,
-	HurtLeft
+	HurtLeft,
+	DeathRight,
+	DeathLeft
 };
 
 class AnimationController {
@@ -20,17 +22,13 @@ public:
 						const std::string idleRightPath, const int idlesRightframeAmount,
 						const std::string idleLeftPath, const int idlesLeftframeAmount,
 						const std::string hurtRightPath, const int hurtRightframeAmount,
-						const std::string hurtLeftPath, const int hurtLeftframeAmount);
+						const std::string hurtLeftPath, const int hurtLeftframeAmount,
+						const std::string deathRightPath, const int deathRightframeAmount,
+						const std::string deathLeftPath, const int deathLeftframeAmount);
 	~AnimationController() = default;
 
-	void setCurrentAnimationType(AnimationType type) {
-		if (currentAnimationType_ == type) {
-			return;  // Ju¿ w tym stanie, nie resetuj!
-		}
-		currentAnimationType_ = type;
-		currentFrameIndex_ = 0;
-		frameTimer_ = 0.0f;
-	}
+	void setCurrentAnimationType(AnimationType type);
+	
 	void update(float dt);
 	
 	int getCurrentFrameIconId() const {
@@ -45,6 +43,7 @@ private:
 	void addWalkAnimation(Assets* assets, const int squareSize, const std::string walkRightPath, const std::string walkLeftPath);
 	void addIdleAnimation(Assets* assets, const int squareSize, const std::string idleRightPath, const std::string idleLeftPath);
 	void addHurtAnimation(Assets* assets, const int squareSize, const std::string hurtRightPath, const std::string hurtLeftPath);
+	void adddeathAnimation(Assets* assets, const int squareSize, const std::string deathRightPath, const std::string deathLeftPath);
 
 	void setAnimationIconId(AnimationType type, int iconId) {
 		animationIconIds_[type] = iconId;
@@ -56,6 +55,9 @@ private:
 	bool isHurtAnimation() const {
 		return currentAnimationType_ == AnimationType::HurtRight || currentAnimationType_ == AnimationType::HurtLeft;
 	}
+	bool isDeathAnimation() const {
+		return currentAnimationType_ == AnimationType::DeathRight || currentAnimationType_ == AnimationType::DeathLeft;
+	}
 
 
 	Assets* assets_;
@@ -65,6 +67,9 @@ private:
 	int idleLeftFrameAmount_;
 	int hurtRightFrameAmount_;
 	int hurtLeftFrameAmount_;
+	int deathRightFrameAmount_;
+	int deathLeftFrameAmount_;
+	bool isRightFacing_ = true;
 
 	AnimationType currentAnimationType_ = AnimationType::IdleRight;
 	std::unordered_map<AnimationType, int> animationIconIds_;

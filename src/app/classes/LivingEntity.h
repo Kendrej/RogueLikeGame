@@ -50,7 +50,9 @@ public:
         const std::string& idleRightPath, int idleFrameRightAmount,
         const std::string& idleLeftPath, int idleLeftFrameAmount,
         const std::string hurtRightPath, const int hurtRightframeAmount,
-        const std::string hurtLeftPath, const int hurtLeftframeAmount);
+        const std::string hurtLeftPath, const int hurtLeftframeAmount,
+        const std::string deathRightPath, const int deathRightframeAmount,
+        const std::string deathLeftPath, const int deathLeftframeAmount);
 
     AnimationController* getAnimationController() const {
         return animationController_.get();
