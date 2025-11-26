@@ -29,5 +29,5 @@ void Player::shoot(World &world) {
 		playerCenter.y + facingDir.y * spawnOffset
 	};
 
-	shootProjectile(world, *this, projTexture, projW, projH, spawnPos, facingDir, projSpeed, projLifetime, getAttackDamage());
+	shootProjectile(world, *this, projTexture, projW, projH, spawnPos, facingDir, projSpeed, projLifetime, getRangedDamage());
 }

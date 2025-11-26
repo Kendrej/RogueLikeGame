@@ -12,6 +12,7 @@ public:
     ~LivingEntity(); // Declare destructor
 
     void update(float dt) override;
+
     ImVec2 getVelocity() const;
     float getMaxSpeed() const;
     float getAcceleration() const;
@@ -23,24 +24,38 @@ public:
 
     int getHp() const { return hp; }
     int getMaxHp() const { return maxHp; }
+    void heal(int amount);
+
     bool isAlive() const { return hp > 0; }
     void takeDamage(int dmg);
 	void setDamaged(bool dmg) { damaged = dmg; }
 	bool isDamaged() const { return damaged; }
-    void heal(int amount);
 
-    void setAttackDamage(int attackDamage_) {attackDamage = attackDamage_;}
-    void setAttackCooldown(float attackCooldown_) {attackCooldown = attackCooldown_;}
-    void setAttackRange(float attackRange_) {attackRange = attackRange_ ;}
+    // RANGED
+    void setRangedDamage(int rangedDamage_) { rangedDamage = rangedDamage_;}
+    void setRangedCooldown(float rangedCooldown_) { rangedCooldown = rangedCooldown_;}
+    void setRangedRange(float rangedRange_) {rangedRange = rangedRange_ ;}
+    // resetRangedCooldown() { rangedTimer = 0.0f ;}
+    void startRangedCooldown() { rangedTimer = rangedCooldown ;}
 
-    int getAttackDamage() const { return attackDamage ;}
-    float getAttackCooldown() const { return attackCooldown ;}
-    float getAttackRange() const { return attackRange ;}
 
-    void resetAttackTimer() {attackTimer = 0.0f ;}
-    bool canAttack() const {return attackTimer == 0.f; }
+    int getRangedDamage() const { return rangedDamage ;}
+    float getRangedCooldown() const { return rangedCooldown ;}
+    float getRangedRange() const { return rangedRange ;}
+    bool canShoot() const { return rangedTimer <= 0.0f ;}
 
-    void startAttackCooldown() {attackTimer = attackCooldown ;}
+    // melee
+    void setMeleeDamage(int meleeDamage_) { meleeDamage = meleeDamage_;}
+    void setMeleeCooldown(float meleeCooldown_) { meleeCooldown = meleeCooldown_;}
+    void setMeleeRange(float meleeRange_) { meleeRange = meleeRange_ ;}
+    //void resetMeleeCooldown() { meleeTimer = 0.0f ;}
+    void startMeleeCooldown() { meleeTimer = meleeCooldown ;}
+
+    int getMeleeDamage() const { return meleeDamage ;}
+    float getMeleeCooldown() const { return meleeCooldown ;}
+    float getMeleeRange() const { return meleeRange ;}
+    bool canMelee() const {return meleeTimer <= 0.0f; }
+
 
     ImVec2 getDesiredDir() const { return desiredDir; }
 
@@ -64,10 +79,15 @@ protected:
     int maxHp;
 	bool damaged = false;
 
-    int attackDamage = 0;
-    float attackCooldown = 0.f;
-    float attackRange = 0.f;
-    float attackTimer = 0.0f;
+    int rangedDamage = 0;
+    float rangedCooldown = 0.f;
+    float rangedRange = 0.f;
+    float rangedTimer = 0.0f;
+
+    int meleeDamage = 0;
+    float meleeCooldown = 0.f;
+    float meleeRange = 0.f;
+    float meleeTimer = 0.0f;
 
 
 private:

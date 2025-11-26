@@ -13,4 +13,5 @@ public:
 private:
 	ImVec2 facingDir{1.0f, 0.0f};
 
+	float meleeRange_ = 6
 };

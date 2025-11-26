@@ -34,7 +34,7 @@ void RangeController::update(Npc &npc, World &world, float dt) {
     npc.setMaxSpeed(maxSpeed);
     npc.setAcceleration(accel);
 
-    float attackRange = npc.getAttackRange();
+    float attackRange = npc.getRangRange();
     const float tolerance = 30.0f;
 
     if ( dist > aggroRange) {
