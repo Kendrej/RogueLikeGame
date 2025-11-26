@@ -4,23 +4,43 @@
 AnimationController::AnimationController(Assets* assets,const int squareSize, const std::string walkRightPath, const int walkRightframeAmount,
 										const std::string walkLeftPath, const int walkLeftframeAmount,
 										const std::string idleRightPath, const int idlesRightframeAmount,
-										const std::string idleLeftPath, const int idlesLeftframeAmount)
-    : assets_(assets), walkRightFrameAmount_(walkRightframeAmount),walkLeftFrameAmount_(walkLeftframeAmount), idleRightFrameAmount_(idlesRightframeAmount), idleLeftFrameAmount_(idlesLeftframeAmount)
+										const std::string idleLeftPath, const int idlesLeftframeAmount,
+										const std::string hurtRightPath, const int hurtRightframeAmount,
+										const std::string hurtLeftPath, const int hurtLeftframeAmount)
+	: assets_(assets), walkRightFrameAmount_(walkRightframeAmount), walkLeftFrameAmount_(walkLeftframeAmount), idleRightFrameAmount_(idlesRightframeAmount), idleLeftFrameAmount_(idlesLeftframeAmount),
+		hurtRightFrameAmount_(hurtRightframeAmount), hurtLeftFrameAmount_(hurtLeftframeAmount)
 {
-	// Load Walk animation sprite sheet (assumes horizontal strip of frames)
-	// Each frame is assumed to be square (100x100 pixels)
-	int walkRightId = assets_->loadSpriteSheet(walkRightPath, walkRightframeAmount, squareSize, squareSize);
-	setAnimationIconId(AnimationType::WalkRight, walkRightId);
+	addWalkAnimation(assets, squareSize, walkRightPath, walkLeftPath);
 	
-	int walkLeftId = assets_->loadSpriteSheet(walkLeftPath, walkLeftframeAmount, squareSize, squareSize);
+	addIdleAnimation(assets, squareSize, idleRightPath, idleLeftPath);	
+
+	addHurtAnimation(assets, squareSize, hurtRightPath, hurtLeftPath);
+}
+
+void AnimationController::addWalkAnimation(Assets* assets, const int squareSize, const std::string walkRightPath, const std::string walkLeftPath) {
+	int walkRightId = assets_->loadSpriteSheet(walkRightPath, walkRightFrameAmount_, squareSize, squareSize);
+	setAnimationIconId(AnimationType::WalkRight, walkRightId);
+
+	int walkLeftId = assets_->loadSpriteSheet(walkLeftPath, walkLeftFrameAmount_, squareSize, squareSize);
 	setAnimationIconId(AnimationType::WalkLeft, walkLeftId);
-	// Load Idle animation sprite sheet
-	int idleRightId = assets_->loadSpriteSheet(idleRightPath, idlesRightframeAmount, squareSize, squareSize);
+}
+
+void AnimationController::addIdleAnimation(Assets* assets, const int squareSize, const std::string idleRightPath, const std::string idleLeftPath) {
+	int idleRightId = assets_->loadSpriteSheet(idleRightPath, idleRightFrameAmount_, squareSize, squareSize);
 	setAnimationIconId(AnimationType::IdleRight, idleRightId);
 
-	int idleLeftId = assets_->loadSpriteSheet(idleLeftPath, idlesLeftframeAmount, squareSize, squareSize);
+	int idleLeftId = assets_->loadSpriteSheet(idleLeftPath, idleLeftFrameAmount_, squareSize, squareSize);
 	setAnimationIconId(AnimationType::IdleLeft, idleLeftId);
 }
+
+void AnimationController::addHurtAnimation(Assets* assets, const int squareSize, const std::string hurtRightPath, const std::string hurtLeftPath) {
+	int hurtRightId = assets_->loadSpriteSheet(hurtRightPath, hurtRightFrameAmount_, squareSize, squareSize);
+	setAnimationIconId(AnimationType::HurtRight, hurtRightId);
+
+	int hurtLeftId = assets_->loadSpriteSheet(hurtLeftPath, hurtLeftFrameAmount_, squareSize, squareSize);
+	setAnimationIconId(AnimationType::HurtLeft, hurtLeftId);
+}	
+
 
 void AnimationController::update(float dt) {
 	frameTimer_ += dt;
@@ -40,8 +60,25 @@ void AnimationController::update(float dt) {
 		else if( currentAnimationType_ == AnimationType::IdleLeft) {
 			frameAmount = idleLeftFrameAmount_;
 		}
+		else if (currentAnimationType_ == AnimationType::HurtRight) {
+			frameAmount = hurtRightFrameAmount_;
+		}
+		else if (currentAnimationType_ == AnimationType::HurtLeft) {
+			frameAmount = hurtLeftFrameAmount_;
+		}
+		
 		if (currentFrameIndex_ >= frameAmount) {
-			currentFrameIndex_ = 0;
+			if (isHurtAnimation()) {
+				if(currentAnimationType_ == AnimationType::HurtRight) {
+					setCurrentAnimationType(AnimationType::IdleRight);
+				}
+				else {
+					setCurrentAnimationType(AnimationType::IdleLeft);
+				}
+			}
+			else {
+				currentFrameIndex_ = 0;
+			}
 		}
 	}
 }

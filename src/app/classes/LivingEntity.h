@@ -25,6 +25,8 @@ public:
     int getMaxHp() const { return maxHp; }
     bool isAlive() const { return hp > 0; }
     void takeDamage(int dmg);
+	void setDamaged(bool dmg) { damaged = dmg; }
+	bool isDamaged() const { return damaged; }
     void heal(int amount);
 
     void setAttackDamage(int attackDamage_) {attackDamage = attackDamage_;}
@@ -44,7 +46,9 @@ public:
         const std::string& walkRightPath, int walkRightFrameAmount,
         const std::string& walkLeftPath, int walkLeftFrameAmount,
         const std::string& idleRightPath, int idleFrameRightAmount,
-        const std::string& idleLeftPath, int idleLeftFrameAmount);
+        const std::string& idleLeftPath, int idleLeftFrameAmount,
+        const std::string hurtRightPath, const int hurtRightframeAmount,
+        const std::string hurtLeftPath, const int hurtLeftframeAmount);
 
     AnimationController* getAnimationController() const {
         return animationController_.get();
@@ -56,6 +60,7 @@ protected:
     ImVec2 desiredDir{0.0f, 0.0f};
     int hp = 0;
     int maxHp;
+	bool damaged = false;
 
     int attackDamage = 0;
     float attackCooldown = 0.f;
