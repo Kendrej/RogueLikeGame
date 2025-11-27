@@ -9,7 +9,8 @@ enum class AnimationType {
 	IdleRight, IdleLeft,
 	HurtRight, HurtLeft,
 	DeathRight, DeathLeft,
-	MeleeAttackRight, MeleeAttackLeft
+	MeleeAttackRight, MeleeAttackLeft,
+	RangedAttackRight, RangedAttackLeft
 };
 
 class AnimationController {
@@ -27,6 +28,9 @@ public:
 	void addMeleeAttackAnimation(const int squareSize,
 								const std::string meleeAttackRightPath, const int meleeAttackRightFrameAmount ,
 								const std::string meleeAttackLeftPath, const int meleeAttackLeftFrameAmount);
+	void addRangedAttackAnimation(const int squareSize,
+		const std::string rangedAttackRightPath, const int rangedAttackRightFrameAmount,
+		const std::string rangedAttackLeftPath, const int rangedAttackLeftFrameAmount);
 
 	void setCurrentAnimationType(AnimationType type);
 	
@@ -45,16 +49,20 @@ public:
 	bool isMeleeAttackAnimation() const {
 		return currentAnimationType_ == AnimationType::MeleeAttackRight || currentAnimationType_ == AnimationType::MeleeAttackLeft;
 	}
+	bool isRangedAttackAnimation() const {
+		return currentAnimationType_ == AnimationType::RangedAttackRight || currentAnimationType_ == AnimationType::RangedAttackLeft;
+	}
 	void setToIdle();
 	void setToWalkOrIdle(float x, float y);
 	void setToHurt();
 	void setToDeath();
 	void setToMeleeAttack();
+	void setToRangedAttack();
 private:
-	void addWalkAnimation(Assets* assets, const int squareSize, const std::string walkRightPath, const std::string walkLeftPath);
-	void addIdleAnimation(Assets* assets, const int squareSize, const std::string idleRightPath, const std::string idleLeftPath);
-	void addHurtAnimation(Assets* assets, const int squareSize, const std::string hurtRightPath, const std::string hurtLeftPath);
-	void adddeathAnimation(Assets* assets, const int squareSize, const std::string deathRightPath, const std::string deathLeftPath);
+	void addWalkAnimation(const int squareSize, const std::string walkRightPath, const std::string walkLeftPath);
+	void addIdleAnimation(const int squareSize, const std::string idleRightPath, const std::string idleLeftPath);
+	void addHurtAnimation(const int squareSize, const std::string hurtRightPath, const std::string hurtLeftPath);
+	void adddeathAnimation(const int squareSize, const std::string deathRightPath, const std::string deathLeftPath);
 
 	void setAnimationIconId(AnimationType type, int iconId) {
 		animationIconIds_[type] = iconId;
@@ -81,6 +89,8 @@ private:
 
 	int meleeAttackRightFrameAmount_;
 	int meleeAttackLeftFrameAmount_;
+	int rangedAttackRightFrameAmount_;
+	int rangedAttackLeftFrameAmount_;
 	bool isRightFacing_ = true;
 
 	AnimationType currentAnimationType_ = AnimationType::IdleRight;

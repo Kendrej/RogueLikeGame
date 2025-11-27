@@ -75,7 +75,7 @@ void RangeController::update(Npc &npc, World &world, float dt) {
             npc.applyInput(stepBack);
 
             if (npc.canShoot()) {
-                player->setIsPerformingRangedAttack(true);
+                npc.setIsPerformingRangedAttack(true);
                 ImVec2 shootDir = dirToPlayer;
 
                 const float spawnOffset = npc.getWidth() * 0.5f + 10.0f;
@@ -101,7 +101,7 @@ void RangeController::update(Npc &npc, World &world, float dt) {
             npc.applyInput(ImVec2(0.0f, 0.0f));
             npc.setVelocity(ImVec2(0.0f, 0.0f));
             if (npc.canShoot()) {
-                player->setIsPerformingRangedAttack(true);
+                npc.setIsPerformingRangedAttack(true);
                 ImVec2 shootDir = dirToPlayer;
 
                 const float spawnOffset = npc.getWidth() * 0.5f + 10.0f;

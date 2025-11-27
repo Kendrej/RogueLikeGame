@@ -110,3 +110,8 @@ void LivingEntity::createMeleeAttackAnimation(const int squareSize, const std::s
 {
 	animationController_->addMeleeAttackAnimation(squareSize, meleeAttackRightPath, meleeAttackRightFrameAmount, meleeAttackLeftPath, meleeAttackLeftFrameAmount);
 }
+
+void LivingEntity::createRangedAttackAnimation(const int squareSize, const std::string& rangedAttackRightPath, const int rangedAttackRightFrameAmount, const std::string& rangedAttackLeftPath, const int rangedAttackLeftFrameAmount)
+{
+    animationController_->addRangedAttackAnimation(squareSize, rangedAttackRightPath, rangedAttackRightFrameAmount, rangedAttackLeftPath, rangedAttackLeftFrameAmount);
+}

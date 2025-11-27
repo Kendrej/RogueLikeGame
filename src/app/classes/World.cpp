@@ -350,14 +350,15 @@ void World::update(float dt) {
                 player_->setIsPerformingMeleeAttack(false);
 				animationController->setToMeleeAttack();
             }
-            else if (player_->isPerformingRangedAttack()) {
+            else if (player_->isPerformingRangedAttack()||animationController->isRangedAttackAnimation()) {
                 player_->setIsPerformingRangedAttack(false);
+				animationController->setToRangedAttack();
             }
             else if (player_->isDamaged()) {
 				player_->setDamaged(false);
 				animationController->setToHurt();
             }
-            else if (!animationController->isHurtAnimation() && !animationController->isMeleeAttackAnimation()){
+            else if (!animationController->isHurtAnimation() && !animationController->isMeleeAttackAnimation() && !animationController->isRangedAttackAnimation()){
 				animationController->setToWalkOrIdle(vel.x, vel.y);
             }
 			animationController->update(dt);
@@ -382,14 +383,15 @@ void World::update(float dt) {
                     livingEntity->setIsPerformingMeleeAttack(false);
                     animationController->setToMeleeAttack();
                 }
-                else if (livingEntity->isPerformingRangedAttack()) {
+                else if (livingEntity->isPerformingRangedAttack() || animationController->isRangedAttackAnimation()) {
                     livingEntity->setIsPerformingRangedAttack(false);
+					animationController->setToRangedAttack();
                 }
                 else if (livingEntity->isDamaged()) {
                     livingEntity->setDamaged(false);
                     animationController->setToHurt();
                 }
-                else if (!animationController->isHurtAnimation() && !animationController->isMeleeAttackAnimation()) {
+                else if (!animationController->isHurtAnimation() && !animationController->isMeleeAttackAnimation() && !animationController->isRangedAttackAnimation()) {
                     animationController->setToWalkOrIdle(vel.x, vel.y);
                 }
                 animationController->update(dt);
@@ -567,23 +569,26 @@ void World::spawnNpcs() {
             auto& npc = this->spawnNpc("assets/characters/angel.png",
                 64, 64,
                 x, y + World::UI_TOP_BAR_HEIGHT,  // Add UI offset to NPC spawn
-                100, std::make_unique<MeleeController>());
+                10, std::make_unique<MeleeController>());
             npc.createAnimationController(assets_, 100,
                 "assets/animations/Orc-Walk-right.png", 8, "assets/animations/Orc-Walk-left.png", 8,
                 "assets/animations/Orc-Idle-right.png", 6, "assets/animations/Orc-Idle-left.png", 6,
                 "assets/animations/Orc-Hurt-right.png", 4, "assets/animations/Orc-Hurt-left.png", 4,
                 "assets/animations/Orc-Death-right.png", 4, "assets/animations/Orc-Death-left.png", 4);
+            npc.createMeleeAttackAnimation(100, "assets/animations/Orc-Attack-right.png", 6, "assets/animations/Orc-Attack-left.png", 6);
+
         }
         else if (t == 'r') {
             auto& npc = this->spawnNpc("assets/characters/hero.png",
                 64, 64,
                 x, y + World::UI_TOP_BAR_HEIGHT,  // Add UI offset to NPC spawn
-                100, std::make_unique<RangeController>());
+                10, std::make_unique<RangeController>());
             npc.createAnimationController(assets_, 100,
                 "assets/animations/SkeletonArcher-Walk-right.png", 8, "assets/animations/SkeletonArcher-Walk-left.png", 8,
                 "assets/animations/SkeletonArcher-Idle-right.png", 6, "assets/animations/SkeletonArcher-Idle-left.png", 6,
                 "assets/animations/SkeletonArcher-Hurt-right.png", 4, "assets/animations/SkeletonArcher-Hurt-left.png", 4,
                 "assets/animations/SkeletonArcher-Death-right.png", 4, "assets/animations/SkeletonArcher-Death-left.png", 4);
+            npc.createRangedAttackAnimation(100, "assets/animations/SkeletonArcher-RangeAttack-right.png", 9, "assets/animations/SkeletonArcher-RangeAttack-left.png", 9);
         }
     });
     maps_[currentMapIndex]->setVisited(true);

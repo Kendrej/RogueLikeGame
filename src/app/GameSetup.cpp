@@ -33,6 +33,7 @@ void setupGame(World& world)
                                     "assets/animations/Soldier-Hurt-right.png", 4, "assets/animations/Soldier-Hurt-left.png", 4,
                                     "assets/animations/Soldier-Death-right.png", 4, "assets/animations/Soldier-Death-left.png", 4);
     player.createMeleeAttackAnimation(100, "assets/animations/Soldier-Attack-right.png", 6, "assets/animations/Soldier-Attack-left.png", 6);
+	player.createRangedAttackAnimation(100, "assets/animations/Soldier-RangeAttack-right.png", 9, "assets/animations/Soldier-RangeAttack-left.png", 9);
 
     auto& npc1 = world.spawnNpc("assets/characters/angel.png",
         64, 64,
@@ -55,5 +56,5 @@ void setupGame(World& world)
         "assets/animations/SkeletonArcher-Idle-right.png", 6, "assets/animations/SkeletonArcher-Idle-left.png", 6,
         "assets/animations/SkeletonArcher-Hurt-right.png", 4, "assets/animations/SkeletonArcher-Hurt-left.png", 4,
         "assets/animations/SkeletonArcher-Death-right.png", 4, "assets/animations/SkeletonArcher-Death-left.png", 4);
-
+	npc2.createRangedAttackAnimation(100, "assets/animations/SkeletonArcher-RangeAttack-right.png", 9, "assets/animations/SkeletonArcher-RangeAttack-left.png", 9);
 }

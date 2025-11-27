@@ -75,6 +75,10 @@ public:
         const std::string& meleeAttackRightPath, const int meleeAttackRightFrameAmount ,
 		const std::string& meleeAttackLeftPath, const int meleeAttackLeftFrameAmount);
 
+    void createRangedAttackAnimation(const int squareSize,
+        const std::string& rangedAttackRightPath, const int rangedAttackRightFrameAmount,
+		const std::string& rangedAttackLeftPath, const int rangedAttackLeftFrameAmount);
+
     AnimationController* getAnimationController() const {
         return animationController_.get();
     }
