@@ -38,6 +38,13 @@ public:
 	AnimationType getCurrentAnimationType() const {
 		return currentAnimationType_;
 	}
+	bool isHurtAnimation() const {
+		return currentAnimationType_ == AnimationType::HurtRight || currentAnimationType_ == AnimationType::HurtLeft;
+	}
+	void setToIdle();
+	void setToWalkOrIdle(float x, float y);
+	void setToHurt();
+	void setToDeath();
 
 private:
 	void addWalkAnimation(Assets* assets, const int squareSize, const std::string walkRightPath, const std::string walkLeftPath);
@@ -52,9 +59,7 @@ private:
 		auto it = animationIconIds_.find(type);
 		return (it != animationIconIds_.end()) ? it->second : -1;
 	}
-	bool isHurtAnimation() const {
-		return currentAnimationType_ == AnimationType::HurtRight || currentAnimationType_ == AnimationType::HurtLeft;
-	}
+	
 	bool isDeathAnimation() const {
 		return currentAnimationType_ == AnimationType::DeathRight || currentAnimationType_ == AnimationType::DeathLeft;
 	}

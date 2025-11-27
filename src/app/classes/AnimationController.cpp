@@ -124,6 +124,49 @@ void AnimationController::update(float dt) {
 	}
 }
 
+void AnimationController::setToIdle()
+{
+	if (currentAnimationType_ == AnimationType::WalkLeft || currentAnimationType_ == AnimationType::IdleLeft)
+		this->setCurrentAnimationType(AnimationType::IdleLeft);
+	else {
+		this->setCurrentAnimationType(AnimationType::IdleRight);
+	}
+}
+
+void AnimationController::setToWalkOrIdle(float x, float y)
+{
+	if (x != 0.0f || y != 0.0f) {
+		if (x < 0.0f)
+			this->setCurrentAnimationType(AnimationType::WalkLeft);
+		else if (x > 0.0f) {
+			this->setCurrentAnimationType(AnimationType::WalkRight);
+		}
+	}
+	else {
+		this->setToIdle();
+	}
+}
+
+void AnimationController::setToHurt()
+{
+	if (currentAnimationType_ == AnimationType::WalkLeft || currentAnimationType_ == AnimationType::IdleLeft)
+		this->setCurrentAnimationType(AnimationType::HurtLeft);
+	else {
+		this->setCurrentAnimationType(AnimationType::HurtRight);
+	}
+}
+
+void AnimationController::setToDeath()
+{
+	if (currentAnimationType_ == AnimationType::WalkLeft || currentAnimationType_ == AnimationType::IdleLeft || currentAnimationType_ == AnimationType::DeathLeft)
+		this->setCurrentAnimationType(AnimationType::DeathLeft);
+	else {
+		this->setCurrentAnimationType(AnimationType::DeathRight);
+	}
+}
+
+
+
 void AnimationController::setCurrentAnimationType(AnimationType type) {
 	if (currentAnimationType_ == type) {
 		return;  // Ju¿ w tym stanie, nie resetuj!

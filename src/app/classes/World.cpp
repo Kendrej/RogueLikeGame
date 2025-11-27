@@ -339,40 +339,18 @@ void World::update(float dt) {
         player_->update(dt);
         if (auto* animationController = player_->getAnimationController()) {
 			ImVec2 vel = player_->getVelocity();
-            AnimationType type = animationController->getCurrentAnimationType();
 
             if (!player_->isAlive()) {
-                if(type == AnimationType::WalkLeft || type == AnimationType::IdleLeft || type == AnimationType::DeathLeft)
-                    animationController->setCurrentAnimationType(AnimationType::DeathLeft);
-                else{
-                    animationController->setCurrentAnimationType(AnimationType::DeathRight);
-                }
+				animationController->setToDeath();
                 animationController->update(dt);
 				return;
             }
             else if (player_->isDamaged()) {
 				player_->setDamaged(false);
-                if(type == AnimationType::WalkLeft || type == AnimationType::IdleLeft)
-                    animationController->setCurrentAnimationType(AnimationType::HurtLeft);
-                else{
-                    animationController->setCurrentAnimationType(AnimationType::HurtRight);
-                }
+				animationController->setToHurt();
             }
-            else if (type != AnimationType::HurtRight && type != AnimationType::HurtLeft){
-                if (vel.x != 0.0f || vel.y != 0.0f) {
-                    if (vel.x < 0.0f)
-                        animationController->setCurrentAnimationType(AnimationType::WalkLeft);
-                    else if (vel.x > 0.0f) {
-                        animationController->setCurrentAnimationType(AnimationType::WalkRight);
-                    }
-                }
-                else {
-                    if (type == AnimationType::WalkLeft || type == AnimationType::IdleLeft)
-                        animationController->setCurrentAnimationType(AnimationType::IdleLeft);
-                    else {
-                        animationController->setCurrentAnimationType(AnimationType::IdleRight);
-                    }
-                }
+            else if (!animationController->isHurtAnimation()){
+				animationController->setToWalkOrIdle(vel.x, vel.y);
             }
 			animationController->update(dt);
         }
@@ -385,41 +363,19 @@ void World::update(float dt) {
         if(auto* livingEntity = dynamic_cast<LivingEntity*>(up.get())) {
             if (auto* animationController = livingEntity->getAnimationController()) {
                 ImVec2 vel = livingEntity->getVelocity();
-                AnimationType type = animationController->getCurrentAnimationType();
 
                 if (!livingEntity->isAlive()){
 					livingEntity->setSolid(false);
-                    if (type == AnimationType::WalkLeft || type == AnimationType::IdleLeft || type == AnimationType::DeathLeft)
-                        animationController->setCurrentAnimationType(AnimationType::DeathLeft);
-                    else {
-                        animationController->setCurrentAnimationType(AnimationType::DeathRight);
-                    }
+                    animationController->setToDeath();
                     animationController->update(dt);
                     continue;
                 }
                 else if (livingEntity->isDamaged()) {
                     livingEntity->setDamaged(false);
-                    if (type == AnimationType::WalkLeft || type == AnimationType::IdleLeft)
-                        animationController->setCurrentAnimationType(AnimationType::HurtLeft);
-                    else {
-                        animationController->setCurrentAnimationType(AnimationType::HurtRight);
-                    }
+                    animationController->setToHurt();
                 }
-                else if (type != AnimationType::HurtRight && type != AnimationType::HurtLeft) {
-                    if (vel.x != 0.0f || vel.y != 0.0f) {
-                        if (vel.x < 0.0f)
-                            animationController->setCurrentAnimationType(AnimationType::WalkLeft);
-                        else if (vel.x > 0.0f) {
-                            animationController->setCurrentAnimationType(AnimationType::WalkRight);
-                        }
-                    }
-                    else {
-                        if (type == AnimationType::WalkLeft || type == AnimationType::IdleLeft)
-                            animationController->setCurrentAnimationType(AnimationType::IdleLeft);
-                        else {
-                            animationController->setCurrentAnimationType(AnimationType::IdleRight);
-                        }
-                    }
+                else if (!animationController->isHurtAnimation()) {
+                    animationController->setToWalkOrIdle(vel.x, vel.y);
                 }
                 animationController->update(dt);
             }
