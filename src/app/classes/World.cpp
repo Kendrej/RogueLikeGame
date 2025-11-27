@@ -571,11 +571,11 @@ void World::spawnNpcs() {
                 x, y + World::UI_TOP_BAR_HEIGHT,  // Add UI offset to NPC spawn
                 10, std::make_unique<MeleeController>());
             npc.createAnimationController(assets_, 100,
-                "assets/animations/Orc-Walk-right.png", 8, "assets/animations/Orc-Walk-left.png", 8,
-                "assets/animations/Orc-Idle-right.png", 6, "assets/animations/Orc-Idle-left.png", 6,
-                "assets/animations/Orc-Hurt-right.png", 4, "assets/animations/Orc-Hurt-left.png", 4,
-                "assets/animations/Orc-Death-right.png", 4, "assets/animations/Orc-Death-left.png", 4);
-            npc.createMeleeAttackAnimation(100, "assets/animations/Orc-Attack-right.png", 6, "assets/animations/Orc-Attack-left.png", 6);
+                "assets/animations/orc/Orc-Walk-right.png", 8, "assets/animations/orc/Orc-Walk-left.png", 8,
+                "assets/animations/orc/Orc-Idle-right.png", 6, "assets/animations/orc/Orc-Idle-left.png", 6,
+                "assets/animations/orc/Orc-Hurt-right.png", 4, "assets/animations/orc/Orc-Hurt-left.png", 4,
+                "assets/animations/orc/Orc-Death-right.png", 4, "assets/animations/orc/Orc-Death-left.png", 4);
+            npc.createMeleeAttackAnimation(100, "assets/animations/orc/Orc-Attack-right.png", 6, "assets/animations/orc/Orc-Attack-left.png", 6);
 
         }
         else if (t == 'r') {
@@ -584,11 +584,11 @@ void World::spawnNpcs() {
                 x, y + World::UI_TOP_BAR_HEIGHT,  // Add UI offset to NPC spawn
                 10, std::make_unique<RangeController>());
             npc.createAnimationController(assets_, 100,
-                "assets/animations/SkeletonArcher-Walk-right.png", 8, "assets/animations/SkeletonArcher-Walk-left.png", 8,
-                "assets/animations/SkeletonArcher-Idle-right.png", 6, "assets/animations/SkeletonArcher-Idle-left.png", 6,
-                "assets/animations/SkeletonArcher-Hurt-right.png", 4, "assets/animations/SkeletonArcher-Hurt-left.png", 4,
-                "assets/animations/SkeletonArcher-Death-right.png", 4, "assets/animations/SkeletonArcher-Death-left.png", 4);
-            npc.createRangedAttackAnimation(100, "assets/animations/SkeletonArcher-RangeAttack-right.png", 9, "assets/animations/SkeletonArcher-RangeAttack-left.png", 9);
+                "assets/animations/skeletonArcher/SkeletonArcher-Walk-right.png", 8, "assets/animations/skeletonArcher/SkeletonArcher-Walk-left.png", 8,
+                "assets/animations/skeletonArcher/SkeletonArcher-Idle-right.png", 6, "assets/animations/skeletonArcher/SkeletonArcher-Idle-left.png", 6,
+                "assets/animations/skeletonArcher/SkeletonArcher-Hurt-right.png", 4, "assets/animations/skeletonArcher/SkeletonArcher-Hurt-left.png", 4,
+                "assets/animations/skeletonArcher/SkeletonArcher-Death-right.png", 4, "assets/animations/skeletonArcher/SkeletonArcher-Death-left.png", 4);
+            npc.createRangedAttackAnimation(100, "assets/animations/skeletonArcher/SkeletonArcher-RangeAttack-right.png", 9, "assets/animations/skeletonArcher/SkeletonArcher-RangeAttack-left.png", 9);
         }
     });
     maps_[currentMapIndex]->setVisited(true);
