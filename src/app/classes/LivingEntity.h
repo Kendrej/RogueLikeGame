@@ -60,6 +60,7 @@ public:
 
     ImVec2 getDesiredDir() const { return desiredDir; }
     ImVec2 getFacingDir() const { return facingDir; }
+    void setFacingDir(const ImVec2& dir) { facingDir = dir; }
 
     AnimationController& createAnimationController(Assets* assets,const int squareSize,
         const std::string& walkRightPath, int walkRightFrameAmount,

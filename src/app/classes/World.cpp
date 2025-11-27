@@ -159,6 +159,60 @@ void World::performMeleeAttack(LivingEntity& attacker)
     }
 }
 
+void World::performRangedAttack(LivingEntity& attacker) {
+    attacker.setIsPerformingRangedAttack(true);
+    
+    const std::string projTexture = "assets/design/Arrow01.png";
+    const uint32_t projW = 32;
+    const uint32_t projH = 32;
+    const float projSpeed = 600.0f;
+    const float projLifetime = 3.0f;
+    const float spawnOffset = attacker.getWidth() * 0.5f + 10.0f;
+
+    ImVec2 pos = attacker.getPosition();
+    ImVec2 attackerCenter{ 
+        pos.x + 0.5f * attacker.getWidth(), 
+        pos.y + 0.5f * attacker.getHeight() 
+    };
+    
+    ImVec2 dir = attacker.getDesiredDir();
+    if (dir.x != 0.0f || dir.y != 0.0f) {
+        attacker.setFacingDir(dir);
+    }else {
+        dir = attacker.getFacingDir();
+    }
+    
+    // Normalize direction
+    float length = std::sqrt(dir.x * dir.x + dir.y * dir.y);
+    if (length > 0.0f) {
+        dir.x /= length;
+        dir.y /= length;
+    } else {
+        // Default direction if no direction is set
+        dir = ImVec2(1.0f, 0.0f);
+    }
+
+    ImVec2 spawnPos{
+        attackerCenter.x + dir.x * spawnOffset,
+        attackerCenter.y + dir.y * spawnOffset
+    };
+
+    ImVec2 velocity{
+        dir.x * projSpeed,
+        dir.y * projSpeed
+    };
+
+    spawnProjectile(
+        projW, projH,
+        spawnPos.x, spawnPos.y,
+        velocity,
+        projLifetime,
+        attacker.getRangedDamage(),
+        &attacker,
+        projTexture
+    );
+}
+
 
 
 void World::buildFromMap(const std::string &wallTexturePath, const std::string &floorTexturePath, const std::string& doorTexturePath, uint32_t tileW, uint32_t tileH) {
