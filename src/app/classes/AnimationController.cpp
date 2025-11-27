@@ -54,6 +54,22 @@ void AnimationController::adddeathAnimation(Assets* assets, const int squareSize
 }
 
 
+
+void AnimationController::addMeleeAttackAnimation(const int squareSize,
+												const std::string meleeAttackRightPath, const int meleeAttackRightFrameAmount,
+												const std::string meleeAttackLeftPath, const int meleeAttackLeftFrameAmount)
+{
+	meleeAttackRightFrameAmount_ = meleeAttackRightFrameAmount;
+	meleeAttackLeftFrameAmount_ = meleeAttackLeftFrameAmount;
+
+	int meleeAttackRightId = assets_->loadSpriteSheet(meleeAttackRightPath, meleeAttackRightFrameAmount, squareSize, squareSize);
+	setAnimationIconId(AnimationType::MeleeAttackRight, meleeAttackRightId);
+
+	int meleeAttackLeftId = assets_->loadSpriteSheet(meleeAttackLeftPath, meleeAttackLeftFrameAmount, squareSize, squareSize);
+	setAnimationIconId(AnimationType::MeleeAttackLeft, meleeAttackLeftId);
+}
+
+
 void AnimationController::update(float dt) {
 	int frameAmount;
 	frameTimer_ += dt;
@@ -62,7 +78,10 @@ void AnimationController::update(float dt) {
 		if (isRightFacing_) {
 			currentFrameIndex_++;
 			frameAmount = 0;
-			if (currentAnimationType_ == AnimationType::WalkRight) {
+			if (currentAnimationType_ == AnimationType::MeleeAttackRight) {
+				frameAmount = meleeAttackRightFrameAmount_;
+			}
+			else if (currentAnimationType_ == AnimationType::WalkRight) {
 				frameAmount = walkRightFrameAmount_;
 			}
 			else if (currentAnimationType_ == AnimationType::IdleRight) {
@@ -76,7 +95,7 @@ void AnimationController::update(float dt) {
 				frameAmount = deathRightFrameAmount_;
 			}
 			if (currentFrameIndex_ >= frameAmount) {
-				if (isHurtAnimation()) {		
+				if (isHurtAnimation()||isMeleeAttackAnimation()) {		
 					setCurrentAnimationType(AnimationType::IdleRight);
 				}
 				else if (isDeathAnimation()) {
@@ -90,7 +109,10 @@ void AnimationController::update(float dt) {
 		}
 		else {
 			// Pobierz frameAmount dla aktualnej animacji Left
-			if (currentAnimationType_ == AnimationType::WalkLeft) {
+			if (currentAnimationType_ == AnimationType::MeleeAttackLeft) {
+				frameAmount = meleeAttackLeftFrameAmount_;
+			}
+			else if (currentAnimationType_ == AnimationType::WalkLeft) {
 				frameAmount = walkLeftFrameAmount_;
 			}
 			else if (currentAnimationType_ == AnimationType::IdleLeft) {
@@ -107,7 +129,7 @@ void AnimationController::update(float dt) {
 			currentFrameIndex_--;
 
 			if (currentFrameIndex_ < 0) {
-				if (isHurtAnimation()) {
+				if (isHurtAnimation() || isMeleeAttackAnimation()) {
 					setCurrentAnimationType(AnimationType::IdleLeft);
 				}
 				else if (isDeathAnimation()) {
@@ -149,7 +171,7 @@ void AnimationController::setToWalkOrIdle(float x, float y)
 
 void AnimationController::setToHurt()
 {
-	if (currentAnimationType_ == AnimationType::WalkLeft || currentAnimationType_ == AnimationType::IdleLeft)
+	if (!isRightFacing_)
 		this->setCurrentAnimationType(AnimationType::HurtLeft);
 	else {
 		this->setCurrentAnimationType(AnimationType::HurtRight);
@@ -158,20 +180,27 @@ void AnimationController::setToHurt()
 
 void AnimationController::setToDeath()
 {
-	if (currentAnimationType_ == AnimationType::WalkLeft || currentAnimationType_ == AnimationType::IdleLeft || currentAnimationType_ == AnimationType::DeathLeft)
+	if (!isRightFacing_)
 		this->setCurrentAnimationType(AnimationType::DeathLeft);
 	else {
 		this->setCurrentAnimationType(AnimationType::DeathRight);
 	}
 }
 
-
+void AnimationController::setToMeleeAttack()
+{
+	if (!isRightFacing_)
+		this->setCurrentAnimationType(AnimationType::MeleeAttackLeft);
+	else {
+		this->setCurrentAnimationType(AnimationType::MeleeAttackRight);
+	}
+}
 
 void AnimationController::setCurrentAnimationType(AnimationType type) {
 	if (currentAnimationType_ == type) {
 		return;  // Ju¿ w tym stanie, nie resetuj!
 	}
-	isRightFacing_ = (type == AnimationType::WalkRight || type == AnimationType::IdleRight || type == AnimationType::HurtRight || type == AnimationType::DeathRight);
+	isRightFacing_ = (type == AnimationType::WalkRight || type == AnimationType::IdleRight || type == AnimationType::HurtRight || type == AnimationType::DeathRight|| type == AnimationType::MeleeAttackRight);
 	currentAnimationType_ = type;
 	if (isRightFacing_) {
 		currentFrameIndex_ = 0;
@@ -188,6 +217,9 @@ void AnimationController::setCurrentAnimationType(AnimationType type) {
 		}
 		else if (type == AnimationType::DeathLeft) {
 			currentFrameIndex_ = deathLeftFrameAmount_ - 1;
+		}
+		else if (type == AnimationType::MeleeAttackLeft) {
+			currentFrameIndex_ = meleeAttackLeftFrameAmount_ - 1;
 		}
 	}
 	frameTimer_ = 0.0f;

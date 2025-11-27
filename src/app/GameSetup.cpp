@@ -32,6 +32,7 @@ void setupGame(World& world)
                                     "assets/animations/Soldier-Idle-right.png", 6, "assets/animations/Soldier-Idle-left.png", 6,
                                     "assets/animations/Soldier-Hurt-right.png", 4, "assets/animations/Soldier-Hurt-left.png", 4,
                                     "assets/animations/Soldier-Death-right.png", 4, "assets/animations/Soldier-Death-left.png", 4);
+    player.createMeleeAttackAnimation(100, "assets/animations/Soldier-Attack-right.png", 6, "assets/animations/Soldier-Attack-left.png", 6);
 
     auto& npc1 = world.spawnNpc("assets/characters/angel.png",
         64, 64,
@@ -42,6 +43,7 @@ void setupGame(World& world)
                                     "assets/animations/Orc-Idle-right.png", 6, "assets/animations/Orc-Idle-left.png", 6,
                                     "assets/animations/Orc-Hurt-right.png", 4, "assets/animations/Orc-Hurt-left.png", 4,
                                     "assets/animations/Orc-Death-right.png", 4, "assets/animations/Orc-Death-left.png", 4);
+    npc1.createMeleeAttackAnimation(100, "assets/animations/Orc-Attack-right.png", 6, "assets/animations/Orc-Attack-left.png", 6);
 
     auto& npc2 = world.spawnNpc("assets/characters/hero.png",
         64, 64,

@@ -5,14 +5,11 @@
 class Assets;
 
 enum class AnimationType {
-	WalkRight,
-	WalkLeft,
-	IdleRight,
-	IdleLeft,
-	HurtRight,
-	HurtLeft,
-	DeathRight,
-	DeathLeft
+	WalkRight, WalkLeft,
+	IdleRight, IdleLeft,
+	HurtRight, HurtLeft,
+	DeathRight, DeathLeft,
+	MeleeAttackRight, MeleeAttackLeft
 };
 
 class AnimationController {
@@ -26,6 +23,10 @@ public:
 						const std::string deathRightPath, const int deathRightframeAmount,
 						const std::string deathLeftPath, const int deathLeftframeAmount);
 	~AnimationController() = default;
+
+	void addMeleeAttackAnimation(const int squareSize,
+								const std::string meleeAttackRightPath, const int meleeAttackRightFrameAmount ,
+								const std::string meleeAttackLeftPath, const int meleeAttackLeftFrameAmount);
 
 	void setCurrentAnimationType(AnimationType type);
 	
@@ -41,11 +42,14 @@ public:
 	bool isHurtAnimation() const {
 		return currentAnimationType_ == AnimationType::HurtRight || currentAnimationType_ == AnimationType::HurtLeft;
 	}
+	bool isMeleeAttackAnimation() const {
+		return currentAnimationType_ == AnimationType::MeleeAttackRight || currentAnimationType_ == AnimationType::MeleeAttackLeft;
+	}
 	void setToIdle();
 	void setToWalkOrIdle(float x, float y);
 	void setToHurt();
 	void setToDeath();
-
+	void setToMeleeAttack();
 private:
 	void addWalkAnimation(Assets* assets, const int squareSize, const std::string walkRightPath, const std::string walkLeftPath);
 	void addIdleAnimation(Assets* assets, const int squareSize, const std::string idleRightPath, const std::string idleLeftPath);
@@ -74,6 +78,9 @@ private:
 	int hurtLeftFrameAmount_;
 	int deathRightFrameAmount_;
 	int deathLeftFrameAmount_;
+
+	int meleeAttackRightFrameAmount_;
+	int meleeAttackLeftFrameAmount_;
 	bool isRightFacing_ = true;
 
 	AnimationType currentAnimationType_ = AnimationType::IdleRight;

@@ -105,3 +105,8 @@ AnimationController& LivingEntity::createAnimationController(Assets* assets, con
                                                                 hurtLeftPath, hurtLeftframeAmount, deathRightPath, deathRightframeAmount, deathLeftPath, deathLeftframeAmount);
     return *animationController_;
 }
+
+void LivingEntity::createMeleeAttackAnimation(const int squareSize, const std::string& meleeAttackRightPath, const int meleeAttackRightFrameAmount, const std::string& meleeAttackLeftPath, const int meleeAttackLeftFrameAmount)
+{
+	animationController_->addMeleeAttackAnimation(squareSize, meleeAttackRightPath, meleeAttackRightFrameAmount, meleeAttackLeftPath, meleeAttackLeftFrameAmount);
+}

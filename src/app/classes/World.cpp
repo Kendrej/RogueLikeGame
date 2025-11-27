@@ -62,6 +62,7 @@ Projectile& World::spawnProjectile(uint32_t width,uint32_t height,
 
 void World::performMeleeAttack(LivingEntity& attacker)
 {
+	attacker.setIsPerformingMeleeAttack(true);
     const float range  = attacker.getMeleeRange();
     const int   damage = attacker.getMeleeDamage();
 
@@ -345,11 +346,18 @@ void World::update(float dt) {
                 animationController->update(dt);
 				return;
             }
+            else if (player_->isPerformingMeleeAttack()||animationController->isMeleeAttackAnimation()) {
+                player_->setIsPerformingMeleeAttack(false);
+				animationController->setToMeleeAttack();
+            }
+            else if (player_->isPerformingRangedAttack()) {
+                player_->setIsPerformingRangedAttack(false);
+            }
             else if (player_->isDamaged()) {
 				player_->setDamaged(false);
 				animationController->setToHurt();
             }
-            else if (!animationController->isHurtAnimation()){
+            else if (!animationController->isHurtAnimation() && !animationController->isMeleeAttackAnimation()){
 				animationController->setToWalkOrIdle(vel.x, vel.y);
             }
 			animationController->update(dt);
@@ -370,11 +378,18 @@ void World::update(float dt) {
                     animationController->update(dt);
                     continue;
                 }
+                else if (livingEntity->isPerformingMeleeAttack() || animationController->isMeleeAttackAnimation()) {
+                    livingEntity->setIsPerformingMeleeAttack(false);
+                    animationController->setToMeleeAttack();
+                }
+                else if (livingEntity->isPerformingRangedAttack()) {
+                    livingEntity->setIsPerformingRangedAttack(false);
+                }
                 else if (livingEntity->isDamaged()) {
                     livingEntity->setDamaged(false);
                     animationController->setToHurt();
                 }
-                else if (!animationController->isHurtAnimation()) {
+                else if (!animationController->isHurtAnimation() && !animationController->isMeleeAttackAnimation()) {
                     animationController->setToWalkOrIdle(vel.x, vel.y);
                 }
                 animationController->update(dt);

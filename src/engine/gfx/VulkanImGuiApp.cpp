@@ -203,6 +203,7 @@ void VulkanImGuiApp::mainLoop()
                     if (player->canShoot())
                   {
                       player->shoot(*world_);
+					  player->setIsPerformingRangedAttack(true);
                       player->startRangedCooldown();
                   }
               }
