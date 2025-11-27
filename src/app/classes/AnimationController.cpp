@@ -12,16 +12,16 @@ AnimationController::AnimationController(Assets* assets,const int squareSize, co
 	: assets_(assets), walkRightFrameAmount_(walkRightframeAmount), walkLeftFrameAmount_(walkLeftframeAmount), idleRightFrameAmount_(idlesRightframeAmount), idleLeftFrameAmount_(idlesLeftframeAmount),
 	hurtRightFrameAmount_(hurtRightframeAmount), hurtLeftFrameAmount_(hurtLeftframeAmount), deathRightFrameAmount_(deathRightframeAmount), deathLeftFrameAmount_(deathLeftframeAmount)
 {
-	addWalkAnimation(assets, squareSize, walkRightPath, walkLeftPath);
+	addWalkAnimation(squareSize, walkRightPath, walkLeftPath);
 	
-	addIdleAnimation(assets, squareSize, idleRightPath, idleLeftPath);	
+	addIdleAnimation(squareSize, idleRightPath, idleLeftPath);	
 
-	addHurtAnimation(assets, squareSize, hurtRightPath, hurtLeftPath);
+	addHurtAnimation(squareSize, hurtRightPath, hurtLeftPath);
 
-	adddeathAnimation(assets, squareSize, deathRightPath, deathLeftPath);
+	adddeathAnimation(squareSize, deathRightPath, deathLeftPath);
 }
 
-void AnimationController::addWalkAnimation(Assets* assets, const int squareSize, const std::string walkRightPath, const std::string walkLeftPath) {
+void AnimationController::addWalkAnimation(const int squareSize, const std::string walkRightPath, const std::string walkLeftPath) {
 	int walkRightId = assets_->loadSpriteSheet(walkRightPath, walkRightFrameAmount_, squareSize, squareSize);
 	setAnimationIconId(AnimationType::WalkRight, walkRightId);
 
@@ -29,7 +29,7 @@ void AnimationController::addWalkAnimation(Assets* assets, const int squareSize,
 	setAnimationIconId(AnimationType::WalkLeft, walkLeftId);
 }
 
-void AnimationController::addIdleAnimation(Assets* assets, const int squareSize, const std::string idleRightPath, const std::string idleLeftPath) {
+void AnimationController::addIdleAnimation(const int squareSize, const std::string idleRightPath, const std::string idleLeftPath) {
 	int idleRightId = assets_->loadSpriteSheet(idleRightPath, idleRightFrameAmount_, squareSize, squareSize);
 	setAnimationIconId(AnimationType::IdleRight, idleRightId);
 
@@ -37,7 +37,7 @@ void AnimationController::addIdleAnimation(Assets* assets, const int squareSize,
 	setAnimationIconId(AnimationType::IdleLeft, idleLeftId);
 }
 
-void AnimationController::addHurtAnimation(Assets* assets, const int squareSize, const std::string hurtRightPath, const std::string hurtLeftPath) {
+void AnimationController::addHurtAnimation(const int squareSize, const std::string hurtRightPath, const std::string hurtLeftPath) {
 	int hurtRightId = assets_->loadSpriteSheet(hurtRightPath, hurtRightFrameAmount_, squareSize, squareSize);
 	setAnimationIconId(AnimationType::HurtRight, hurtRightId);
 
@@ -45,7 +45,7 @@ void AnimationController::addHurtAnimation(Assets* assets, const int squareSize,
 	setAnimationIconId(AnimationType::HurtLeft, hurtLeftId);
 }	
 
-void AnimationController::adddeathAnimation(Assets* assets, const int squareSize, const std::string deathRightPath, const std::string deathLeftPath) {
+void AnimationController::adddeathAnimation(const int squareSize, const std::string deathRightPath, const std::string deathLeftPath) {
 	int deathRightId = assets_->loadSpriteSheet(deathRightPath, deathRightFrameAmount_, squareSize, squareSize);
 	setAnimationIconId(AnimationType::DeathRight, deathRightId);
 
@@ -53,6 +53,34 @@ void AnimationController::adddeathAnimation(Assets* assets, const int squareSize
 	setAnimationIconId(AnimationType::DeathLeft, deathLeftId);
 }
 
+
+
+void AnimationController::addMeleeAttackAnimation(const int squareSize,
+												const std::string meleeAttackRightPath, const int meleeAttackRightFrameAmount,
+												const std::string meleeAttackLeftPath, const int meleeAttackLeftFrameAmount)
+{
+	meleeAttackRightFrameAmount_ = meleeAttackRightFrameAmount;
+	meleeAttackLeftFrameAmount_ = meleeAttackLeftFrameAmount;
+
+	int meleeAttackRightId = assets_->loadSpriteSheet(meleeAttackRightPath, meleeAttackRightFrameAmount, squareSize, squareSize);
+	setAnimationIconId(AnimationType::MeleeAttackRight, meleeAttackRightId);
+
+	int meleeAttackLeftId = assets_->loadSpriteSheet(meleeAttackLeftPath, meleeAttackLeftFrameAmount, squareSize, squareSize);
+	setAnimationIconId(AnimationType::MeleeAttackLeft, meleeAttackLeftId);
+}
+void AnimationController::addRangedAttackAnimation(const int squareSize,
+	const std::string rangedAttackRightPath, const int rangedAttackRightFrameAmount,
+	const std::string rangedAttackLeftPath, const int rangedAttackLeftFrameAmount)
+{
+	rangedAttackRightFrameAmount_ = rangedAttackRightFrameAmount;
+	rangedAttackLeftFrameAmount_ = rangedAttackLeftFrameAmount;
+
+	int rangedAttackRightId = assets_->loadSpriteSheet(rangedAttackRightPath, rangedAttackRightFrameAmount, squareSize, squareSize);
+	setAnimationIconId(AnimationType::RangedAttackRight, rangedAttackRightId);
+
+	int rangedAttackLeftId = assets_->loadSpriteSheet(rangedAttackLeftPath, rangedAttackLeftFrameAmount, squareSize, squareSize);
+	setAnimationIconId(AnimationType::RangedAttackLeft, rangedAttackLeftId);
+}
 
 void AnimationController::update(float dt) {
 	int frameAmount;
@@ -62,7 +90,13 @@ void AnimationController::update(float dt) {
 		if (isRightFacing_) {
 			currentFrameIndex_++;
 			frameAmount = 0;
-			if (currentAnimationType_ == AnimationType::WalkRight) {
+			if (currentAnimationType_ == AnimationType::MeleeAttackRight) {
+				frameAmount = meleeAttackRightFrameAmount_;
+			}
+			else if (currentAnimationType_ == AnimationType::RangedAttackRight) {
+				frameAmount = rangedAttackRightFrameAmount_;
+			}
+			else if (currentAnimationType_ == AnimationType::WalkRight) {
 				frameAmount = walkRightFrameAmount_;
 			}
 			else if (currentAnimationType_ == AnimationType::IdleRight) {
@@ -76,7 +110,7 @@ void AnimationController::update(float dt) {
 				frameAmount = deathRightFrameAmount_;
 			}
 			if (currentFrameIndex_ >= frameAmount) {
-				if (isHurtAnimation()) {		
+				if (isHurtAnimation()||isMeleeAttackAnimation()||isRangedAttackAnimation()) {		
 					setCurrentAnimationType(AnimationType::IdleRight);
 				}
 				else if (isDeathAnimation()) {
@@ -90,7 +124,13 @@ void AnimationController::update(float dt) {
 		}
 		else {
 			// Pobierz frameAmount dla aktualnej animacji Left
-			if (currentAnimationType_ == AnimationType::WalkLeft) {
+			if (currentAnimationType_ == AnimationType::MeleeAttackLeft) {
+				frameAmount = meleeAttackLeftFrameAmount_;
+			}
+			else if (currentAnimationType_ == AnimationType::RangedAttackLeft) {
+				frameAmount = rangedAttackLeftFrameAmount_;
+			}
+			else if (currentAnimationType_ == AnimationType::WalkLeft) {
 				frameAmount = walkLeftFrameAmount_;
 			}
 			else if (currentAnimationType_ == AnimationType::IdleLeft) {
@@ -107,7 +147,7 @@ void AnimationController::update(float dt) {
 			currentFrameIndex_--;
 
 			if (currentFrameIndex_ < 0) {
-				if (isHurtAnimation()) {
+				if (isHurtAnimation() || isMeleeAttackAnimation()|| isRangedAttackAnimation()) {
 					setCurrentAnimationType(AnimationType::IdleLeft);
 				}
 				else if (isDeathAnimation()) {
@@ -124,11 +164,71 @@ void AnimationController::update(float dt) {
 	}
 }
 
+void AnimationController::setToIdle()
+{
+	if (currentAnimationType_ == AnimationType::WalkLeft || currentAnimationType_ == AnimationType::IdleLeft)
+		this->setCurrentAnimationType(AnimationType::IdleLeft);
+	else {
+		this->setCurrentAnimationType(AnimationType::IdleRight);
+	}
+}
+
+void AnimationController::setToWalkOrIdle(float x, float y)
+{
+	if (x != 0.0f || y != 0.0f) {
+		if (x < 0.0f)
+			this->setCurrentAnimationType(AnimationType::WalkLeft);
+		else if (x > 0.0f) {
+			this->setCurrentAnimationType(AnimationType::WalkRight);
+		}
+	}
+	else {
+		this->setToIdle();
+	}
+}
+
+void AnimationController::setToHurt()
+{
+	if (!isRightFacing_)
+		this->setCurrentAnimationType(AnimationType::HurtLeft);
+	else {
+		this->setCurrentAnimationType(AnimationType::HurtRight);
+	}
+}
+
+void AnimationController::setToDeath()
+{
+	if (!isRightFacing_)
+		this->setCurrentAnimationType(AnimationType::DeathLeft);
+	else {
+		this->setCurrentAnimationType(AnimationType::DeathRight);
+	}
+}
+
+void AnimationController::setToMeleeAttack()
+{
+	if (!isRightFacing_)
+		this->setCurrentAnimationType(AnimationType::MeleeAttackLeft);
+	else {
+		this->setCurrentAnimationType(AnimationType::MeleeAttackRight);
+	}
+}
+
+void AnimationController::setToRangedAttack()
+{
+	if (!isRightFacing_)
+		this->setCurrentAnimationType(AnimationType::RangedAttackLeft);
+	else {
+		this->setCurrentAnimationType(AnimationType::RangedAttackRight);
+	}
+}
+
 void AnimationController::setCurrentAnimationType(AnimationType type) {
 	if (currentAnimationType_ == type) {
 		return;  // Ju¿ w tym stanie, nie resetuj!
 	}
-	isRightFacing_ = (type == AnimationType::WalkRight || type == AnimationType::IdleRight || type == AnimationType::HurtRight || type == AnimationType::DeathRight);
+	isRightFacing_ = (type == AnimationType::WalkRight || type == AnimationType::IdleRight || type == AnimationType::HurtRight || type == AnimationType::DeathRight||
+		type == AnimationType::MeleeAttackRight || type == AnimationType::RangedAttackRight);
 	currentAnimationType_ = type;
 	if (isRightFacing_) {
 		currentFrameIndex_ = 0;
@@ -145,6 +245,12 @@ void AnimationController::setCurrentAnimationType(AnimationType type) {
 		}
 		else if (type == AnimationType::DeathLeft) {
 			currentFrameIndex_ = deathLeftFrameAmount_ - 1;
+		}
+		else if (type == AnimationType::MeleeAttackLeft) {
+			currentFrameIndex_ = meleeAttackLeftFrameAmount_ - 1;
+		}
+		else if (type == AnimationType::RangedAttackLeft) {
+			currentFrameIndex_ = rangedAttackLeftFrameAmount_ - 1;
 		}
 	}
 	frameTimer_ = 0.0f;

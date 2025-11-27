@@ -62,6 +62,7 @@ Projectile& World::spawnProjectile(uint32_t width,uint32_t height,
 
 void World::performMeleeAttack(LivingEntity& attacker)
 {
+	attacker.setIsPerformingMeleeAttack(true);
     const float range  = attacker.getMeleeRange();
     const int   damage = attacker.getMeleeDamage();
 
@@ -156,6 +157,60 @@ void World::performMeleeAttack(LivingEntity& attacker)
             }
         }
     }
+}
+
+void World::performRangedAttack(LivingEntity& attacker) {
+    attacker.setIsPerformingRangedAttack(true);
+    
+    const std::string projTexture = "assets/design/Arrow01.png";
+    const uint32_t projW = 32;
+    const uint32_t projH = 32;
+    const float projSpeed = 600.0f;
+    const float projLifetime = 3.0f;
+    const float spawnOffset = attacker.getWidth() * 0.5f + 10.0f;
+
+    ImVec2 pos = attacker.getPosition();
+    ImVec2 attackerCenter{ 
+        pos.x + 0.5f * attacker.getWidth(), 
+        pos.y + 0.5f * attacker.getHeight() 
+    };
+    
+    ImVec2 dir = attacker.getDesiredDir();
+    if (dir.x != 0.0f || dir.y != 0.0f) {
+        attacker.setFacingDir(dir);
+    }else {
+        dir = attacker.getFacingDir();
+    }
+    
+    // Normalize direction
+    float length = std::sqrt(dir.x * dir.x + dir.y * dir.y);
+    if (length > 0.0f) {
+        dir.x /= length;
+        dir.y /= length;
+    } else {
+        // Default direction if no direction is set
+        dir = ImVec2(1.0f, 0.0f);
+    }
+
+    ImVec2 spawnPos{
+        attackerCenter.x + dir.x * spawnOffset,
+        attackerCenter.y + dir.y * spawnOffset
+    };
+
+    ImVec2 velocity{
+        dir.x * projSpeed,
+        dir.y * projSpeed
+    };
+
+    spawnProjectile(
+        projW, projH,
+        spawnPos.x, spawnPos.y,
+        velocity,
+        projLifetime,
+        attacker.getRangedDamage(),
+        &attacker,
+        projTexture
+    );
 }
 
 
@@ -339,40 +394,26 @@ void World::update(float dt) {
         player_->update(dt);
         if (auto* animationController = player_->getAnimationController()) {
 			ImVec2 vel = player_->getVelocity();
-            AnimationType type = animationController->getCurrentAnimationType();
 
             if (!player_->isAlive()) {
-                if(type == AnimationType::WalkLeft || type == AnimationType::IdleLeft || type == AnimationType::DeathLeft)
-                    animationController->setCurrentAnimationType(AnimationType::DeathLeft);
-                else{
-                    animationController->setCurrentAnimationType(AnimationType::DeathRight);
-                }
+				animationController->setToDeath();
                 animationController->update(dt);
 				return;
             }
+            else if (player_->isPerformingMeleeAttack()||animationController->isMeleeAttackAnimation()) {
+                player_->setIsPerformingMeleeAttack(false);
+				animationController->setToMeleeAttack();
+            }
+            else if (player_->isPerformingRangedAttack()||animationController->isRangedAttackAnimation()) {
+                player_->setIsPerformingRangedAttack(false);
+				animationController->setToRangedAttack();
+            }
             else if (player_->isDamaged()) {
 				player_->setDamaged(false);
-                if(type == AnimationType::WalkLeft || type == AnimationType::IdleLeft)
-                    animationController->setCurrentAnimationType(AnimationType::HurtLeft);
-                else{
-                    animationController->setCurrentAnimationType(AnimationType::HurtRight);
-                }
+				animationController->setToHurt();
             }
-            else if (type != AnimationType::HurtRight && type != AnimationType::HurtLeft){
-                if (vel.x != 0.0f || vel.y != 0.0f) {
-                    if (vel.x < 0.0f)
-                        animationController->setCurrentAnimationType(AnimationType::WalkLeft);
-                    else if (vel.x > 0.0f) {
-                        animationController->setCurrentAnimationType(AnimationType::WalkRight);
-                    }
-                }
-                else {
-                    if (type == AnimationType::WalkLeft || type == AnimationType::IdleLeft)
-                        animationController->setCurrentAnimationType(AnimationType::IdleLeft);
-                    else {
-                        animationController->setCurrentAnimationType(AnimationType::IdleRight);
-                    }
-                }
+            else if (!animationController->isHurtAnimation() && !animationController->isMeleeAttackAnimation() && !animationController->isRangedAttackAnimation()){
+				animationController->setToWalkOrIdle(vel.x, vel.y);
             }
 			animationController->update(dt);
         }
@@ -385,41 +426,27 @@ void World::update(float dt) {
         if(auto* livingEntity = dynamic_cast<LivingEntity*>(up.get())) {
             if (auto* animationController = livingEntity->getAnimationController()) {
                 ImVec2 vel = livingEntity->getVelocity();
-                AnimationType type = animationController->getCurrentAnimationType();
 
                 if (!livingEntity->isAlive()){
 					livingEntity->setSolid(false);
-                    if (type == AnimationType::WalkLeft || type == AnimationType::IdleLeft || type == AnimationType::DeathLeft)
-                        animationController->setCurrentAnimationType(AnimationType::DeathLeft);
-                    else {
-                        animationController->setCurrentAnimationType(AnimationType::DeathRight);
-                    }
+                    animationController->setToDeath();
                     animationController->update(dt);
                     continue;
                 }
+                else if (livingEntity->isPerformingMeleeAttack() || animationController->isMeleeAttackAnimation()) {
+                    livingEntity->setIsPerformingMeleeAttack(false);
+                    animationController->setToMeleeAttack();
+                }
+                else if (livingEntity->isPerformingRangedAttack() || animationController->isRangedAttackAnimation()) {
+                    livingEntity->setIsPerformingRangedAttack(false);
+					animationController->setToRangedAttack();
+                }
                 else if (livingEntity->isDamaged()) {
                     livingEntity->setDamaged(false);
-                    if (type == AnimationType::WalkLeft || type == AnimationType::IdleLeft)
-                        animationController->setCurrentAnimationType(AnimationType::HurtLeft);
-                    else {
-                        animationController->setCurrentAnimationType(AnimationType::HurtRight);
-                    }
+                    animationController->setToHurt();
                 }
-                else if (type != AnimationType::HurtRight && type != AnimationType::HurtLeft) {
-                    if (vel.x != 0.0f || vel.y != 0.0f) {
-                        if (vel.x < 0.0f)
-                            animationController->setCurrentAnimationType(AnimationType::WalkLeft);
-                        else if (vel.x > 0.0f) {
-                            animationController->setCurrentAnimationType(AnimationType::WalkRight);
-                        }
-                    }
-                    else {
-                        if (type == AnimationType::WalkLeft || type == AnimationType::IdleLeft)
-                            animationController->setCurrentAnimationType(AnimationType::IdleLeft);
-                        else {
-                            animationController->setCurrentAnimationType(AnimationType::IdleRight);
-                        }
-                    }
+                else if (!animationController->isHurtAnimation() && !animationController->isMeleeAttackAnimation() && !animationController->isRangedAttackAnimation()) {
+                    animationController->setToWalkOrIdle(vel.x, vel.y);
                 }
                 animationController->update(dt);
             }
@@ -596,23 +623,26 @@ void World::spawnNpcs() {
             auto& npc = this->spawnNpc("assets/characters/angel.png",
                 64, 64,
                 x, y + World::UI_TOP_BAR_HEIGHT,  // Add UI offset to NPC spawn
-                100, std::make_unique<MeleeController>());
+                10, std::make_unique<MeleeController>());
             npc.createAnimationController(assets_, 100,
-                "assets/animations/Orc-Walk-right.png", 8, "assets/animations/Orc-Walk-left.png", 8,
-                "assets/animations/Orc-Idle-right.png", 6, "assets/animations/Orc-Idle-left.png", 6,
-                "assets/animations/Orc-Hurt-right.png", 4, "assets/animations/Orc-Hurt-left.png", 4,
-                "assets/animations/Orc-Death-right.png", 4, "assets/animations/Orc-Death-left.png", 4);
+                "assets/animations/orc/Orc-Walk-right.png", 8, "assets/animations/orc/Orc-Walk-left.png", 8,
+                "assets/animations/orc/Orc-Idle-right.png", 6, "assets/animations/orc/Orc-Idle-left.png", 6,
+                "assets/animations/orc/Orc-Hurt-right.png", 4, "assets/animations/orc/Orc-Hurt-left.png", 4,
+                "assets/animations/orc/Orc-Death-right.png", 4, "assets/animations/orc/Orc-Death-left.png", 4);
+            npc.createMeleeAttackAnimation(100, "assets/animations/orc/Orc-Attack-right.png", 6, "assets/animations/orc/Orc-Attack-left.png", 6);
+
         }
         else if (t == 'r') {
             auto& npc = this->spawnNpc("assets/characters/hero.png",
                 64, 64,
                 x, y + World::UI_TOP_BAR_HEIGHT,  // Add UI offset to NPC spawn
-                100, std::make_unique<RangeController>());
+                10, std::make_unique<RangeController>());
             npc.createAnimationController(assets_, 100,
-                "assets/animations/SkeletonArcher-Walk-right.png", 8, "assets/animations/SkeletonArcher-Walk-left.png", 8,
-                "assets/animations/SkeletonArcher-Idle-right.png", 6, "assets/animations/SkeletonArcher-Idle-left.png", 6,
-                "assets/animations/SkeletonArcher-Hurt-right.png", 4, "assets/animations/SkeletonArcher-Hurt-left.png", 4,
-                "assets/animations/SkeletonArcher-Death-right.png", 4, "assets/animations/SkeletonArcher-Death-left.png", 4);
+                "assets/animations/skeletonArcher/SkeletonArcher-Walk-right.png", 8, "assets/animations/skeletonArcher/SkeletonArcher-Walk-left.png", 8,
+                "assets/animations/skeletonArcher/SkeletonArcher-Idle-right.png", 6, "assets/animations/skeletonArcher/SkeletonArcher-Idle-left.png", 6,
+                "assets/animations/skeletonArcher/SkeletonArcher-Hurt-right.png", 4, "assets/animations/skeletonArcher/SkeletonArcher-Hurt-left.png", 4,
+                "assets/animations/skeletonArcher/SkeletonArcher-Death-right.png", 4, "assets/animations/skeletonArcher/SkeletonArcher-Death-left.png", 4);
+            npc.createRangedAttackAnimation(100, "assets/animations/skeletonArcher/SkeletonArcher-RangeAttack-right.png", 9, "assets/animations/skeletonArcher/SkeletonArcher-RangeAttack-left.png", 9);
         }
     });
     maps_[currentMapIndex]->setVisited(true);

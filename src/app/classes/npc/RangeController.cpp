@@ -1,6 +1,5 @@
 #include "RangeController.h"
 
-#include "CombatUtils.h"
 #include "Player.h"
 #include "World.h"
 #include "MathUtils.h"
@@ -55,12 +54,6 @@ void RangeController::update(Npc &npc, World &world, float dt) {
 
     ImVec2 dirToPlayer = normalize(ImVec2{ playerCenter.x - npcCenter.x, playerCenter.y - npcCenter.y});
 
-    const std::string projectileTexture = "assets/design/Arrow01.png" ;
-    const uint32_t projW = 32;
-    const uint32_t projH = 32;
-    const float projSpeed = 600.0f;
-    const float projLifetime = 3.0f;
-
     switch (npc.getState()) {
         case Npc::State::Idle: {
              npc.applyInput(ImVec2(0.0f, 0.0f));
@@ -75,20 +68,9 @@ void RangeController::update(Npc &npc, World &world, float dt) {
             npc.applyInput(stepBack);
 
             if (npc.canShoot()) {
-                ImVec2 shootDir = dirToPlayer;
-
-                const float spawnOffset = npc.getWidth() * 0.5f + 10.0f;
-                ImVec2 spawnPos{
-                    npcCenter.x + shootDir.x * spawnOffset,
-                    npcCenter.y + shootDir.y * spawnOffset
-                };
-
-                shootProjectile(
-                    world, npc, projectileTexture, projW, projH,
-                    spawnPos,
-                    shootDir,
-                    projSpeed, projLifetime, npc.getRangedDamage()
-                );
+                // Ustaw kierunek patrzenia w stronê gracza przed strzelaniem
+                npc.setFacingDir(dirToPlayer);
+                world.performRangedAttack(npc);
                 npc.startRangedCooldown();
             }
 
@@ -100,20 +82,9 @@ void RangeController::update(Npc &npc, World &world, float dt) {
             npc.applyInput(ImVec2(0.0f, 0.0f));
             npc.setVelocity(ImVec2(0.0f, 0.0f));
             if (npc.canShoot()) {
-                ImVec2 shootDir = dirToPlayer;
-
-                const float spawnOffset = npc.getWidth() * 0.5f + 10.0f;
-                ImVec2 spawnPos{
-                    npcCenter.x + shootDir.x * spawnOffset,
-                    npcCenter.y + shootDir.y * spawnOffset
-                };
-
-                shootProjectile(
-                    world, npc, projectileTexture, projW, projH,
-                    spawnPos,
-                    shootDir,
-                    projSpeed, projLifetime, npc.getRangedDamage()
-                );
+                // Ustaw kierunek patrzenia w stronê gracza przed strzelaniem
+                npc.setFacingDir(dirToPlayer);
+                world.performRangedAttack(npc);
                 npc.startRangedCooldown();
             }
             break;

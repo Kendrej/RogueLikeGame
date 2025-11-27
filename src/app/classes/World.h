@@ -38,6 +38,7 @@ public:
     float pos_x,float pos_y,ImVec2 velocity,float lifetime,int damage, LivingEntity* owner, const std::string &texturePath);
 
     void performMeleeAttack( LivingEntity& attacker );
+    void performRangedAttack(LivingEntity& attacker);
 
     void buildFromMap(const std::string& wallTexturePath,
         const std::string& floorTexturePath,

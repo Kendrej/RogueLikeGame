@@ -37,28 +37,30 @@ public:
     void setRangedRange(float rangedRange_) {rangedRange = rangedRange_ ;}
     // resetRangedCooldown() { rangedTimer = 0.0f ;}
     void startRangedCooldown() { rangedTimer = rangedCooldown ;}
-
+	void setIsPerformingRangedAttack(bool val) { isPerformingRanged = val; }
 
     int getRangedDamage() const { return rangedDamage ;}
     float getRangedCooldown() const { return rangedCooldown ;}
     float getRangedRange() const { return rangedRange ;}
     bool canShoot() const { return rangedTimer <= 0.0f ;}
-
+	bool isPerformingRangedAttack() const { return isPerformingRanged; }
     // melee
     void setMeleeDamage(int meleeDamage_) { meleeDamage = meleeDamage_;}
     void setMeleeCooldown(float meleeCooldown_) { meleeCooldown = meleeCooldown_;}
     void setMeleeRange(float meleeRange_) { meleeRange = meleeRange_ ;}
     //void resetMeleeCooldown() { meleeTimer = 0.0f ;}
     void startMeleeCooldown() { meleeTimer = meleeCooldown ;}
+	void setIsPerformingMeleeAttack(bool val) { isPerformingMelee = val; }
 
     int getMeleeDamage() const { return meleeDamage ;}
     float getMeleeCooldown() const { return meleeCooldown ;}
     float getMeleeRange() const { return meleeRange ;}
     bool canMelee() const {return meleeTimer <= 0.0f; }
-
+	bool isPerformingMeleeAttack() const { return isPerformingMelee; }
 
     ImVec2 getDesiredDir() const { return desiredDir; }
     ImVec2 getFacingDir() const { return facingDir; }
+    void setFacingDir(const ImVec2& dir) { facingDir = dir; }
 
     AnimationController& createAnimationController(Assets* assets,const int squareSize,
         const std::string& walkRightPath, int walkRightFrameAmount,
@@ -69,6 +71,14 @@ public:
         const std::string hurtLeftPath, const int hurtLeftframeAmount,
         const std::string deathRightPath, const int deathRightframeAmount,
         const std::string deathLeftPath, const int deathLeftframeAmount);
+
+    void createMeleeAttackAnimation(const int squareSize,
+        const std::string& meleeAttackRightPath, const int meleeAttackRightFrameAmount ,
+		const std::string& meleeAttackLeftPath, const int meleeAttackLeftFrameAmount);
+
+    void createRangedAttackAnimation(const int squareSize,
+        const std::string& rangedAttackRightPath, const int rangedAttackRightFrameAmount,
+		const std::string& rangedAttackLeftPath, const int rangedAttackLeftFrameAmount);
 
     AnimationController* getAnimationController() const {
         return animationController_.get();
@@ -93,7 +103,9 @@ protected:
     float meleeRange = 0.f;
     float meleeTimer = 0.0f;
 
-
+	
 private:
+    bool isPerformingMelee = false;
+    bool isPerformingRanged = false;
     std::unique_ptr<AnimationController> animationController_{ nullptr };
 };
