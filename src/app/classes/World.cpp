@@ -62,8 +62,7 @@ Projectile& World::spawnProjectile(uint32_t width,uint32_t height,
 
 void World::performMeleeAttack(LivingEntity& attacker)
 {
-	attacker.setIsPerformingMeleeAttack(true);
-    const float range  = attacker.getMeleeRange();
+    const float range = attacker.getMeleeRange();
     const int   damage = attacker.getMeleeDamage();
 
     // brak zasięgu albo dmg = brak ataku
@@ -105,14 +104,16 @@ void World::performMeleeAttack(LivingEntity& attacker)
             attackY = pos.y;
             attackW = range;
             attackH = h;
-        } else {
+        }
+        else {
             // w lewo
             attackX = pos.x - range;
             attackY = pos.y;
             attackW = range;
             attackH = h;
         }
-    } else {
+    }
+    else {
         // pionowo
         if (dir.y >= 0.0f) {
             // w dół
@@ -120,7 +121,8 @@ void World::performMeleeAttack(LivingEntity& attacker)
             attackY = pos.y + h;
             attackW = w;
             attackH = range;
-        } else {
+        }
+        else {
             // w górę
             attackX = pos.x;
             attackY = pos.y - range;
@@ -160,8 +162,6 @@ void World::performMeleeAttack(LivingEntity& attacker)
 }
 
 void World::performRangedAttack(LivingEntity& attacker) {
-    attacker.setIsPerformingRangedAttack(true);
-
     const std::string projTexture = "assets/design/Arrow01.png";
     const uint32_t projW = 32;
     const uint32_t projH = 32;
@@ -411,12 +411,18 @@ void World::update(float dt) {
 				return;
             }
             else if (player_->isPerformingMeleeAttack()||animationController->isMeleeAttackAnimation()) {
-                player_->setIsPerformingMeleeAttack(false);
 				animationController->setToMeleeAttack();
+                if (animationController->isInAttackFrame() && player_->isPerformingMeleeAttack()) {
+                    this->performMeleeAttack(*player_);
+					player_->setIsPerformingMeleeAttack(false);
+                }
             }
             else if (player_->isPerformingRangedAttack()||animationController->isRangedAttackAnimation()) {
-                player_->setIsPerformingRangedAttack(false);
 				animationController->setToRangedAttack();
+                if (animationController->isInRangedAttackFrame() && player_->isPerformingRangedAttack()) {
+                    this->performRangedAttack(*player_);
+                    player_->setIsPerformingRangedAttack(false);
+                }
             }
             else if (player_->isDamaged()) {
 				player_->setDamaged(false);
@@ -444,12 +450,18 @@ void World::update(float dt) {
                     continue;
                 }
                 else if (livingEntity->isPerformingMeleeAttack() || animationController->isMeleeAttackAnimation()) {
-                    livingEntity->setIsPerformingMeleeAttack(false);
                     animationController->setToMeleeAttack();
+                    if (animationController->isInAttackFrame() && livingEntity->isPerformingMeleeAttack()) {
+                        this->performMeleeAttack(*livingEntity);
+                        livingEntity->setIsPerformingMeleeAttack(false);
+                    }
                 }
                 else if (livingEntity->isPerformingRangedAttack() || animationController->isRangedAttackAnimation()) {
-                    livingEntity->setIsPerformingRangedAttack(false);
-					animationController->setToRangedAttack();
+                    animationController->setToRangedAttack();
+                    if (animationController->isInRangedAttackFrame() && livingEntity->isPerformingRangedAttack()) {
+                        this->performRangedAttack(*livingEntity);
+                        livingEntity->setIsPerformingRangedAttack(false);
+                    }
                 }
                 else if (livingEntity->isDamaged()) {
                     livingEntity->setDamaged(false);
@@ -639,7 +651,7 @@ void World::spawnNpcs() {
                 "assets/animations/orc/Orc-Idle-right.png", 6, "assets/animations/orc/Orc-Idle-left.png", 6,
                 "assets/animations/orc/Orc-Hurt-right.png", 4, "assets/animations/orc/Orc-Hurt-left.png", 4,
                 "assets/animations/orc/Orc-Death-right.png", 4, "assets/animations/orc/Orc-Death-left.png", 4);
-            npc.createMeleeAttackAnimation(100, "assets/animations/orc/Orc-Attack-right.png", 6, "assets/animations/orc/Orc-Attack-left.png", 6);
+            npc.createMeleeAttackAnimation(100, 4, "assets/animations/orc/Orc-Attack-right.png", 6, "assets/animations/orc/Orc-Attack-left.png", 6);
 
         }
         else if (t == 'r') {
@@ -652,7 +664,7 @@ void World::spawnNpcs() {
                 "assets/animations/skeletonArcher/SkeletonArcher-Idle-right.png", 6, "assets/animations/skeletonArcher/SkeletonArcher-Idle-left.png", 6,
                 "assets/animations/skeletonArcher/SkeletonArcher-Hurt-right.png", 4, "assets/animations/skeletonArcher/SkeletonArcher-Hurt-left.png", 4,
                 "assets/animations/skeletonArcher/SkeletonArcher-Death-right.png", 4, "assets/animations/skeletonArcher/SkeletonArcher-Death-left.png", 4);
-            npc.createRangedAttackAnimation(100, "assets/animations/skeletonArcher/SkeletonArcher-RangeAttack-right.png", 9, "assets/animations/skeletonArcher/SkeletonArcher-RangeAttack-left.png", 9);
+            npc.createRangedAttackAnimation(100, 7, "assets/animations/skeletonArcher/SkeletonArcher-RangeAttack-right.png", 9, "assets/animations/skeletonArcher/SkeletonArcher-RangeAttack-left.png", 9);
         }
     });
     maps_[currentMapIndex]->setVisited(true);

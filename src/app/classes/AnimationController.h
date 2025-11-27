@@ -25,10 +25,10 @@ public:
 						const std::string deathLeftPath, const int deathLeftframeAmount);
 	~AnimationController() = default;
 
-	void addMeleeAttackAnimation(const int squareSize,
+	void addMeleeAttackAnimation(const int squareSize, const int meleeAttackFrame,
 								const std::string meleeAttackRightPath, const int meleeAttackRightFrameAmount ,
 								const std::string meleeAttackLeftPath, const int meleeAttackLeftFrameAmount);
-	void addRangedAttackAnimation(const int squareSize,
+	void addRangedAttackAnimation(const int squareSize, const int rangedAttackFrame,
 		const std::string rangedAttackRightPath, const int rangedAttackRightFrameAmount,
 		const std::string rangedAttackLeftPath, const int rangedAttackLeftFrameAmount);
 
@@ -51,6 +51,22 @@ public:
 	}
 	bool isRangedAttackAnimation() const {
 		return currentAnimationType_ == AnimationType::RangedAttackRight || currentAnimationType_ == AnimationType::RangedAttackLeft;
+	}
+	bool isInAttackFrame() const {
+		if (isRightFacing_) {
+			return (currentFrameIndex_ == meleeAttackFrame_-1);
+		}
+		else {
+			return (currentFrameIndex_ == meleeAttackLeftFrameAmount_-meleeAttackFrame_);
+		}
+	}
+	bool isInRangedAttackFrame() const {
+		if (isRightFacing_) {
+			return (currentFrameIndex_ == rangedAttackFrame_-1);
+		}
+		else {
+			return (currentFrameIndex_ == rangedAttackLeftFrameAmount_-rangedAttackFrame_);
+		}
 	}
 	void setToIdle();
 	void setToWalkOrIdle(float x, float y);
@@ -89,8 +105,10 @@ private:
 
 	int meleeAttackRightFrameAmount_;
 	int meleeAttackLeftFrameAmount_;
+	int meleeAttackFrame_;
 	int rangedAttackRightFrameAmount_;
 	int rangedAttackLeftFrameAmount_;
+	int rangedAttackFrame_;
 	bool isRightFacing_ = true;
 
 	AnimationType currentAnimationType_ = AnimationType::IdleRight;

@@ -106,12 +106,12 @@ AnimationController& LivingEntity::createAnimationController(Assets* assets, con
     return *animationController_;
 }
 
-void LivingEntity::createMeleeAttackAnimation(const int squareSize, const std::string& meleeAttackRightPath, const int meleeAttackRightFrameAmount, const std::string& meleeAttackLeftPath, const int meleeAttackLeftFrameAmount)
+void LivingEntity::createMeleeAttackAnimation(const int squareSize, const int meleeAttackFrame, const std::string& meleeAttackRightPath, const int meleeAttackRightFrameAmount, const std::string& meleeAttackLeftPath, const int meleeAttackLeftFrameAmount)
 {
-	animationController_->addMeleeAttackAnimation(squareSize, meleeAttackRightPath, meleeAttackRightFrameAmount, meleeAttackLeftPath, meleeAttackLeftFrameAmount);
+	animationController_->addMeleeAttackAnimation(squareSize, meleeAttackFrame, meleeAttackRightPath, meleeAttackRightFrameAmount, meleeAttackLeftPath, meleeAttackLeftFrameAmount);
 }
 
-void LivingEntity::createRangedAttackAnimation(const int squareSize, const std::string& rangedAttackRightPath, const int rangedAttackRightFrameAmount, const std::string& rangedAttackLeftPath, const int rangedAttackLeftFrameAmount)
+void LivingEntity::createRangedAttackAnimation(const int squareSize, const int rangedAttackFrame, const std::string& rangedAttackRightPath, const int rangedAttackRightFrameAmount, const std::string& rangedAttackLeftPath, const int rangedAttackLeftFrameAmount)
 {
-    animationController_->addRangedAttackAnimation(squareSize, rangedAttackRightPath, rangedAttackRightFrameAmount, rangedAttackLeftPath, rangedAttackLeftFrameAmount);
+    animationController_->addRangedAttackAnimation(squareSize, rangedAttackFrame, rangedAttackRightPath, rangedAttackRightFrameAmount, rangedAttackLeftPath, rangedAttackLeftFrameAmount);
 }

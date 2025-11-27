@@ -72,11 +72,11 @@ public:
         const std::string deathRightPath, const int deathRightframeAmount,
         const std::string deathLeftPath, const int deathLeftframeAmount);
 
-    void createMeleeAttackAnimation(const int squareSize,
+    void createMeleeAttackAnimation(const int squareSize, const int meleeAttackFrame,
         const std::string& meleeAttackRightPath, const int meleeAttackRightFrameAmount ,
 		const std::string& meleeAttackLeftPath, const int meleeAttackLeftFrameAmount);
 
-    void createRangedAttackAnimation(const int squareSize,
+    void createRangedAttackAnimation(const int squareSize, const int rangedAttackFrame,
         const std::string& rangedAttackRightPath, const int rangedAttackRightFrameAmount,
 		const std::string& rangedAttackLeftPath, const int rangedAttackLeftFrameAmount);
 

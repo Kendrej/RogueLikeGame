@@ -32,8 +32,8 @@ void setupGame(World& world)
                                     "assets/animations/soldier/Soldier-Idle-right.png", 6, "assets/animations/soldier/Soldier-Idle-left.png", 6,
                                     "assets/animations/soldier/Soldier-Hurt-right.png", 4, "assets/animations/soldier/Soldier-Hurt-left.png", 4,
                                     "assets/animations/soldier/Soldier-Death-right.png", 4, "assets/animations/soldier/Soldier-Death-left.png", 4);
-    player.createMeleeAttackAnimation(100, "assets/animations/soldier/Soldier-Attack-right.png", 6, "assets/animations/soldier/Soldier-Attack-left.png", 6);
-	player.createRangedAttackAnimation(100, "assets/animations/soldier/Soldier-RangeAttack-right.png", 9, "assets/animations/soldier/Soldier-RangeAttack-left.png", 9);
+    player.createMeleeAttackAnimation(100, 4, "assets/animations/soldier/Soldier-Attack-right.png", 6, "assets/animations/soldier/Soldier-Attack-left.png", 6);
+	player.createRangedAttackAnimation(100, 8, "assets/animations/soldier/Soldier-RangeAttack-right.png", 9, "assets/animations/soldier/Soldier-RangeAttack-left.png", 9);
 
     auto& npc1 = world.spawnNpc("assets/characters/angel.png",
         64, 64,
@@ -44,7 +44,7 @@ void setupGame(World& world)
                                     "assets/animations/orc/Orc-Idle-right.png", 6, "assets/animations/orc/Orc-Idle-left.png", 6,
                                     "assets/animations/orc/Orc-Hurt-right.png", 4, "assets/animations/orc/Orc-Hurt-left.png", 4,
                                     "assets/animations/orc/Orc-Death-right.png", 4, "assets/animations/orc/Orc-Death-left.png", 4);
-    npc1.createMeleeAttackAnimation(100, "assets/animations/orc/Orc-Attack-right.png", 6, "assets/animations/orc/Orc-Attack-left.png", 6);
+    npc1.createMeleeAttackAnimation(100, 4, "assets/animations/orc/Orc-Attack-right.png", 6, "assets/animations/orc/Orc-Attack-left.png", 6);
 
     auto& npc2 = world.spawnNpc("assets/characters/hero.png",
         64, 64,
@@ -56,5 +56,5 @@ void setupGame(World& world)
         "assets/animations/skeletonArcher/SkeletonArcher-Idle-right.png", 6, "assets/animations/skeletonArcher/SkeletonArcher-Idle-left.png", 6,
         "assets/animations/skeletonArcher/SkeletonArcher-Hurt-right.png", 4, "assets/animations/skeletonArcher/SkeletonArcher-Hurt-left.png", 4,
         "assets/animations/skeletonArcher/SkeletonArcher-Death-right.png", 4, "assets/animations/skeletonArcher/SkeletonArcher-Death-left.png", 4);
-	npc2.createRangedAttackAnimation(100, "assets/animations/skeletonArcher/SkeletonArcher-RangeAttack-right.png", 9, "assets/animations/skeletonArcher/SkeletonArcher-RangeAttack-left.png", 9);
+	npc2.createRangedAttackAnimation(100, 7, "assets/animations/skeletonArcher/SkeletonArcher-RangeAttack-right.png", 9, "assets/animations/skeletonArcher/SkeletonArcher-RangeAttack-left.png", 9);
 }

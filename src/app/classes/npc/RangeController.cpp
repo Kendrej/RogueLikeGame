@@ -70,7 +70,12 @@ void RangeController::update(Npc &npc, World &world, float dt) {
             if (npc.canShoot()) {
                 // Ustaw kierunek patrzenia w stronê gracza przed strzelaniem
                 npc.setFacingDir(dirToPlayer);
-                world.performRangedAttack(npc);
+                if (!npc.getAnimationController()) {
+                    world.performRangedAttack(npc);
+                }
+                else {
+                    npc.setIsPerformingRangedAttack(true);
+                }
                 npc.startRangedCooldown();
             }
 
@@ -84,7 +89,12 @@ void RangeController::update(Npc &npc, World &world, float dt) {
             if (npc.canShoot()) {
                 // Ustaw kierunek patrzenia w stronê gracza przed strzelaniem
                 npc.setFacingDir(dirToPlayer);
-                world.performRangedAttack(npc);
+                if (!npc.getAnimationController()) {
+                    world.performRangedAttack(npc);
+                }
+                else {
+                    npc.setIsPerformingRangedAttack(true);
+                }
                 npc.startRangedCooldown();
             }
             break;
