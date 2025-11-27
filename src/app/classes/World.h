@@ -67,6 +67,7 @@ public:
     void addMap(const std::string& path);
     int playerInGateway();
 	Assets* getAssets() const noexcept { return assets_; }
+    ImVec2 getDirToPlayer(LivingEntity* entity);
 private:
     template <class T, class... Args>
     T& addEntity(Args&&... args) {

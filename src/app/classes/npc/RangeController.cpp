@@ -73,7 +73,7 @@ void RangeController::update(Npc &npc, World &world, float dt) {
                 if (!npc.getAnimationController()) {
                     world.performRangedAttack(npc);
                 }
-                else {
+                else if(!npc.isPerformingRangedAttack()){
                     npc.setIsPerformingRangedAttack(true);
                 }
                 npc.startRangedCooldown();
@@ -92,7 +92,7 @@ void RangeController::update(Npc &npc, World &world, float dt) {
                 if (!npc.getAnimationController()) {
                     world.performRangedAttack(npc);
                 }
-                else {
+                else if (!npc.isPerformingRangedAttack()) {
                     npc.setIsPerformingRangedAttack(true);
                 }
                 npc.startRangedCooldown();

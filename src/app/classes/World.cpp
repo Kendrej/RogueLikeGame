@@ -12,6 +12,7 @@
 #include "Map.h"
 #include "AnimationController.h"
 #include "Projectile.h"
+#include "MathUtils.h"
 
 StaticEntity& World::spawnTile(const std::string &texturePath, uint32_t width, uint32_t height, float pos_x, float pos_y, bool solid) {
     const int entityId = assets_ ? assets_->getOrLoadIcon(texturePath) : -1;
@@ -167,7 +168,7 @@ void World::performRangedAttack(LivingEntity& attacker) {
     const uint32_t projH = 32;
     const float projSpeed = 600.0f;
     const float projLifetime = 3.0f;
-    const float spawnOffset = attacker.getWidth() * 0.5f + 10.0f;
+    const float spawnOffset = attacker.getWidth() * 0.1f;
 
     ImVec2 pos = attacker.getPosition();
     ImVec2 attackerCenter{
@@ -203,8 +204,10 @@ void World::performRangedAttack(LivingEntity& attacker) {
     }
 
     ImVec2 spawnPos{
-     attackerCenter.x + dir.x * spawnOffset,
-        attackerCenter.y + dir.y * spawnOffset
+            attackerCenter.x + (dir.x >= 0.0f ? spawnOffset : -spawnOffset),
+
+    // attackerCenter.x + dir.x * spawnOffset,
+        attackerCenter.y - 15.0f
     };
 
     ImVec2 velocity{
@@ -383,6 +386,16 @@ float overlapLeft = std::max(0.0f, std::min(pos.x + pw, g.posX + gw) - std::max(
     return -1;
 }
 
+ImVec2 World::getDirToPlayer(LivingEntity* entity)
+{
+    ImVec2 lePos = entity->getPosition();
+    ImVec2 leCenter{ lePos.x + entity->getWidth() * 0.5f, lePos.y + entity->getHeight() * 0.5f };
+    ImVec2 pPos = player_->getPosition();
+    ImVec2 pCenter{ pPos.x + player_->getWidth() * 0.5f, pPos.y + player_->getHeight() * 0.5f };
+    ImVec2 dirToPlayer = normalize(ImVec2{ pCenter.x - leCenter.x, pCenter.y - leCenter.y });
+    return dirToPlayer;
+}
+
 void World::clampToScreen(Entity &mover) {
     if (screenWidth_ <= 0.0f || screenHeight_ <= 0.0f) return;
     
@@ -459,6 +472,8 @@ void World::update(float dt) {
                 else if (livingEntity->isPerformingRangedAttack() || animationController->isRangedAttackAnimation()) {
                     animationController->setToRangedAttack();
                     if (animationController->isInRangedAttackFrame() && livingEntity->isPerformingRangedAttack()) {
+                        // Ensure NPC's facingDir points at player right before spawning projectile
+                        livingEntity->setFacingDir(getDirToPlayer(livingEntity));
                         this->performRangedAttack(*livingEntity);
                         livingEntity->setIsPerformingRangedAttack(false);
                     }
