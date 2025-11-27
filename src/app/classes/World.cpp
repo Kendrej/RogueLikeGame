@@ -161,7 +161,7 @@ void World::performMeleeAttack(LivingEntity& attacker)
 
 void World::performRangedAttack(LivingEntity& attacker) {
     attacker.setIsPerformingRangedAttack(true);
-    
+
     const std::string projTexture = "assets/design/Arrow01.png";
     const uint32_t projW = 32;
     const uint32_t projH = 32;
@@ -170,30 +170,40 @@ void World::performRangedAttack(LivingEntity& attacker) {
     const float spawnOffset = attacker.getWidth() * 0.5f + 10.0f;
 
     ImVec2 pos = attacker.getPosition();
-    ImVec2 attackerCenter{ 
-        pos.x + 0.5f * attacker.getWidth(), 
-        pos.y + 0.5f * attacker.getHeight() 
+    ImVec2 attackerCenter{
+        pos.x + 0.5f * attacker.getWidth(),
+        pos.y + 0.5f * attacker.getHeight()
     };
-    
-    ImVec2 dir = attacker.getDesiredDir();
-    if (dir.x != 0.0f || dir.y != 0.0f) {
-        attacker.setFacingDir(dir);
-    }else {
-        dir = attacker.getFacingDir();
+
+    // Użyj facingDir jako głównego kierunku (ustawianego przez kontroler przed strzelaniem)
+    ImVec2 dir = attacker.getFacingDir();
+
+    // Jeśli facingDir jest zerowy, spróbuj użyć desiredDir
+    if (dir.x == 0.0f && dir.y == 0.0f) {
+        dir = attacker.getDesiredDir();
+        if (dir.x != 0.0f || dir.y != 0.0f) {
+            attacker.setFacingDir(dir);
+        }
     }
-    
+
+    // Jeśli nadal zerowy, użyj velocity
+    if (dir.x == 0.0f && dir.y == 0.0f) {
+        dir = attacker.getVelocity();
+    }
+
     // Normalize direction
     float length = std::sqrt(dir.x * dir.x + dir.y * dir.y);
     if (length > 0.0f) {
         dir.x /= length;
         dir.y /= length;
-    } else {
+    }
+    else {
         // Default direction if no direction is set
         dir = ImVec2(1.0f, 0.0f);
     }
 
     ImVec2 spawnPos{
-        attackerCenter.x + dir.x * spawnOffset,
+     attackerCenter.x + dir.x * spawnOffset,
         attackerCenter.y + dir.y * spawnOffset
     };
 
