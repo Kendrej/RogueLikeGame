@@ -52,6 +52,9 @@ public:
 	bool isRangedAttackAnimation() const {
 		return currentAnimationType_ == AnimationType::RangedAttackRight || currentAnimationType_ == AnimationType::RangedAttackLeft;
 	}
+	bool isFacingRight() const {
+		return isRightFacing_;
+	}
 	bool isInAttackFrame() const {
 		if (isRightFacing_) {
 			return (currentFrameIndex_ == meleeAttackFrame_-1);

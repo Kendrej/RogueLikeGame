@@ -168,7 +168,6 @@ void World::performRangedAttack(LivingEntity& attacker) {
     const uint32_t projH = 32;
     const float projSpeed = 600.0f;
     const float projLifetime = 3.0f;
-    const float spawnOffset = attacker.getWidth() * 0.1f;
 
     ImVec2 pos = attacker.getPosition();
     ImVec2 attackerCenter{
@@ -186,7 +185,7 @@ void World::performRangedAttack(LivingEntity& attacker) {
             attacker.setFacingDir(dir);
         }
     }
-
+    
     // Jeśli nadal zerowy, użyj velocity
     if (dir.x == 0.0f && dir.y == 0.0f) {
         dir = attacker.getVelocity();
@@ -202,12 +201,18 @@ void World::performRangedAttack(LivingEntity& attacker) {
         // Default direction if no direction is set
         dir = ImVec2(1.0f, 0.0f);
     }
+    bool facingRight = (dir.x >= 0.0f);
+    if (auto* ac = attacker.getAnimationController()) {
+        facingRight = ac->isFacingRight();
+    }
+
+    const float projHalfW = static_cast<float>(projW) * 0.5f;
+    const float projHalfH = static_cast<float>(projH) * 0.5f;
+    const float offsetX = (static_cast<float>(attacker.getWidth()) * 0.5f) + projHalfW ;
 
     ImVec2 spawnPos{
-            attackerCenter.x + (dir.x >= 0.0f ? spawnOffset : -spawnOffset),
-
-    // attackerCenter.x + dir.x * spawnOffset,
-        attackerCenter.y - 15.0f
+        attackerCenter.x + (facingRight ? offsetX : -offsetX),
+        attackerCenter.y - projHalfH
     };
 
     ImVec2 velocity{
