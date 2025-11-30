@@ -29,7 +29,7 @@ option(ENABLE_VCPKG_DEPS "Find and link deps via vcpkg (GLFW, GLM, Vulkan, ImGui
 # ===== Sources =====
 # Dodaj swoje pliki źródłowe tutaj (na start mamy tylko main.cpp)
 add_executable(RogueLikeGame
-        src/main.cpp
+        src/app/main.cpp
         src/engine/gfx/VulkanImGuiApp.cpp
         src/engine/vk/Window.cpp
         src/engine/vk/Instance.cpp
@@ -37,37 +37,36 @@ add_executable(RogueLikeGame
         src/engine/vk/Swapchain.cpp
         src/engine/vk/SyncAndDescriptors.cpp
         src/engine/gfx/ImGuiInit.cpp
-        src/app/classes/entity.cpp
+        src/game/entities/Entity.cpp
         src/engine/gfx/Assets.cpp
         src/app/GameSetup.cpp
-        src/app/classes/Player.cpp
-        src/app/classes/Map.cpp
-        src/app/classes/npc/Npc.cpp
-        src/app/classes/LivingEntity.cpp
-        src/app/classes/World.cpp
-        src/app/classes/StaticEntity.cpp
-        src/app/classes/StaticEntity.h
-        src/app/classes/npc/INpcController.cpp
-        src/app/classes/npc/INpcController.h
-        src/app/classes/npc/MeleeController.cpp
-        src/app/classes/npc/MeleeController.h
-        src/app/classes/MathUtils.h
-        src/app/classes/AnimationController.cpp
-        src/app/classes/npc/RangeController.cpp
-        src/app/classes/npc/RangeController.h
-        src/app/classes/Projectile.cpp
-        src/app/classes/Projectile.h
-        src/app/classes/CombatUtils.h
-        src/app/classes/CombatUtils.cpp
+        src/game/entities/Player.cpp
+        src/game/world/Map.cpp
+        src/game/npc/Npc.cpp
+        src/game/entities/LivingEntity.cpp
+        src/game/world/World.cpp
+        src/game/entities/StaticEntity.cpp
+        src/game/entities/StaticEntity.h
+        src/game/npc/INpcController.cpp
+        src/game/npc/INpcController.h
+        src/game/npc/MeleeController.cpp
+        src/game/npc/MeleeController.h
+        src/utils/MathUtils.h
+        src/game/entities/animation/AnimationController.cpp
+        src/game/npc/RangeController.cpp
+        src/game/npc/RangeController.h
+        src/game/entities/Projectile.cpp
+        src/game/entities/Projectile.h
+        src/game/combat/CombatUtils.h
+        src/game/combat/CombatUtils.cpp
 
 )
 
-# Jeśli masz własne nagłówki w ./include
+# Katalogi z nagłówkami
+# Dodajemy główny katalog src - wszystkie include'y będą relatywne do niego
 target_include_directories(RogueLikeGame PRIVATE
     ${CMAKE_SOURCE_DIR}/include
-    ${CMAKE_SOURCE_DIR}/src/app
-    ${CMAKE_SOURCE_DIR}/src/app/classes
-    ${CMAKE_SOURCE_DIR}/src/engine/gfx
+    ${CMAKE_SOURCE_DIR}/src
 )
 
 # ===== Dependencies z vcpkg (opcjonalne) =====

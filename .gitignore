@@ -47,3 +47,7 @@ obj/
 /build/
 .idea/
 CppProperties.json
+
+# Narzędzia lokalne
+/tools/*.bat
+/tools/*.ps1

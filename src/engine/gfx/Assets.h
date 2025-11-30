@@ -1,32 +1,35 @@
 #pragma once
-#include <vulkan/vulkan_core.h>
-#include <vulkan/vulkan.h>
-#include <imgui.h>
-#include <vector>
-#include <string>
 #include <cstdint>
+#include <imgui.h>
+#include <string>
 #include <unordered_map>
+#include <vector>
+#include <vulkan/vulkan.h>
+#include <vulkan/vulkan_core.h>
 
 using IconId = int;
 
 // GPU-side of an icon/texture (no position/visibility - that is game logic)
-struct IconGPU {
-    VkImage        image = VK_NULL_HANDLE;
-    VkDeviceMemory memory = VK_NULL_HANDLE;
-    VkImageView    view = VK_NULL_HANDLE;
+struct IconGPU
+{
+    VkImage        image   = VK_NULL_HANDLE;
+    VkDeviceMemory memory  = VK_NULL_HANDLE;
+    VkImageView    view    = VK_NULL_HANDLE;
     VkSampler      sampler = VK_NULL_HANDLE;
-    ImTextureID    imTex = (ImTextureID)0;
-    uint32_t       width = 0;
-    uint32_t       height = 0;
+    ImTextureID    imTex   = (ImTextureID)0;
+    uint32_t       width   = 0;
+    uint32_t       height  = 0;
 };
 
-class Assets {
+class Assets
+{
 public:
-    struct Ctx {
+    struct Ctx
+    {
         VkPhysicalDevice physicalDevice{};
-        VkDevice device{};
-        VkQueue graphicsQueue{};
-        VkCommandPool commandPool{};
+        VkDevice         device{};
+        VkQueue          graphicsQueue{};
+        VkCommandPool    commandPool{};
     };
 
     explicit Assets(const Ctx& ctx);
@@ -34,29 +37,32 @@ public:
 
     IconId addIconFromFile(const std::string& path);
     IconId getOrLoadIcon(const std::string& path);
-    
+
     // Load sprite sheet and split into frames
     // Returns base IconId (ID of first frame)
     IconId loadSpriteSheet(const std::string& path, int frameCount, int frameWidth, int frameHeight);
-    
-    const IconGPU& icon(IconId id) const { return icons_[id]; }
 
-    void removeIcon(IconId id);   // leaves a hole - stable ID
-    void clear();                 // clears everything
+    const IconGPU& icon(IconId id) const
+    {
+        return icons_[id];
+    }
+
+    void removeIcon(IconId id); // leaves a hole - stable ID
+    void clear();               // clears everything
 
 private:
-    Ctx ctx_;
+    Ctx                  ctx_;
     std::vector<IconGPU> icons_;
 
     std::unordered_map<std::string, IconId> byPath_;
-    std::vector<std::string> paths_;
+    std::vector<std::string>                paths_;
 
     // Helpers (moved from Texture.cpp)
-    uint32_t findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties) const;
+    uint32_t        findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties) const;
     VkCommandBuffer beginSingleTimeCommands() const;
-    void endSingleTimeCommands(VkCommandBuffer cmd) const;
-    void createBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties,
-        VkBuffer& buffer, VkDeviceMemory& bufferMemory) const;
+    void            endSingleTimeCommands(VkCommandBuffer cmd) const;
+    void createBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer& buffer,
+                      VkDeviceMemory& bufferMemory) const;
     void transitionImageLayout(VkImage image, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout) const;
     void copyBufferToImage(VkBuffer buffer, VkImage image, uint32_t width, uint32_t height) const;
     VkImageView createImageView(VkImage image, VkFormat format) const;

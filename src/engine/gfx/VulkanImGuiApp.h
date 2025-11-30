@@ -1,79 +1,87 @@
 ﻿#pragma once
-#include <vulkan/vulkan_core.h>
-#include <vulkan/vulkan.h>
+#include "engine/gfx/Assets.h"
+#include "game/world/World.h"
+
 #include <imgui.h>
-#include <string>
-#include "Assets.h"
 #include <memory>
-#include "Map.h"
-#include "World.h"
+#include <string>
+#include <vulkan/vulkan.h>
+#include <vulkan/vulkan_core.h>
 
 struct GLFWwindow;
 
 #include <cstdint>
-#include <vector>
 #include <optional>
+#include <vector>
 
-class VulkanImGuiApp {
+class VulkanImGuiApp
+{
 public:
     int run();
     int runSmokeTest();
 
 private:
-    struct QueueFamilyIndices {
+    struct QueueFamilyIndices
+    {
         std::optional<uint32_t> graphicsFamily;
         std::optional<uint32_t> presentFamily;
-        [[nodiscard]] bool isComplete() const { return graphicsFamily.has_value() && presentFamily.has_value(); }
+        [[nodiscard]] bool      isComplete() const
+        {
+            return graphicsFamily.has_value() && presentFamily.has_value();
+        }
     };
 
-    struct SwapChainSupportDetails {
-        VkSurfaceCapabilitiesKHR capabilities{};
+    struct SwapChainSupportDetails
+    {
+        VkSurfaceCapabilitiesKHR        capabilities{};
         std::vector<VkSurfaceFormatKHR> formats;
-        std::vector<VkPresentModeKHR> presentModes;
+        std::vector<VkPresentModeKHR>   presentModes;
     };
 
-    struct FrameSync {
+    struct FrameSync
+    {
         VkSemaphore imageAvailable{};
         VkSemaphore renderFinished{};
-        VkFence inFlight{};
+        VkFence     inFlight{};
     };
 
-    struct ImageWithView {
-        VkImage image{};
+    struct ImageWithView
+    {
+        VkImage     image{};
         VkImageView view{};
     };
 
     // State
     GLFWwindow* window_ = nullptr;
 
-    VkInstance instance_{};
+    VkInstance   instance_{};
     VkSurfaceKHR surface_{};
 
     VkPhysicalDevice physicalDevice_{};
-    VkDevice device_{};
-    VkQueue graphicsQueue_{};
-    VkQueue presentQueue_{};
+    VkDevice         device_{};
+    VkQueue          graphicsQueue_{};
+    VkQueue          presentQueue_{};
 
     VkDebugUtilsMessengerEXT debugMessenger_{};
 
-    VkSwapchainKHR swapchain_{};
-    VkFormat swapchainImageFormat_{};
-    VkExtent2D swapchainExtent_{};
+    VkSwapchainKHR             swapchain_{};
+    VkFormat                   swapchainImageFormat_{};
+    VkExtent2D                 swapchainExtent_{};
     std::vector<ImageWithView> swapchainImages_;
 
-    VkRenderPass renderPass_{};
+    VkRenderPass               renderPass_{};
     std::vector<VkFramebuffer> framebuffers_;
 
-    VkCommandPool commandPool_{};
+    VkCommandPool                commandPool_{};
     std::vector<VkCommandBuffer> commandBuffers_{};
 
     VkDescriptorPool imguiDescriptorPool_{};
 
     std::vector<FrameSync> frames_;
-    uint32_t currentFrame_ = 0;
+    uint32_t               currentFrame_ = 0;
 
     std::unique_ptr<Assets> assets_ = nullptr;
-    std::unique_ptr<World> world_;
+    std::unique_ptr<World>  world_;
 
 private:
     // High-level steps
@@ -104,23 +112,23 @@ private:
     void drawWorld();
 
     // --- Helpery Vulkan używane przy ładowaniu tekstur ---
-    uint32_t findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties);
+    uint32_t        findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties);
     VkCommandBuffer beginSingleTimeCommands();
-    void endSingleTimeCommands(VkCommandBuffer cmd);
-    void createBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties,
-                      VkBuffer& buffer, VkDeviceMemory& bufferMemory);
+    void            endSingleTimeCommands(VkCommandBuffer cmd);
+    void createBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer& buffer,
+                      VkDeviceMemory& bufferMemory);
     void transitionImageLayout(VkImage image, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout);
     void copyBufferToImage(VkBuffer buffer, VkImage image, uint32_t width, uint32_t height);
     VkImageView createImageView(VkImage image, VkFormat format);
 
     // Utility
     static std::vector<const char*> getRequiredExtensions(bool enableValidation);
-    static bool checkValidationLayerSupport(const std::vector<const char*>& layers);
-    static QueueFamilyIndices findQueueFamilies(VkPhysicalDevice device, VkSurfaceKHR surface);
-    static bool isDeviceSuitable(VkPhysicalDevice device, VkSurfaceKHR surface);
-    static SwapChainSupportDetails querySwapChainSupport(VkPhysicalDevice device, VkSurfaceKHR surface);
-    static VkSurfaceFormatKHR chooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& formats);
-    static VkPresentModeKHR choosePresentMode(const std::vector<VkPresentModeKHR>& modes);
-    static VkExtent2D chooseExtent(const VkSurfaceCapabilitiesKHR& caps, GLFWwindow* window);
-    static bool wantValidationLayers();
+    static bool                     checkValidationLayerSupport(const std::vector<const char*>& layers);
+    static QueueFamilyIndices       findQueueFamilies(VkPhysicalDevice device, VkSurfaceKHR surface);
+    static bool                     isDeviceSuitable(VkPhysicalDevice device, VkSurfaceKHR surface);
+    static SwapChainSupportDetails  querySwapChainSupport(VkPhysicalDevice device, VkSurfaceKHR surface);
+    static VkSurfaceFormatKHR       chooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& formats);
+    static VkPresentModeKHR         choosePresentMode(const std::vector<VkPresentModeKHR>& modes);
+    static VkExtent2D               chooseExtent(const VkSurfaceCapabilitiesKHR& caps, GLFWwindow* window);
+    static bool                     wantValidationLayers();
 };

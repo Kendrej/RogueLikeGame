@@ -1,9 +1,11 @@
-#include "../gfx/VulkanImGuiApp.h"
-#include <GLFW/glfw3.h>
-#include <stdexcept>
-#include <iostream>
+#include "engine/gfx/VulkanImGuiApp.h"
 
-static void glfwErrorCallback(int error, const char* description) {
+#include <GLFW/glfw3.h>
+#include <iostream>
+#include <stdexcept>
+
+static void glfwErrorCallback(int error, const char* description)
+{
     std::cerr << "[GLFW] Error " << error << ": " << description << std::endl;
 }
 
@@ -12,10 +14,9 @@ void VulkanImGuiApp::initWindow()
     if (!glfwInit())
         throw std::runtime_error("GLFW init failed");
 
-    // (opcjonalnie, ale polecam mieæ)
-    glfwSetErrorCallback([](int err, const char* desc) {
-        std::cerr << "GLFW Error " << err << ": " << desc << std::endl;
-        });
+    // (opcjonalnie, ale polecam mieï¿½)
+    glfwSetErrorCallback([](int err, const char* desc)
+                         { std::cerr << "GLFW Error " << err << ": " << desc << std::endl; });
 
     glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
     glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
@@ -23,10 +24,12 @@ void VulkanImGuiApp::initWindow()
     glfwWindowHint(GLFW_AUTO_ICONIFY, GLFW_TRUE);
 
     GLFWmonitor* monitor = glfwGetPrimaryMonitor();
-    if (!monitor) throw std::runtime_error("No primary monitor");
+    if (!monitor)
+        throw std::runtime_error("No primary monitor");
 
     const GLFWvidmode* mode = glfwGetVideoMode(monitor);
-    if (!mode) throw std::runtime_error("No video mode");
+    if (!mode)
+        throw std::runtime_error("No video mode");
 
     glfwWindowHint(GLFW_RED_BITS, mode->redBits);
     glfwWindowHint(GLFW_GREEN_BITS, mode->greenBits);
@@ -39,4 +42,3 @@ void VulkanImGuiApp::initWindow()
 
     glfwSetWindowUserPointer(window_, this);
 }
-
