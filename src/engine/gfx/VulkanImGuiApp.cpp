@@ -195,16 +195,26 @@ void VulkanImGuiApp::mainLoop()
               if (player->isMeleeMode())
               {
                 if (player->canMelee()) {
-                    world_->performMeleeAttack(*player);
+                    if (!player->getAnimationController()) {
+                        world_->performMeleeAttack(*player);
+                    }
+                    else {
+						player->setIsPerformingMeleeAttack(true);
+                    }
                     player->startMeleeCooldown();
                 }
               }
               else if (player->isRangedMode()) {
                     if (player->canShoot())
-                  {
-                      world_->performRangedAttack(*player);  
-                      player->startRangedCooldown();
-                  }
+                    {
+                        if (!player->getAnimationController()) {
+                            world_->performRangedAttack(*player);
+                        }
+                        else {
+                            player->setIsPerformingRangedAttack(true);
+                        }
+                        player->startRangedCooldown();
+                    }
               }
 
           }

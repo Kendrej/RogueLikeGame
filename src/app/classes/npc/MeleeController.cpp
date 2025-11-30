@@ -63,7 +63,12 @@ void MeleeController::update(Npc &npc, World &world, float dt) {
             npc.applyInput(ImVec2(0.0f, 0.0f));
             npc.setVelocity(ImVec2(0.0f, 0.0f));
             if (npc.canMelee()) {
-                world.performMeleeAttack(npc);
+                if (!npc.getAnimationController()) {
+                    world.performMeleeAttack(npc);
+                }
+                else {
+					npc.setIsPerformingMeleeAttack(true);
+                }
                 npc.startMeleeCooldown();
             }
             break;

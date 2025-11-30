@@ -55,10 +55,11 @@ void AnimationController::adddeathAnimation(const int squareSize, const std::str
 
 
 
-void AnimationController::addMeleeAttackAnimation(const int squareSize,
+void AnimationController::addMeleeAttackAnimation(const int squareSize, const int meleeAtackFrame,
 												const std::string meleeAttackRightPath, const int meleeAttackRightFrameAmount,
 												const std::string meleeAttackLeftPath, const int meleeAttackLeftFrameAmount)
 {
+	meleeAttackFrame_ = meleeAtackFrame;
 	meleeAttackRightFrameAmount_ = meleeAttackRightFrameAmount;
 	meleeAttackLeftFrameAmount_ = meleeAttackLeftFrameAmount;
 
@@ -68,10 +69,11 @@ void AnimationController::addMeleeAttackAnimation(const int squareSize,
 	int meleeAttackLeftId = assets_->loadSpriteSheet(meleeAttackLeftPath, meleeAttackLeftFrameAmount, squareSize, squareSize);
 	setAnimationIconId(AnimationType::MeleeAttackLeft, meleeAttackLeftId);
 }
-void AnimationController::addRangedAttackAnimation(const int squareSize,
-	const std::string rangedAttackRightPath, const int rangedAttackRightFrameAmount,
-	const std::string rangedAttackLeftPath, const int rangedAttackLeftFrameAmount)
+void AnimationController::addRangedAttackAnimation(const int squareSize, const int rangedAttackFrame,
+												const std::string rangedAttackRightPath, const int rangedAttackRightFrameAmount,
+												const std::string rangedAttackLeftPath, const int rangedAttackLeftFrameAmount)
 {
+	rangedAttackFrame_ = rangedAttackFrame;
 	rangedAttackRightFrameAmount_ = rangedAttackRightFrameAmount;
 	rangedAttackLeftFrameAmount_ = rangedAttackLeftFrameAmount;
 

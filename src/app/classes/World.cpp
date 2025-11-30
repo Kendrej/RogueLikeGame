@@ -12,6 +12,7 @@
 #include "Map.h"
 #include "AnimationController.h"
 #include "Projectile.h"
+#include "MathUtils.h"
 
 StaticEntity& World::spawnTile(const std::string &texturePath, uint32_t width, uint32_t height, float pos_x, float pos_y, bool solid) {
     const int entityId = assets_ ? assets_->getOrLoadIcon(texturePath) : -1;
@@ -62,8 +63,7 @@ Projectile& World::spawnProjectile(uint32_t width,uint32_t height,
 
 void World::performMeleeAttack(LivingEntity& attacker)
 {
-	attacker.setIsPerformingMeleeAttack(true);
-    const float range  = attacker.getMeleeRange();
+    const float range = attacker.getMeleeRange();
     const int   damage = attacker.getMeleeDamage();
 
     // brak zasięgu albo dmg = brak ataku
@@ -105,14 +105,16 @@ void World::performMeleeAttack(LivingEntity& attacker)
             attackY = pos.y;
             attackW = range;
             attackH = h;
-        } else {
+        }
+        else {
             // w lewo
             attackX = pos.x - range;
             attackY = pos.y;
             attackW = range;
             attackH = h;
         }
-    } else {
+    }
+    else {
         // pionowo
         if (dir.y >= 0.0f) {
             // w dół
@@ -120,7 +122,8 @@ void World::performMeleeAttack(LivingEntity& attacker)
             attackY = pos.y + h;
             attackW = w;
             attackH = range;
-        } else {
+        }
+        else {
             // w górę
             attackX = pos.x;
             attackY = pos.y - range;
@@ -160,14 +163,11 @@ void World::performMeleeAttack(LivingEntity& attacker)
 }
 
 void World::performRangedAttack(LivingEntity& attacker) {
-    attacker.setIsPerformingRangedAttack(true);
-
     const std::string projTexture = "assets/design/Arrow01.png";
     const uint32_t projW = 32;
     const uint32_t projH = 32;
     const float projSpeed = 600.0f;
     const float projLifetime = 3.0f;
-    const float spawnOffset = attacker.getWidth() * 0.5f + 10.0f;
 
     ImVec2 pos = attacker.getPosition();
     ImVec2 attackerCenter{
@@ -185,7 +185,7 @@ void World::performRangedAttack(LivingEntity& attacker) {
             attacker.setFacingDir(dir);
         }
     }
-
+    
     // Jeśli nadal zerowy, użyj velocity
     if (dir.x == 0.0f && dir.y == 0.0f) {
         dir = attacker.getVelocity();
@@ -201,10 +201,18 @@ void World::performRangedAttack(LivingEntity& attacker) {
         // Default direction if no direction is set
         dir = ImVec2(1.0f, 0.0f);
     }
+    bool facingRight = (dir.x >= 0.0f);
+    if (auto* ac = attacker.getAnimationController()) {
+        facingRight = ac->isFacingRight();
+    }
+
+    const float projHalfW = static_cast<float>(projW) * 0.5f;
+    const float projHalfH = static_cast<float>(projH) * 0.5f;
+    const float offsetX = (static_cast<float>(attacker.getWidth()) * 0.5f) + projHalfW ;
 
     ImVec2 spawnPos{
-     attackerCenter.x + dir.x * spawnOffset,
-        attackerCenter.y + dir.y * spawnOffset
+        attackerCenter.x + (facingRight ? offsetX : -offsetX),
+        attackerCenter.y - projHalfH
     };
 
     ImVec2 velocity{
@@ -383,6 +391,16 @@ float overlapLeft = std::max(0.0f, std::min(pos.x + pw, g.posX + gw) - std::max(
     return -1;
 }
 
+ImVec2 World::getDirToPlayer(LivingEntity* entity)
+{
+    ImVec2 lePos = entity->getPosition();
+    ImVec2 leCenter{ lePos.x + entity->getWidth() * 0.5f, lePos.y + entity->getHeight() * 0.5f };
+    ImVec2 pPos = player_->getPosition();
+    ImVec2 pCenter{ pPos.x + player_->getWidth() * 0.5f, pPos.y + player_->getHeight() * 0.5f };
+    ImVec2 dirToPlayer = normalize(ImVec2{ pCenter.x - leCenter.x, pCenter.y - leCenter.y });
+    return dirToPlayer;
+}
+
 void World::clampToScreen(Entity &mover) {
     if (screenWidth_ <= 0.0f || screenHeight_ <= 0.0f) return;
     
@@ -411,12 +429,18 @@ void World::update(float dt) {
 				return;
             }
             else if (player_->isPerformingMeleeAttack()||animationController->isMeleeAttackAnimation()) {
-                player_->setIsPerformingMeleeAttack(false);
 				animationController->setToMeleeAttack();
+                if (animationController->isInAttackFrame() && player_->isPerformingMeleeAttack()) {
+                    this->performMeleeAttack(*player_);
+					player_->setIsPerformingMeleeAttack(false);
+                }
             }
             else if (player_->isPerformingRangedAttack()||animationController->isRangedAttackAnimation()) {
-                player_->setIsPerformingRangedAttack(false);
 				animationController->setToRangedAttack();
+                if (animationController->isInRangedAttackFrame() && player_->isPerformingRangedAttack()) {
+                    this->performRangedAttack(*player_);
+                    player_->setIsPerformingRangedAttack(false);
+                }
             }
             else if (player_->isDamaged()) {
 				player_->setDamaged(false);
@@ -444,12 +468,20 @@ void World::update(float dt) {
                     continue;
                 }
                 else if (livingEntity->isPerformingMeleeAttack() || animationController->isMeleeAttackAnimation()) {
-                    livingEntity->setIsPerformingMeleeAttack(false);
                     animationController->setToMeleeAttack();
+                    if (animationController->isInAttackFrame() && livingEntity->isPerformingMeleeAttack()) {
+                        this->performMeleeAttack(*livingEntity);
+                        livingEntity->setIsPerformingMeleeAttack(false);
+                    }
                 }
                 else if (livingEntity->isPerformingRangedAttack() || animationController->isRangedAttackAnimation()) {
-                    livingEntity->setIsPerformingRangedAttack(false);
-					animationController->setToRangedAttack();
+                    animationController->setToRangedAttack();
+                    if (animationController->isInRangedAttackFrame() && livingEntity->isPerformingRangedAttack()) {
+                        // Ensure NPC's facingDir points at player right before spawning projectile
+                        livingEntity->setFacingDir(getDirToPlayer(livingEntity));
+                        this->performRangedAttack(*livingEntity);
+                        livingEntity->setIsPerformingRangedAttack(false);
+                    }
                 }
                 else if (livingEntity->isDamaged()) {
                     livingEntity->setDamaged(false);
@@ -639,7 +671,7 @@ void World::spawnNpcs() {
                 "assets/animations/orc/Orc-Idle-right.png", 6, "assets/animations/orc/Orc-Idle-left.png", 6,
                 "assets/animations/orc/Orc-Hurt-right.png", 4, "assets/animations/orc/Orc-Hurt-left.png", 4,
                 "assets/animations/orc/Orc-Death-right.png", 4, "assets/animations/orc/Orc-Death-left.png", 4);
-            npc.createMeleeAttackAnimation(100, "assets/animations/orc/Orc-Attack-right.png", 6, "assets/animations/orc/Orc-Attack-left.png", 6);
+            npc.createMeleeAttackAnimation(100, 4, "assets/animations/orc/Orc-Attack-right.png", 6, "assets/animations/orc/Orc-Attack-left.png", 6);
 
         }
         else if (t == 'r') {
@@ -652,7 +684,7 @@ void World::spawnNpcs() {
                 "assets/animations/skeletonArcher/SkeletonArcher-Idle-right.png", 6, "assets/animations/skeletonArcher/SkeletonArcher-Idle-left.png", 6,
                 "assets/animations/skeletonArcher/SkeletonArcher-Hurt-right.png", 4, "assets/animations/skeletonArcher/SkeletonArcher-Hurt-left.png", 4,
                 "assets/animations/skeletonArcher/SkeletonArcher-Death-right.png", 4, "assets/animations/skeletonArcher/SkeletonArcher-Death-left.png", 4);
-            npc.createRangedAttackAnimation(100, "assets/animations/skeletonArcher/SkeletonArcher-RangeAttack-right.png", 9, "assets/animations/skeletonArcher/SkeletonArcher-RangeAttack-left.png", 9);
+            npc.createRangedAttackAnimation(100, 7, "assets/animations/skeletonArcher/SkeletonArcher-RangeAttack-right.png", 9, "assets/animations/skeletonArcher/SkeletonArcher-RangeAttack-left.png", 9);
         }
     });
     maps_[currentMapIndex]->setVisited(true);
