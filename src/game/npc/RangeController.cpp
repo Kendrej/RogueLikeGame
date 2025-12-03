@@ -33,23 +33,37 @@ void RangeController::update(Npc& npc, World& world, float dt)
     npc.setMaxSpeed(maxSpeed);
     npc.setAcceleration(accel);
 
-    float       attackRange = npc.getRangedRange();
+    float attackRange = npc.getRangedRange();
+
+    Npc::State currentState = npc.getState();
 
     if (dist > aggroRange)
     {
         npc.setState(Npc::State::Idle);
     }
-    else if (dist <= attackRange * 0.8f)
+    else if (currentState == Npc::State::Attack)
     {
-        npc.setState(Npc::State::Kite);
+        if (dist <= attackRange * 0.7f)
+            npc.setState(Npc::State::Kite);
+        else if (dist > attackRange * 1.3f)
+            npc.setState(Npc::State::Chase);
     }
-    else if (dist <= attackRange * 1.2f)
+    else if (currentState == Npc::State::Kite)
     {
-        npc.setState(Npc::State::Attack);
+        if (dist > attackRange * 0.9f && dist <= attackRange * 1.2f)
+            npc.setState(Npc::State::Attack);
+        else if (dist > attackRange * 1.4f)
+            npc.setState(Npc::State::Chase);
     }
-    else
+    else if (currentState == Npc::State::Chase)
     {
-        npc.setState(Npc::State::Chase);
+        if (dist <= attackRange * 1.1f)
+            npc.setState(Npc::State::Attack);
+    }
+    else if (currentState == Npc::State::Idle)
+    {
+        if (dist <= aggroRange * 0.95f)
+            npc.setState(Npc::State::Chase);
     }
 
     ImVec2 dirToPlayer = normalize(ImVec2{playerCenter.x - npcCenter.x, playerCenter.y - npcCenter.y});
