@@ -285,13 +285,16 @@ GatewaySide World::getSide(int gatewayIndex)
     int            tileX = static_cast<int>(g.posX / 64.0f);
     int            tileY = static_cast<int>((g.posY - UI_TOP_BAR_HEIGHT) / 64.0f); // Account for UI offset
 
+    int mapRows = maps_[currentMapIndex]->getRows();
+    int mapCols = maps_[currentMapIndex]->getColumns();
+
     if (tileY <= 1)
         return GatewaySide::Top;
-    if (tileY >= static_cast<int>((screenHeight_ - UI_TOP_BAR_HEIGHT) / 64.0f) - 2)
+    if (tileY >= mapRows - 2)
         return GatewaySide::Bottom;
     if (tileX <= 1)
         return GatewaySide::Left;
-    if (tileX >= static_cast<int>(screenWidth_ / 64.0f) - 2)
+    if (tileX >= mapCols - 2)
         return GatewaySide::Right;
 
     return GatewaySide::Top;
@@ -776,8 +779,7 @@ void World::spawnNpcs()
             const float y = i * static_cast<float>(64) + UI_TOP_BAR_HEIGHT; // Add UI offset
             if (t == 'm')
             {
-                auto& npc = this->spawnNpc("assets/characters/angel.png", 64, 64, x,
-                                           y + World::UI_TOP_BAR_HEIGHT, // Add UI offset to NPC spawn
+                auto& npc = this->spawnNpc("assets/characters/angel.png", 64, 64, x, y,
                                            10, std::make_unique<MeleeController>());
                 npc.createAnimationController(
                     assets_, 100, "assets/animations/orc/Orc-Walk-right.png", 8,
@@ -790,8 +792,7 @@ void World::spawnNpcs()
             }
             else if (t == 'r')
             {
-                auto& npc = this->spawnNpc("assets/characters/hero.png", 64, 64, x,
-                                           y + World::UI_TOP_BAR_HEIGHT, // Add UI offset to NPC spawn
+                auto& npc = this->spawnNpc("assets/characters/hero.png", 64, 64, x, y,
                                            10, std::make_unique<RangeController>());
                 npc.createAnimationController(assets_, 100,
                                               "assets/animations/skeletonArcher/SkeletonArcher-Walk-right.png", 8,
@@ -813,23 +814,28 @@ void World::spawnNpcs()
 void World::spawnPlayerInNewScene(GatewaySide entrySide, float sourceGatewayX, float sourceGatewayY)
 {
     constexpr float tile = 64.0f;
-    // std::cout << screenHeight_;
+
+    int mapRows = maps_[currentMapIndex]->getRows();
+    int mapCols = maps_[currentMapIndex]->getColumns();
+    float mapWidth = mapCols * tile;
+    float mapHeight = mapRows * tile;
+
     switch (entrySide)
     {
     case GatewaySide::Top:
         // Entering from top, exit at bottom - spawn as close to bottom edge as possible
         sourceGatewayX = player_->getPosition().x;
-        player_->setPosition(sourceGatewayX, screenHeight_ - tile - tile); // 1080 - sciana - gracz
+        player_->setPosition(sourceGatewayX, mapHeight + UI_TOP_BAR_HEIGHT - tile - tile);
         break;
     case GatewaySide::Bottom:
         // Entering from bottom, exit at top - spawn as close to top edge as possible (after UI bar)
         sourceGatewayX = player_->getPosition().x;
-        player_->setPosition(sourceGatewayX, UI_TOP_BAR_HEIGHT + tile); // sciana + pasek
+        player_->setPosition(sourceGatewayX, UI_TOP_BAR_HEIGHT + tile);
         break;
     case GatewaySide::Left:
         // Entering from left, exit at right - spawn as close to right edge as possible
         sourceGatewayY = player_->getPosition().y;
-        player_->setPosition(screenWidth_ - tile - tile, sourceGatewayY);
+        player_->setPosition(mapWidth - tile - tile, sourceGatewayY);
         break;
     case GatewaySide::Right:
         // Entering from right, exit at left - spawn as close to left edge as possible

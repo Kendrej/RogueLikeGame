@@ -32,8 +32,9 @@ void setupGame(World& world)
     player.createRangedAttackAnimation(100, 8, "assets/animations/soldier/Soldier-RangeAttack-right.png", 9,
                                        "assets/animations/soldier/Soldier-RangeAttack-left.png", 9);
 
-    auto& npc1 = world.spawnNpc("assets/characters/angel.png", 64, 64, 780.0f,
-                                180.0f + World::UI_TOP_BAR_HEIGHT, // Add UI offset to NPC spawn
+
+    auto& npc1 = world.spawnNpc("assets/characters/hero.png", 64, 64, 12 * 64.0f,
+                                3 * 64.0f + World::UI_TOP_BAR_HEIGHT,
                                 10, std::make_unique<MeleeController>());
     npc1.createAnimationController(
         world.getAssets(), 100, "assets/animations/orc/Orc-Walk-right.png", 8,
@@ -44,9 +45,8 @@ void setupGame(World& world)
     npc1.createMeleeAttackAnimation(100, 4, "assets/animations/orc/Orc-Attack-right.png", 6,
                                     "assets/animations/orc/Orc-Attack-left.png", 6);
 
-    auto& npc2 = world.spawnNpc("assets/characters/hero.png", 64, 64, 1080.0f,
-                                180.0f + World::UI_TOP_BAR_HEIGHT, // Add UI offset to NPC spawn
-                                10, std::make_unique<RangeController>());
+    auto& npc2 = world.spawnNpc("assets/characters/hero.png", 64, 64, 17 * 64.0f,
+                                3 * 64.0f + World::UI_TOP_BAR_HEIGHT, 10, std::make_unique<RangeController>());
     npc2.setRangedRange(300.0f);
     npc2.createAnimationController(world.getAssets(), 100,
                                    "assets/animations/skeletonArcher/SkeletonArcher-Walk-right.png", 8,
