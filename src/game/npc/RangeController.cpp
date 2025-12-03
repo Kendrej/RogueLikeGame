@@ -1,10 +1,10 @@
 #include "RangeController.h"
 
-#include "engine/gfx/Assets.h"
 #include "utils/MathUtils.h"
 #include "game/npc/Npc.h"
 #include "game/entities/Player.h"
 #include "game/world/World.h"
+
 
 void RangeController::update(Npc& npc, World& world, float dt)
 {
@@ -17,9 +17,9 @@ void RangeController::update(Npc& npc, World& world, float dt)
     ImVec2 npcPos    = npc.getPosition();
     ImVec2 playerPos = player->getPosition();
 
-    ImVec2 npcCenter{npcPos.x + npc.getWidth() * 0.5f, npcPos.y + npc.getHeight() * 0.5f};
+    ImVec2 npcCenter{npcPos.x + static_cast<float>(npc.getWidth()) * 0.5f, npcPos.y + static_cast<float>(npc.getHeight()) * 0.5f};
 
-    ImVec2 playerCenter{playerPos.x + player->getWidth() * 0.5f, playerPos.y + player->getHeight() * 0.5f};
+    ImVec2 playerCenter{playerPos.x + static_cast<float>(player->getWidth()) * 0.5f, playerPos.y + static_cast<float>(player->getHeight()) * 0.5f};
     float  dist = distance(npcCenter, playerCenter);
 
     const float aggroRange = 500.0f;
@@ -34,7 +34,6 @@ void RangeController::update(Npc& npc, World& world, float dt)
     npc.setAcceleration(accel);
 
     float       attackRange = npc.getRangedRange();
-    const float tolerance   = 30.0f;
 
     if (dist > aggroRange)
     {
@@ -66,11 +65,13 @@ void RangeController::update(Npc& npc, World& world, float dt)
     case Npc::State::Kite:
     {
         ImVec2 stepBack = normalize(ImVec2{npcCenter.x - playerCenter.x, npcCenter.y - playerCenter.y});
-        npc.applyInput(stepBack);
+
+        const float checkDist = 50.0f;
+        ImVec2 avoidDir = findAvoidanceDirection(npc, world, stepBack, checkDist);
+        npc.applyInput(avoidDir);
 
         if (npc.canShoot())
         {
-            // Ustaw kierunek patrzenia w stron� gracza przed strzelaniem
             npc.setFacingDir(dirToPlayer);
             if (!npc.getAnimationController())
             {
@@ -93,7 +94,6 @@ void RangeController::update(Npc& npc, World& world, float dt)
         npc.setVelocity(ImVec2(0.0f, 0.0f));
         if (npc.canShoot())
         {
-            // Ustaw kierunek patrzenia w stron� gracza przed strzelaniem
             npc.setFacingDir(dirToPlayer);
             if (!npc.getAnimationController())
             {
@@ -110,7 +110,9 @@ void RangeController::update(Npc& npc, World& world, float dt)
 
     case Npc::State::Chase:
     {
-        npc.applyInput(dirToPlayer);
+        const float checkDist = 50.0f;
+        ImVec2 avoidDir = findAvoidanceDirection(npc, world, dirToPlayer, checkDist);
+        npc.applyInput(avoidDir);
         break;
     }
     }
