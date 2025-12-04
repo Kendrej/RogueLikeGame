@@ -11,6 +11,7 @@
 #include <string>
 #include <vector>
 
+enum class NpcType;
 class Projectile;
 class Assets;
 class StaticEntity;
@@ -26,11 +27,9 @@ public:
     StaticEntity& spawnTile(const std::string& texturePath, uint32_t width, uint32_t height, float pos_x, float pos_y,
                             bool solid);
 
-    Player& spawnPlayer(const std::string& texturePath, uint32_t width, uint32_t height, float pos_x, float pos_y,
-                        int maxHp);
+    Player& spawnPlayer(ImVec2 pos);
 
-    Npc& spawnNpc(const std::string& texturePath, uint32_t width, uint32_t height, float pos_x, float pos_y, int maxHp,
-                  std::unique_ptr<INpcController> controller);
+    Npc& spawnNpc(NpcType type, ImVec2 pos);
 
     Projectile& spawnProjectile(uint32_t width, uint32_t height, float pos_x, float pos_y, ImVec2 velocity,
                                 float lifetime, int damage, LivingEntity* owner, const std::string& texturePath);
