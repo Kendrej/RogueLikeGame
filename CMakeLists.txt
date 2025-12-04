@@ -59,8 +59,10 @@ add_executable(RogueLikeGame
         src/game/entities/Projectile.h
         src/game/combat/CombatUtils.h
         src/game/combat/CombatUtils.cpp
-        src/game/npc/NpcFactory.cpp
-        src/game/npc/NpcFactory.h
+        src/game/factory/NpcFactory.cpp
+        src/game/factory/NpcFactory.h
+        src/game/factory/PlayerFactory.cpp
+        src/game/factory/PlayerFactory.h
 
 )
 

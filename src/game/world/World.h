@@ -27,8 +27,7 @@ public:
     StaticEntity& spawnTile(const std::string& texturePath, uint32_t width, uint32_t height, float pos_x, float pos_y,
                             bool solid);
 
-    Player& spawnPlayer(const std::string& texturePath, uint32_t width, uint32_t height, float pos_x, float pos_y,
-                        int maxHp);
+    Player& spawnPlayer(ImVec2 pos);
 
     Npc& spawnNpc(NpcType type, ImVec2 pos);
 

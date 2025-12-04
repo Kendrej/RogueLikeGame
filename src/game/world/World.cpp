@@ -3,12 +3,13 @@
 #include "game/entities/animation/AnimationController.h"
 #include "engine/gfx/Assets.h"
 #include "game/entities/LivingEntity.h"
+#include "../factory/PlayerFactory.h"
 #include "game/world/Map.h"
 #include "utils/MathUtils.h"
 #include "game/entities/Player.h"
 #include "game/entities/Projectile.h"
 #include "game/entities/StaticEntity.h"
-#include "game/npc/NpcFactory.h"
+#include "../factory/NpcFactory.h"
 
 #include <algorithm>
 #include <iostream>
@@ -22,22 +23,9 @@ StaticEntity& World::spawnTile(const std::string& texturePath, uint32_t width, u
     return addEntity<StaticEntity>(entityId, width, height, pos_x, pos_y, solid);
 }
 
-Player& World::spawnPlayer(const std::string& texturePath, uint32_t width, uint32_t height, float pos_x, float pos_y,
-                           int maxHp)
+Player& World::spawnPlayer(ImVec2 pos)
 {
-    const int playerId = assets_ ? assets_->getOrLoadIcon(texturePath) : -1;
-    player_            = std::make_unique<Player>(playerId, width, height, pos_x, pos_y, maxHp);
-    Player& p          = *player_;
-
-    p.setSolid(true);
-    p.setRangedDamage(5);
-    p.setRangedRange(200.0f);
-    p.setRangedCooldown(0.7f);
-
-    p.setMeleeDamage(5);
-    p.setMeleeRange(50.0f);
-    p.setMeleeCooldown(0.7f);
-
+    player_ = std::unique_ptr<Player>(PlayerFactory::createPlayer(*this, pos));
     return *player_;
 }
 

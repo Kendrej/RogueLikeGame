@@ -1,7 +1,7 @@
 #include "NpcFactory.h"
-#include "Npc.h"
-#include "MeleeController.h"
-#include "RangeController.h"
+#include "../npc/Npc.h"
+#include "../npc/MeleeController.h"
+#include "../npc/RangeController.h"
 #include "game/world/World.h"
 #include <memory>
 
