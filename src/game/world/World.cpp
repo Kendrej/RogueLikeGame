@@ -8,8 +8,7 @@
 #include "game/entities/Player.h"
 #include "game/entities/Projectile.h"
 #include "game/entities/StaticEntity.h"
-#include "game/npc/MeleeController.h"
-#include "game/npc/RangeController.h"
+#include "game/npc/NpcFactory.h"
 
 #include <algorithm>
 #include <iostream>
@@ -42,17 +41,11 @@ Player& World::spawnPlayer(const std::string& texturePath, uint32_t width, uint3
     return *player_;
 }
 
-// do refaktoryzacji
-Npc& World::spawnNpc(const std::string& texturePath, uint32_t width, uint32_t height, float pos_x, float pos_y,
-                     int maxHp, std::unique_ptr<INpcController> controller)
+Npc& World::spawnNpc(NpcType type, ImVec2 pos)
 {
-    const int npcId = assets_ ? assets_->getOrLoadIcon(texturePath) : -1;
-    Npc&      n     = addEntity<Npc>(npcId, width, height, pos_x, pos_y, maxHp);
-    n.setWorld(this);
-    n.setController(std::move(controller));
-    n.setSolid(true);
-
-    return n;
+    Npc* npc = NpcFactory::createNpc(type, *this, pos);
+    entities_.emplace_back(npc);
+    return *npc;
 }
 
 Projectile& World::spawnProjectile(uint32_t width, uint32_t height, float pos_x, float pos_y, ImVec2 velocity,
@@ -776,36 +769,15 @@ void World::spawnNpcs()
         [&](int i, int j, char t)
         {
             const float x = j * static_cast<float>(64);
-            const float y = i * static_cast<float>(64) + UI_TOP_BAR_HEIGHT; // Add UI offset
+            const float y = i * static_cast<float>(64) + UI_TOP_BAR_HEIGHT;
+
             if (t == 'm')
             {
-                auto& npc = this->spawnNpc("assets/characters/angel.png", 64, 64, x, y,
-                                           10, std::make_unique<MeleeController>());
-                npc.createAnimationController(
-                    assets_, 100, "assets/animations/orc/Orc-Walk-right.png", 8,
-                    "assets/animations/orc/Orc-Walk-left.png", 8, "assets/animations/orc/Orc-Idle-right.png", 6,
-                    "assets/animations/orc/Orc-Idle-left.png", 6, "assets/animations/orc/Orc-Hurt-right.png", 4,
-                    "assets/animations/orc/Orc-Hurt-left.png", 4, "assets/animations/orc/Orc-Death-right.png", 4,
-                    "assets/animations/orc/Orc-Death-left.png", 4);
-                npc.createMeleeAttackAnimation(100, 4, "assets/animations/orc/Orc-Attack-right.png", 6,
-                                               "assets/animations/orc/Orc-Attack-left.png", 6);
+                spawnNpc(NpcType::Orc, {x, y});
             }
             else if (t == 'r')
             {
-                auto& npc = this->spawnNpc("assets/characters/hero.png", 64, 64, x, y,
-                                           10, std::make_unique<RangeController>());
-                npc.createAnimationController(assets_, 100,
-                                              "assets/animations/skeletonArcher/SkeletonArcher-Walk-right.png", 8,
-                                              "assets/animations/skeletonArcher/SkeletonArcher-Walk-left.png", 8,
-                                              "assets/animations/skeletonArcher/SkeletonArcher-Idle-right.png", 6,
-                                              "assets/animations/skeletonArcher/SkeletonArcher-Idle-left.png", 6,
-                                              "assets/animations/skeletonArcher/SkeletonArcher-Hurt-right.png", 4,
-                                              "assets/animations/skeletonArcher/SkeletonArcher-Hurt-left.png", 4,
-                                              "assets/animations/skeletonArcher/SkeletonArcher-Death-right.png", 4,
-                                              "assets/animations/skeletonArcher/SkeletonArcher-Death-left.png", 4);
-                npc.createRangedAttackAnimation(
-                    100, 7, "assets/animations/skeletonArcher/SkeletonArcher-RangeAttack-right.png", 9,
-                    "assets/animations/skeletonArcher/SkeletonArcher-RangeAttack-left.png", 9);
+                spawnNpc(NpcType::Skeleton_Archer, {x, y});
             }
         });
     maps_[currentMapIndex]->setVisited(true);
