@@ -49,12 +49,20 @@ bool Map::loadFromTmxFile(const std::string& path, Assets *assets)
 
     gidToTileInfo_.clear();
 
+    auto tileCount = mapTmx.getTileCount();
+    auto tileSize  = mapTmx.getTileSize();
+    mapWidth  = static_cast<float>(mapTmx.getTileCount().x * mapTmx.getTileSize().x);
+    mapHeight = static_cast<float>(mapTmx.getTileCount().y * mapTmx.getTileSize().y);
+
+    rows = tileCount.y;
+    columns = tileCount.x;
+
     const auto& tilesets = mapTmx.getTilesets();
 
     for (const auto& ts : tilesets)
     {
         std::uint32_t firstGID = ts.getFirstGID();
-        auto          tileSize = ts.getTileSize(); // 64x64
+        tileSize = ts.getTileSize(); // 64x64
 
         const auto& tiles = ts.getTiles(); // <tile id="..."><image .../></tile>
 
@@ -74,11 +82,22 @@ bool Map::loadFromTmxFile(const std::string& path, Assets *assets)
 
             TileInfo info;
             info.textureId = textureId;
-            info.texX      = 0; // cały obrazek
-            info.texY      = 0;
-            info.texWidth  = tileSize.x; // 64
+            info.texX = 0; // cały obrazek
+            info.texY = 0;
+            info.texWidth = tileSize.x; // 64
             info.texHeight = tileSize.y; // 64
-
+            info.solid = false;
+            for (const auto& prop : tile.properties)
+            {
+                if (prop.getName() == "solid" && prop.getBoolValue())
+                {
+                    info.solid = true;
+                }
+                else if (prop.getName() == "door" && prop.getBoolValue())
+                {
+                    info.door = true;
+                }
+            }
             gidToTileInfo_[gid] = info;
         }
     }

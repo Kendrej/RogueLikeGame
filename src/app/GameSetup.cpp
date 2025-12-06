@@ -5,12 +5,16 @@
 
 void setupGame(World& world)
 {
-    world.addMapfromTmx("assets/maps/map.tmx");
+    world.addMapfromTmx("assets/maps/map0.tmx");
+    world.addMapfromTmx("assets/maps/map1.tmx");
+    world.addMapfromTmx("assets/maps/map2.tmx");
 
-    world.addMap("assets/maps/map0.txt");
-    world.addMap("assets/maps/map1.txt");
-    world.addMap("assets/maps/map2.txt");
-    world.addMap("assets/maps/map3.txt");
+    //world.addMap("assets/maps/map0.txt");
+    //world.addMap("assets/maps/map1.txt");
+    //world.addMap("assets/maps/map2.txt");
+    world.addMapfromTmx("assets/maps/map3.tmx");
+
+    //world.addMap("assets/maps/map3.txt");
 
     world.buildFromTmxMap();
     //world.buildFromMap("assets/design/wall.png", "assets/design/floor.png", "assets/design/door.png", 64, 64);

@@ -25,13 +25,16 @@ struct Gateway
 
 struct TileInfo
 {
-    int textureId; // ID tekstury z Assets
+    int textureId = -1; // ID tekstury z Assets
 
     // prostok¹t w tej teksturze (w pikselach)
-    uint32_t texX; // lewy górny róg kafelka w teksturze
-    uint32_t texY;
-    uint32_t texWidth;  // zwykle 64
-    uint32_t texHeight; // zwykle 64
+    uint32_t texX = 0; // lewy górny róg kafelka w teksturze
+    uint32_t texY = 0;
+    uint32_t texWidth = 0; // zwykle 64
+    uint32_t texHeight = 0; // zwykle 64
+
+    bool solid = false; // czy kafelek jest "sztywny" (kolizje)
+    bool door  = false; // czy kafelek jest drzwiami
 };
 
 
@@ -104,5 +107,7 @@ private:
     std::vector<std::vector<char>> grid;
     std::vector<Gateway> gateways_;
     tmx::Map mapTmx;
+    float mapWidth = 0.f;
+    float mapHeight = 0.f;
     std::unordered_map<std::uint32_t, TileInfo> gidToTileInfo_;
 };

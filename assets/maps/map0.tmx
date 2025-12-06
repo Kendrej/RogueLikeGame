@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<map version="1.10" tiledversion="1.11.2" orientation="orthogonal" renderorder="right-down" width="30" height="16" tilewidth="64" tileheight="64" infinite="0" nextlayerid="2" nextobjectid="1">
+<map version="1.10" tiledversion="1.11.2" orientation="orthogonal" renderorder="right-down" width="30" height="16" tilewidth="64" tileheight="64" infinite="0" nextlayerid="3" nextobjectid="5">
  <tileset firstgid="1" source="../tilesets/roguelike.tsx"/>
- <layer id="1" name="Tile Layer 1" width="30" height="16">
+ <layer id="1" name="mapa" width="30" height="16">
   <data encoding="csv">
 4,4,4,4,4,4,4,4,4,4,4,4,4,4,2,2,4,4,4,4,4,4,4,4,4,4,4,4,4,4,
 4,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,4,
@@ -21,4 +21,26 @@
 4,4,4,4,4,4,4,4,4,4,4,4,4,4,1,1,4,4,4,4,4,4,4,4,4,4,4,4,4,4
 </data>
  </layer>
+ <objectgroup id="2" name="gateways">
+  <object id="1" name="1" x="896" y="0" width="64" height="64">
+   <properties>
+    <property name="target" type="int" value="1"/>
+   </properties>
+  </object>
+  <object id="2" name="3" x="896" y="960" width="64" height="64">
+   <properties>
+    <property name="target" type="int" value="3"/>
+   </properties>
+  </object>
+  <object id="3" name="1" x="960" y="0" width="64" height="64">
+   <properties>
+    <property name="target" type="int" value="1"/>
+   </properties>
+  </object>
+  <object id="4" name="3" x="960" y="960" width="64" height="64">
+   <properties>
+    <property name="target" type="int" value="3"/>
+   </properties>
+  </object>
+ </objectgroup>
 </map>
