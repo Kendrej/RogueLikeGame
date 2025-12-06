@@ -4,6 +4,7 @@
 #include <fstream>
 #include <functional>
 #include <iostream>
+#include "engine/gfx/Assets.h"
 
 bool Map::loadFromFile(const std::string& path)
 {
@@ -34,6 +35,51 @@ bool Map::loadFromFile(const std::string& path)
         for (int j = 0; j < static_cast<int>(L.size()); j++)
         {
             grid[i][j] = L[j];
+        }
+    }
+    return true;
+}
+
+bool Map::loadFromTmxFile(const std::string& path, Assets *assets)
+{
+    if (!mapTmx.load(path))
+    {
+        return false;
+    }
+
+    gidToTileInfo_.clear();
+
+    const auto& tilesets = mapTmx.getTilesets();
+
+    for (const auto& ts : tilesets)
+    {
+        std::uint32_t firstGID = ts.getFirstGID();
+        auto          tileSize = ts.getTileSize(); // 64x64
+
+        const auto& tiles = ts.getTiles(); // <tile id="..."><image .../></tile>
+
+        for (const auto& tile : tiles)
+        {
+            std::uint32_t localId = tile.ID;            // 0, 1, 2, 3...
+            std::uint32_t gid     = firstGID + localId; // globalny ID w warstwach
+
+            std::string fullPath = tile.imagePath; // np. "./assets/../designs/floor.png"
+
+            int textureId = assets->getOrLoadIcon(fullPath); // tu Twój Assets
+            if (textureId < 0)
+            {
+                std::cerr << "Failed to load tile image: " << fullPath << "\n";
+                continue;
+            }
+
+            TileInfo info;
+            info.textureId = textureId;
+            info.texX      = 0; // cały obrazek
+            info.texY      = 0;
+            info.texWidth  = tileSize.x; // 64
+            info.texHeight = tileSize.y; // 64
+
+            gidToTileInfo_[gid] = info;
         }
     }
     return true;

@@ -15,6 +15,8 @@
 #include <iostream>
 #include <stdexcept>
 #include <utility>
+#include <tmxlite/TileLayer.hpp>
+
 
 StaticEntity& World::spawnTile(const std::string& texturePath, uint32_t width, uint32_t height, float pos_x,
                                float pos_y, bool solid)
@@ -258,6 +260,58 @@ void World::buildFromMap(const std::string& wallTexturePath, const std::string& 
                 maps_[currentMapIndex]->setGatewaySide(newGatewayIndex, getSide(newGatewayIndex));
             }
         });
+}
+
+void World::buildFromTmxMap() {
+    gatewayIndexes_.clear();
+    if (currentMapIndex >= maps_.size() || !maps_[currentMapIndex])
+    {
+        throw std::runtime_error("Invalid map index or map not loaded");
+    }
+
+    Map& map = *maps_[currentMapIndex];
+    const auto& tmxMap = map.getTmxMap();
+    const auto& layers = map.getLayers();
+    const auto tileSize = tmxMap.getTileSize(); // np. 64x64
+
+    for (const auto& layer : layers) {
+        if (layer->getType() != tmx::Layer::Type::Tile)
+            continue;
+
+        const auto* tileLayer = dynamic_cast<const tmx::TileLayer*>(layer.get());
+        if (!tileLayer)
+            continue;
+
+        const auto& tiles = tileLayer->getTiles();
+        const auto layerSize = tileLayer->getSize();
+
+        for (std::size_t y = 0; y < layerSize.y; ++y)
+        {
+            for (std::size_t x = 0; x < layerSize.x; ++x)
+            {
+                std::size_t   index = x + y * layerSize.x;
+                std::uint32_t gid   = tiles[index].ID; // GID z TMX
+
+                if (gid == 0)
+                    continue; // puste pole
+
+                const TileInfo* info = map.getTileInfo(gid);
+                if (!info)
+                    continue; // brak powiązania GID -> tekstura (błąd w tilesecie / loadFromTmxFile)
+
+                // Pozycja na ekranie (z offsetem UI_TOP_BAR_HEIGHT jak w buildFromMap)
+                const float posX = static_cast<float>(x * tileSize.x);
+                const float posY = static_cast<float>(y * tileSize.y) + UI_TOP_BAR_HEIGHT;
+
+                // Na razie wszystkie kafle traktujemy jako "nie-sztywne"
+                // Później możemy dodać solid na podstawie properties z Tiled.
+                const bool solid = false;
+
+                addEntity<StaticEntity>(info->textureId, info->texWidth, info->texHeight, posX, posY, solid);
+            }
+        }
+    }
+
 }
 
 GatewaySide World::getSide(int gatewayIndex)
@@ -844,6 +898,15 @@ void World::addMap(const std::string& path)
     if (!m->loadFromFile(path))
     {
         throw std::runtime_error("Could not load map file: " + path);
+    }
+    maps_.push_back(std::move(m));
+}
+
+void World::addMapfromTmx(const std::string& path) {
+    auto m = std::make_unique<Map>();
+    if (!m->loadFromTmxFile(path,assets_))
+    {
+        throw std::runtime_error("Could not load TMX map file: " + path);
     }
     maps_.push_back(std::move(m));
 }

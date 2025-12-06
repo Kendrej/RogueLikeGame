@@ -2,7 +2,9 @@
 #include <functional>
 #include <string>
 #include <vector>
-
+#include <tmxlite/Map.hpp> 
+#include <memory>
+#include <unordered_map>
 class Assets;
 
 enum class GatewaySide
@@ -21,11 +23,24 @@ struct Gateway
     GatewaySide side;
 };
 
+struct TileInfo
+{
+    int textureId; // ID tekstury z Assets
+
+    // prostok¹t w tej teksturze (w pikselach)
+    uint32_t texX; // lewy górny róg kafelka w teksturze
+    uint32_t texY;
+    uint32_t texWidth;  // zwykle 64
+    uint32_t texHeight; // zwykle 64
+};
+
+
 class Map
 {
 public:
     Map() = default;
     bool loadFromFile(const std::string& path);
+    bool loadFromTmxFile(const std::string& path, Assets *assets);
     int  getRows() const
     {
         return rows;
@@ -64,10 +79,30 @@ public:
         return visited;
     }
 
+    
+    tmx::Map& getTmxMap()
+    {
+        return mapTmx;
+    }
+    const TileInfo* getTileInfo(std::uint32_t gid) const
+    {
+        auto it = gidToTileInfo_.find(gid);
+        if (it == gidToTileInfo_.end())
+            return nullptr;
+        return &it->second;
+    }
+
+    const std::vector<tmx::Layer::Ptr>& getLayers() const
+    {
+        return mapTmx.getLayers();
+    }
+
 private:
-    bool                           visited = 0;
-    int                            rows    = 0;
-    int                            columns = 0;
+    bool visited = 0;
+    int rows = 0;
+    int columns = 0;
     std::vector<std::vector<char>> grid;
-    std::vector<Gateway>           gateways_;
+    std::vector<Gateway> gateways_;
+    tmx::Map mapTmx;
+    std::unordered_map<std::uint32_t, TileInfo> gidToTileInfo_;
 };
