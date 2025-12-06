@@ -222,45 +222,6 @@ void World::performRangedAttack(LivingEntity& attacker)
                     projTexture);
 }
 
-void World::buildFromMap(const std::string& wallTexturePath, const std::string& floorTexturePath,
-                         const std::string& doorTexturePath, uint32_t tileW, uint32_t tileH)
-{
-    gatewayIndexes_.clear();
-    if (currentMapIndex >= maps_.size() || !maps_[currentMapIndex])
-    {
-        throw std::runtime_error("Invalid map index or map not loaded");
-    }
-
-    maps_[currentMapIndex]->forEachTile(
-        [&](int i, int j, char t)
-        {
-            const float x = j * static_cast<float>(tileW);
-            const float y = i * static_cast<float>(tileH) + UI_TOP_BAR_HEIGHT; // Add UI offset
-            if (t == '*')
-            {
-                spawnTile(wallTexturePath, tileW, tileH, x, y, true);
-            }
-            else if (t == '-' || t == 'r' || t == 'm')
-            {
-                spawnTile(floorTexturePath, tileW, tileH, x, y, false);
-            }
-            else if (t >= '0' && t <= '9')
-            {
-                // t - '0' is the TARGET map index, not the index in gateways() vector.
-                auto&     door = spawnTile(doorTexturePath, tileW, tileH, x, y, true);
-                const int id   = door.getEntityId();
-                if (std::find(gatewayIndexes_.begin(), gatewayIndexes_.end(), id) == gatewayIndexes_.end())
-                {
-                    gatewayIndexes_.push_back(id);
-                }
-                maps_[currentMapIndex]->addGateway(t - '0', x, y);
-                int newGatewayIndex =
-                    static_cast<int>(maps_[currentMapIndex]->gateways().size()) - 1; // index of newly added gateway
-                maps_[currentMapIndex]->setGatewaySide(newGatewayIndex, getSide(newGatewayIndex));
-            }
-        });
-}
-
 void World::buildFromTmxMap() {
     gatewayIndexes_.clear();
     if (currentMapIndex >= maps_.size() || !maps_[currentMapIndex])
@@ -299,7 +260,6 @@ void World::buildFromTmxMap() {
                     if (!info)
                         continue; // brak powiązania GID -> tekstura (błąd w tilesecie / loadFromTmxFile)
 
-                    // Pozycja na ekranie (z offsetem UI_TOP_BAR_HEIGHT jak w buildFromMap)
                     const float posX = static_cast<float>(x * tileSize.x);
                     const float posY = static_cast<float>(y * tileSize.y) + UI_TOP_BAR_HEIGHT;
                     if (info->door)
@@ -837,7 +797,6 @@ void World::newScene()
     doorsUnlocked_ = false;
 
     this->buildFromTmxMap();
-    //this->buildFromMap("assets/design/wall.png", "assets/design/floor.png", "assets/design/door.png", 64, 64);
     if (!maps_[currentMapIndex]->isVisited())
     {
         spawnNpcs();
@@ -968,16 +927,6 @@ bool World::remove(Entity* ptr)
     const bool removed = (it != entities_.end());
     entities_.erase(it, entities_.end());
     return removed;
-}
-
-void World::addMap(const std::string& path)
-{
-    auto m = std::make_unique<Map>();
-    if (!m->loadFromFile(path))
-    {
-        throw std::runtime_error("Could not load map file: " + path);
-    }
-    maps_.push_back(std::move(m));
 }
 
 void World::addMapfromTmx(const std::string& path) {

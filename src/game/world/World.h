@@ -37,9 +37,6 @@ public:
     void performMeleeAttack(LivingEntity& attacker);
     void performRangedAttack(LivingEntity& attacker);
 
-    void buildFromMap(const std::string& wallTexturePath, const std::string& floorTexturePath,
-                      const std::string& doorTexturePath, uint32_t tileW, uint32_t tileH);
-
     void buildFromTmxMap();
 
     void update(float dt);
@@ -76,7 +73,6 @@ public:
     {
         return currentMapIndex;
     }
-    void addMap(const std::string& path);
     void addMapfromTmx(const std::string& path);
     int playerInGateway();
     Assets* getAssets() const noexcept
