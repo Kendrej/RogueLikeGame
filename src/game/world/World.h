@@ -26,7 +26,7 @@ public:
 
     StaticEntity& spawnTile(const std::string& texturePath, uint32_t width, uint32_t height, float pos_x, float pos_y,
                             bool solid);
-
+ 
     Player& spawnPlayer(ImVec2 pos);
 
     Npc& spawnNpc(NpcType type, ImVec2 pos);
@@ -37,8 +37,7 @@ public:
     void performMeleeAttack(LivingEntity& attacker);
     void performRangedAttack(LivingEntity& attacker);
 
-    void buildFromMap(const std::string& wallTexturePath, const std::string& floorTexturePath,
-                      const std::string& doorTexturePath, uint32_t tileW, uint32_t tileH);
+    void buildFromTmxMap();
 
     void update(float dt);
     void clear();
@@ -74,8 +73,8 @@ public:
     {
         return currentMapIndex;
     }
-    void    addMap(const std::string& path);
-    int     playerInGateway();
+    void addMapfromTmx(const std::string& path);
+    int playerInGateway();
     Assets* getAssets() const noexcept
     {
         return assets_;

@@ -32,6 +32,15 @@ public:
     {
         return maxHp;
     }
+    void setHp(int hp) {
+        if (hp>maxHp){
+            this->maxHp = hp;
+            this->hp = hp;
+        }
+        else {
+            this->hp = hp;
+        }
+    }
     void heal(int amount);
 
     bool isAlive() const

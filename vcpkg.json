@@ -11,6 +11,7 @@
       "name": "imgui",
       "default-features": true,
       "features": ["glfw-binding", "vulkan-binding"]
-    }
+    },
+    "tmxlite"
   ]
 }

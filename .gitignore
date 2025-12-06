@@ -51,3 +51,5 @@ CppProperties.json
 # Narzędzia lokalne
 /tools/*.bat
 /tools/*.ps1
+
+assets/maps/Maps.tiled-session

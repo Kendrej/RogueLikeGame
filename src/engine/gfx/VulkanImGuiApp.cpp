@@ -85,7 +85,7 @@ void VulkanImGuiApp::initVulkan()
 }
 
 static void drawDebugOverlay(GLFWwindow* window, const std::vector<std::unique_ptr<Entity>>& entityList,
-                             const Player* mainPlayer)
+                             const Player* mainPlayer, const World* world)
 {
     // Zbierz dane
     int winW = 0, winH = 0, fbW = 0, fbH = 0;
@@ -145,6 +145,12 @@ static void drawDebugOverlay(GLFWwindow* window, const std::vector<std::unique_p
                         mainPlayer->getHeight(), mainPlayer->getEntityId());
             auto* lp = static_cast<const LivingEntity*>(mainPlayer);
             ImGui::Text("Player HP: %d / %d", lp->getHp(), lp->getMaxHp());
+        }
+
+        // Show current map index
+        if (world)
+        {
+            ImGui::Text("Map: %d", world->getCurrentMapIndex());
         }
     }
     ImGui::End();
@@ -261,7 +267,7 @@ void VulkanImGuiApp::mainLoop()
 
         // debug window
         if (world_)
-            drawDebugOverlay(window_, world_->entities(), world_->getPlayer());
+            drawDebugOverlay(window_, world_->entities(), world_->getPlayer(), world_.get());
 
         ImGui::Render();
 

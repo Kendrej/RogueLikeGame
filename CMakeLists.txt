@@ -80,6 +80,10 @@ if(ENABLE_VCPKG_DEPS)
     find_package(Vulkan REQUIRED)
     find_package(imgui CONFIG REQUIRED)
 
+    # tmxlite z vcpkg nie dostarcza pliku config CMake; użyj pkg-config
+    find_package(PkgConfig REQUIRED)
+    pkg_check_modules(TMXLITE REQUIRED tmxlite)
+
     # ZAMIENNIK za find_package(stb CONFIG REQUIRED):
     # Szukamy katalogu zawierającego stb_image.h (często jest to <vcpkg>/installed/<triplet>/include/stb)
     find_path(STB_INCLUDE_DIR
@@ -95,10 +99,13 @@ if(ENABLE_VCPKG_DEPS)
             glfw
             Vulkan::Vulkan
             glm::glm
+            ${TMXLITE_LINK_LIBRARIES}
     )
 
-    # Dodaj include dla stb i Vulkan/vcpkg (jawnie, dla VS)
+    # Dodaj include dla stb, tmxlite i Vulkan/vcpkg (jawnie, dla VS)
     target_include_directories(RogueLikeGame PRIVATE ${STB_INCLUDE_DIR})
+    target_include_directories(RogueLikeGame PRIVATE ${TMXLITE_INCLUDE_DIRS})
+    add_definitions(${TMXLITE_CFLAGS_OTHER})
     if(DEFINED Vulkan_INCLUDE_DIR)
         target_include_directories(RogueLikeGame PRIVATE ${Vulkan_INCLUDE_DIR})
     endif()

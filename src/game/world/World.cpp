@@ -15,6 +15,7 @@
 #include <iostream>
 #include <stdexcept>
 #include <utility>
+#include <tmxlite/TileLayer.hpp>
 
 StaticEntity& World::spawnTile(const std::string& texturePath, uint32_t width, uint32_t height, float pos_x,
                                float pos_y, bool solid)
@@ -221,43 +222,103 @@ void World::performRangedAttack(LivingEntity& attacker)
                     projTexture);
 }
 
-void World::buildFromMap(const std::string& wallTexturePath, const std::string& floorTexturePath,
-                         const std::string& doorTexturePath, uint32_t tileW, uint32_t tileH)
-{
+void World::buildFromTmxMap() {
     gatewayIndexes_.clear();
     if (currentMapIndex >= maps_.size() || !maps_[currentMapIndex])
     {
         throw std::runtime_error("Invalid map index or map not loaded");
     }
 
-    maps_[currentMapIndex]->forEachTile(
-        [&](int i, int j, char t)
+    Map& map = *maps_[currentMapIndex];
+    const auto& tmxMap = map.getTmxMap();
+    const auto& layers = map.getLayers();
+    const auto tileSize = tmxMap.getTileSize(); // np. 64x64
+
+    for (const auto& layer : layers)
+    {
+        if (layer->getType() == tmx::Layer::Type::Tile)
         {
-            const float x = j * static_cast<float>(tileW);
-            const float y = i * static_cast<float>(tileH) + UI_TOP_BAR_HEIGHT; // Add UI offset
-            if (t == '*')
+
+            const auto* tileLayer = dynamic_cast<const tmx::TileLayer*>(layer.get());
+            if (!tileLayer)
+                continue;
+
+            const auto& tiles     = tileLayer->getTiles();
+            const auto  layerSize = tileLayer->getSize();
+
+            for (std::size_t y = 0; y < layerSize.y; ++y)
             {
-                spawnTile(wallTexturePath, tileW, tileH, x, y, true);
-            }
-            else if (t == '-' || t == 'r' || t == 'm')
-            {
-                spawnTile(floorTexturePath, tileW, tileH, x, y, false);
-            }
-            else if (t >= '0' && t <= '9')
-            {
-                // t - '0' is the TARGET map index, not the index in gateways() vector.
-                auto&     door = spawnTile(doorTexturePath, tileW, tileH, x, y, true);
-                const int id   = door.getEntityId();
-                if (std::find(gatewayIndexes_.begin(), gatewayIndexes_.end(), id) == gatewayIndexes_.end())
+                for (std::size_t x = 0; x < layerSize.x; ++x)
                 {
-                    gatewayIndexes_.push_back(id);
+                    std::size_t   index = x + y * layerSize.x;
+                    std::uint32_t gid   = tiles[index].ID; // GID z TMX
+
+                    if (gid == 0)
+                        continue; // puste pole
+
+                    const TileInfo* info = map.getTileInfo(gid);
+                    if (!info)
+                        continue; // brak powiązania GID -> tekstura (błąd w tilesecie / loadFromTmxFile)
+
+                    const float posX = static_cast<float>(x * tileSize.x);
+                    const float posY = static_cast<float>(y * tileSize.y) + UI_TOP_BAR_HEIGHT;
+                    if (info->door)
+                    {
+                        auto& door = addEntity<StaticEntity>(info->textureId, info->texWidth, info->texHeight, posX,
+                                                             posY, info->solid);
+
+                        gatewayIndexes_.push_back(door.getEntityId());
+                    }
+                    else
+                    {
+                        addEntity<StaticEntity>(info->textureId, info->texWidth, info->texHeight, posX, posY,
+                                                info->solid);
+                    }
+                    // Na razie wszystkie kafle traktujemy jako "nie-sztywne"
+                    // Później możemy dodać solid na podstawie properties z Tiled.
                 }
-                maps_[currentMapIndex]->addGateway(t - '0', x, y);
-                int newGatewayIndex =
-                    static_cast<int>(maps_[currentMapIndex]->gateways().size()) - 1; // index of newly added gateway
-                maps_[currentMapIndex]->setGatewaySide(newGatewayIndex, getSide(newGatewayIndex));
             }
-        });
+        }
+        else if (layer->getType() == tmx::Layer::Type::Object){
+            const auto* objGroup = dynamic_cast<const tmx::ObjectGroup*>(layer.get());
+            if (!objGroup)
+                continue;
+
+            for (const auto& obj : objGroup->getObjects())
+            {
+                int target = -1;
+
+                // czytamy property "target" z obiektu
+                for (const auto& prop : obj.getProperties())
+                {
+                    if (prop.getName() == "target")
+                    {
+                        target = prop.getIntValue();
+                        break;
+                    }
+                }
+
+                if (target < 0)
+                    continue; // obiekt nie jest teleportem
+
+                // Pozycja obiektu w układzie mapy (Tiled: bez UI offsetu)
+                float posX = obj.getPosition().x;
+                float posY = obj.getPosition().y + UI_TOP_BAR_HEIGHT; // dostosowanie do świata gry
+
+                // Zapisujemy gateway w Map (tak jak wcześniej przy '0'..'9')
+                map.addGateway(target, posX, posY);
+
+                int newGatewayIndex = static_cast<int>(map.gateways().size()) - 1;
+
+                // Ustalamy stronę (Top/Bottom/Left/Right) na podstawie pozycji
+                map.setGatewaySide(newGatewayIndex, getSide(newGatewayIndex));
+
+                // (opcjonalnie debug)
+                // std::cout << "Gateway object at (" << posX << ", " << posY << ") -> target " << target << "\n";
+            }
+        }
+    }
+   
 }
 
 GatewaySide World::getSide(int gatewayIndex)
@@ -735,7 +796,7 @@ void World::newScene()
     this->setCurrentMapIndex(gatewayIndex);
     doorsUnlocked_ = false;
 
-    this->buildFromMap("assets/design/wall.png", "assets/design/floor.png", "assets/design/door.png", 64, 64);
+    this->buildFromTmxMap();
     if (!maps_[currentMapIndex]->isVisited())
     {
         spawnNpcs();
@@ -753,21 +814,51 @@ void World::newScene()
 
 void World::spawnNpcs()
 {
-    maps_[currentMapIndex]->forEachTile(
-        [&](int i, int j, char t)
-        {
-            const float x = j * static_cast<float>(64);
-            const float y = i * static_cast<float>(64) + UI_TOP_BAR_HEIGHT;
+    Map& map = *maps_[currentMapIndex];
+    const auto& layers = map.getLayers();
 
-            if (t == 'm')
+    for (const auto& layer : layers)
+    {
+        if (layer->getType() != tmx::Layer::Type::Object){
+            continue;
+        }
+        const auto* objGroup = dynamic_cast<const tmx::ObjectGroup*>(layer.get());
+        if (!objGroup)
+            continue;
+
+        for (const auto& obj : objGroup->getObjects())
+        {
+            float x = obj.getPosition().x;
+            float y = obj.getPosition().y + UI_TOP_BAR_HEIGHT;
+            // czytamy property "target" z obiektu
+            const std::string& name = obj.getName();
+            int maxHp = -1;
+            for (const auto& p : obj.getProperties())
             {
-                spawnNpc(NpcType::Orc, {x, y});
+                if (p.getName() == "maxHp")
+                {
+                    maxHp = p.getIntValue();
+                }
             }
-            else if (t == 'r')
+            std::cout << maxHp << "\n";
+            if (obj.getName() == "Orc") {
+                auto& npc = spawnNpc(NpcType::Orc, {x, y});
+                if (maxHp > 0)
+                {
+                    npc.setHp(maxHp); 
+                }
+            }
+            else if (obj.getName() == "Skeleton_Archer")
             {
-                spawnNpc(NpcType::Skeleton_Archer, {x, y});
+                auto& npc = spawnNpc(NpcType::Skeleton_Archer, {x, y});
+                if (maxHp > 0)
+                {
+                    npc.setHp(maxHp);
+                }
             }
-        });
+        }
+        
+    }
     maps_[currentMapIndex]->setVisited(true);
 }
 
@@ -838,12 +929,11 @@ bool World::remove(Entity* ptr)
     return removed;
 }
 
-void World::addMap(const std::string& path)
-{
+void World::addMapfromTmx(const std::string& path) {
     auto m = std::make_unique<Map>();
-    if (!m->loadFromFile(path))
+    if (!m->loadFromTmxFile(path,assets_))
     {
-        throw std::runtime_error("Could not load map file: " + path);
+        throw std::runtime_error("Could not load TMX map file: " + path);
     }
     maps_.push_back(std::move(m));
 }

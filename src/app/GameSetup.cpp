@@ -5,12 +5,12 @@
 
 void setupGame(World& world)
 {
-    world.addMap("assets/maps/map0.txt");
-    world.addMap("assets/maps/map1.txt");
-    world.addMap("assets/maps/map2.txt");
-    world.addMap("assets/maps/map3.txt");
+    world.addMapfromTmx("assets/maps/00.tmx");
+    world.addMapfromTmx("assets/maps/01.tmx");
+    world.addMapfromTmx("assets/maps/02.tmx");
+    world.addMapfromTmx("assets/maps/03.tmx");
 
-    world.buildFromMap("assets/design/wall.png", "assets/design/floor.png", "assets/design/door.png", 64, 64);
+    world.buildFromTmxMap();
 
     world.spawnPlayer({100.0f, 100.0f + World::UI_TOP_BAR_HEIGHT});
 

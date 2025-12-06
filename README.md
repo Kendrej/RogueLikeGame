@@ -99,7 +99,7 @@ Windows:
 
 fix to swithing x86 to x64 on windows:
 # (opcjonalnie) czyść stary cache presetu
-Remove-Item -Recurse -Force .\build\win-debug -ErrorAction Ignore
+Remove-Item -Recurse -Force .\build\win-ninja-debug -ErrorAction Ignore
 
 # załaduj środowisko VS 2022: host x64, target x64  ✅
 cmd /c '"C:\Program Files\Microsoft Visual Studio\2022\Community\Common7\Tools\VsDevCmd.bat" -host_arch=x64 -arch=x64 && set' |

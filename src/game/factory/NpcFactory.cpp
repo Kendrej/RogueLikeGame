@@ -43,7 +43,7 @@ Npc* NpcFactory::createNpc(NpcType type, World& world, ImVec2 pos)
     {
         case NpcType::Skeleton_Archer:
             controller        = std::make_unique<RangeController>();
-            maxHp             = 100;
+            maxHp             = 10;
             aggroRange        = 600.0f;
             maxSpeed          = 180.0f;
             accel             = 1500.0f;
@@ -58,7 +58,7 @@ Npc* NpcFactory::createNpc(NpcType type, World& world, ImVec2 pos)
 
         case NpcType::Orc:
             controller        = std::make_unique<MeleeController>();
-            maxHp             = 150;
+            maxHp             = 10;
             aggroRange        = 400.0f;
             maxSpeed          = 200.0f;
             accel             = 2500.0f;
