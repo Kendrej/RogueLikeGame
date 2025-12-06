@@ -840,7 +840,7 @@ void World::newScene()
     //this->buildFromMap("assets/design/wall.png", "assets/design/floor.png", "assets/design/door.png", 64, 64);
     if (!maps_[currentMapIndex]->isVisited())
     {
-        //spawnNpcs();
+        spawnNpcs();
     }
 
     // Move player to new position (player attributes are preserved!)
@@ -855,21 +855,51 @@ void World::newScene()
 
 void World::spawnNpcs()
 {
-    maps_[currentMapIndex]->forEachTile(
-        [&](int i, int j, char t)
-        {
-            const float x = j * static_cast<float>(64);
-            const float y = i * static_cast<float>(64) + UI_TOP_BAR_HEIGHT;
+    Map& map = *maps_[currentMapIndex];
+    const auto& layers = map.getLayers();
 
-            if (t == 'm')
+    for (const auto& layer : layers)
+    {
+        if (layer->getType() != tmx::Layer::Type::Object){
+            continue;
+        }
+        const auto* objGroup = dynamic_cast<const tmx::ObjectGroup*>(layer.get());
+        if (!objGroup)
+            continue;
+
+        for (const auto& obj : objGroup->getObjects())
+        {
+            float x = obj.getPosition().x;
+            float y = obj.getPosition().y + UI_TOP_BAR_HEIGHT;
+            // czytamy property "target" z obiektu
+            const std::string& name = obj.getName();
+            int maxHp = -1;
+            for (const auto& p : obj.getProperties())
             {
-                spawnNpc(NpcType::Orc, {x, y});
+                if (p.getName() == "maxHp")
+                {
+                    maxHp = p.getIntValue();
+                }
             }
-            else if (t == 'r')
+            std::cout << maxHp << "\n";
+            if (obj.getName() == "Orc") {
+                auto& npc = spawnNpc(NpcType::Orc, {x, y});
+                if (maxHp > 0)
+                {
+                    npc.setHp(maxHp); 
+                }
+            }
+            else if (obj.getName() == "Skeleton_Archer")
             {
-                spawnNpc(NpcType::Skeleton_Archer, {x, y});
+                auto& npc = spawnNpc(NpcType::Skeleton_Archer, {x, y});
+                if (maxHp > 0)
+                {
+                    npc.setHp(maxHp);
+                }
             }
-        });
+        }
+        
+    }
     maps_[currentMapIndex]->setVisited(true);
 }
 
