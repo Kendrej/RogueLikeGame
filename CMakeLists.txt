@@ -81,7 +81,11 @@ if(ENABLE_VCPKG_DEPS)
     find_package(imgui CONFIG REQUIRED)
 
     find_path(TMXLITE_INCLUDE_DIR NAMES tmxlite/Map.hpp)
-    find_library(TMXLITE_LIBRARY NAMES tmxlite)
+    if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+        find_library(TMXLITE_LIBRARY NAMES tmxlite-d tmxlite)
+    else()
+        find_library(TMXLITE_LIBRARY NAMES tmxlite)
+    endif()
     if(NOT TMXLITE_INCLUDE_DIR OR NOT TMXLITE_LIBRARY)
         message(FATAL_ERROR "Nie znaleziono tmxlite. Zainstaluj port 'tmxlite' (vcpkg.json) i zrób reconfigure.")
     endif()
@@ -156,7 +160,12 @@ endif()
 if(WIN32 AND ENABLE_VCPKG_DEPS)
     # Copy all runtime DLLs from vcpkg installed bin folder to the target's output dir
     if(DEFINED VCPKG_INSTALLED_DIR AND DEFINED VCPKG_TARGET_TRIPLET)
-        set(_VCPKG_BIN_DIR "${VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/bin")
+        # Dla Debug kopiuj z debug/bin, dla Release z bin
+        if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+            set(_VCPKG_BIN_DIR "${VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/debug/bin")
+        else()
+            set(_VCPKG_BIN_DIR "${VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/bin")
+        endif()
         if(EXISTS "${_VCPKG_BIN_DIR}")
             add_custom_command(TARGET RogueLikeGame POST_BUILD
                 COMMAND ${CMAKE_COMMAND} -E copy_directory "${_VCPKG_BIN_DIR}" "$<TARGET_FILE_DIR:RogueLikeGame>"
