@@ -98,7 +98,7 @@ Windows:
 - `src/main.cpp` – prosta aplikacja Hello World.
 
 fix to swithing x86 to x64 on windows:
-# (opcjonalnie) czyść stary cache presetu
+# (opcjonalnie) usun build
 Remove-Item -Recurse -Force .\build\win-ninja-debug -ErrorAction Ignore
 
 # załaduj środowisko VS 2022: host x64, target x64  ✅

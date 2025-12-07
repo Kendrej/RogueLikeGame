@@ -50,7 +50,7 @@
    </properties>
    <point/>
   </object>
-  <object id="9" name="Skeleton_Archer" x="1290.14" y="235.463">
+  <object id="9" name="Skeleton_Archer" x="1259.44" y="253.371">
    <properties>
     <property name="maxHp" type="int" value="15"/>
    </properties>
