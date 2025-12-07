@@ -1,5 +1,5 @@
 #include "GameSetup.h"
-
+#include <iostream>
 #include "game/world/World.h"
 #include "../game/factory/NpcFactory.h"
 

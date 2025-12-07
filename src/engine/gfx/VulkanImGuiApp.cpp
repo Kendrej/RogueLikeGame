@@ -393,9 +393,10 @@ void VulkanImGuiApp::drawWorld()
     };
 
     // Helper function to draw scaled sprite centered on position
-    auto drawScaledSprite = [bg, this](int iconId, ImVec2 pos, float width, float height, float scale)
+    // texX, texY - lewy górny róg w spritesheet (piksele), 0 = pełna tekstura
+    auto drawScaledSprite = [bg, this](int iconId, ImVec2 pos, float width, float height, float scale, uint32_t texX = 0, uint32_t texY = 0)
     {
-        const auto& entity = assets_->icon(iconId);
+        const auto& icon = assets_->icon(iconId);
 
         const float renderW = width * scale;
         const float renderH = height * scale;
@@ -406,8 +407,23 @@ void VulkanImGuiApp::drawWorld()
 
         ImVec2 renderPos(pos.x - offsetX, pos.y - offsetY);
 
-        bg->AddImage(entity.imTex, renderPos, ImVec2(renderPos.x + renderW, renderPos.y + renderH), ImVec2(0, 0),
-                     ImVec2(1, 1), IM_COL32_WHITE);
+        // Oblicz UV na podstawie texX, texY i rozmiaru tekstury
+        ImVec2 uv0(0.0f, 0.0f);
+        ImVec2 uv1(1.0f, 1.0f);
+        
+        if (texX > 0 || texY > 0)
+        {
+         // Używamy spritesheet - oblicz UV
+            float texWidth  = static_cast<float>(icon.width);
+            float texHeight = static_cast<float>(icon.height);
+            uv0 = ImVec2(static_cast<float>(texX) / texWidth, 
+            static_cast<float>(texY) / texHeight);
+            uv1 = ImVec2(static_cast<float>(texX + static_cast<uint32_t>(width)) / texWidth,
+            static_cast<float>(texY + static_cast<uint32_t>(height)) / texHeight);
+        }
+
+      bg->AddImage(icon.imTex, renderPos, ImVec2(renderPos.x + renderW, renderPos.y + renderH), 
+         uv0, uv1, IM_COL32_WHITE);
     };
 
     for (const auto& up : world_->entities())
@@ -423,14 +439,18 @@ void VulkanImGuiApp::drawWorld()
         const ImVec2   pos = e.getPosition();
         const uint32_t w   = e.getWidth();
         const uint32_t h   = e.getHeight();
-        int            iconId;
-        float          ENTITY_SPRITE_SCALE = 1.0f;
+        int iconId;
+        float ENTITY_SPRITE_SCALE = 1.0f;
+        uint32_t texX = 0;
+        uint32_t texY = 0;
+        
         if (auto* living = dynamic_cast<LivingEntity*>(up.get()))
         {
             if (auto* animationController = living->getAnimationController())
             {
                 ENTITY_SPRITE_SCALE = 5.0f;
-                iconId              = animationController->getCurrentFrameIconId();
+                iconId  = animationController->getCurrentFrameIconId();
+                    // Animowane encje używają pełnej tekstury (UV 0-1)
             }
             else
             {
@@ -441,17 +461,19 @@ void VulkanImGuiApp::drawWorld()
         else
         {
             iconId = e.getEntityId();
+            texX = e.getTexX();
+            texY = e.getTexY();
         }
-        drawScaledSprite(iconId, pos, static_cast<float>(w), static_cast<float>(h), ENTITY_SPRITE_SCALE);
+        drawScaledSprite(iconId, pos, static_cast<float>(w), static_cast<float>(h), ENTITY_SPRITE_SCALE, texX, texY);
     }
 
     // Rysuj gracza
     if (auto* player = world_->getPlayer())
     {
-        const ImVec2   pos = player->getPosition();
+      const ImVec2   pos = player->getPosition();
         const uint32_t w   = player->getWidth();
         const uint32_t h   = player->getHeight();
-        int            iconId;
+        int      iconId;
         if (auto* animationController = player->getAnimationController())
         {
             iconId = animationController->getCurrentFrameIconId();
@@ -461,9 +483,9 @@ void VulkanImGuiApp::drawWorld()
             iconId = player->getEntityId();
         }
 
-        // Draw player sprite with 5x scale
-        const float PLAYER_SPRITE_SCALE = 5.0f;
-        drawScaledSprite(iconId, pos, static_cast<float>(w), static_cast<float>(h), PLAYER_SPRITE_SCALE);
-        drawHpBar(*player, pos.x, pos.y, static_cast<float>(w));
-    }
+    // Draw player sprite with 5x scale
+    const float PLAYER_SPRITE_SCALE = 5.0f;
+    drawScaledSprite(iconId, pos, static_cast<float>(w), static_cast<float>(h), PLAYER_SPRITE_SCALE);
+    drawHpBar(*player, pos.x, pos.y, static_cast<float>(w));
+ }
 }
