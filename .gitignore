@@ -52,4 +52,4 @@ CppProperties.json
 /tools/*.bat
 /tools/*.ps1
 
-assets/maps/Maps.tiled-session
+/assets/maps/Maps.tiled-session
