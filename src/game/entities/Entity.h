@@ -27,16 +27,29 @@ public:
         return solid_;
     }
     void setSolid(bool solid)
-    {
+{
         solid_ = solid;
     }
+
+    // Lewy gorny rog kafelka w spritesheet (w pikselach)
+    void setTexOffset(uint32_t x, uint32_t y)
+    {
+        texX_ = x;
+        texY_ = y;
+    }
+    uint32_t getTexX() const { return texX_; }
+    uint32_t getTexY() const { return texY_; }
 
 protected:
     int      entityId;
     uint32_t width   = 0;
-    uint32_t height  = 0;
+  uint32_t height  = 0;
     bool     visible = true;
     bool     solid_  = false;
+
+    // Lewy gorny rog w spritesheet (0,0 = pelna tekstura)
+    uint32_t texX_ = 0;
+    uint32_t texY_ = 0;
 
 private:
     ImVec2 pos{0.0f, 0.0f};

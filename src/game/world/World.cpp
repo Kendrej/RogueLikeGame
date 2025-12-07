@@ -262,20 +262,14 @@ void World::buildFromTmxMap() {
 
                     const float posX = static_cast<float>(x * tileSize.x);
                     const float posY = static_cast<float>(y * tileSize.y) + UI_TOP_BAR_HEIGHT;
+                    auto& tile = addEntity<StaticEntity>(info->textureId, info->texWidth, info->texHeight, posX, posY,
+                                                         info->solid);
+                    tile.setTexOffset(info->texX, info->texY);
                     if (info->door)
                     {
-                        auto& door = addEntity<StaticEntity>(info->textureId, info->texWidth, info->texHeight, posX,
-                                                             posY, info->solid);
-
-                        gatewayIndexes_.push_back(door.getEntityId());
+                       
+                        gatewayIndexes_.push_back(tile.getEntityId());
                     }
-                    else
-                    {
-                        addEntity<StaticEntity>(info->textureId, info->texWidth, info->texHeight, posX, posY,
-                                                info->solid);
-                    }
-                    // Na razie wszystkie kafle traktujemy jako "nie-sztywne"
-                    // Później możemy dodać solid na podstawie properties z Tiled.
                 }
             }
         }

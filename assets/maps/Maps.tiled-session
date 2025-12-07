@@ -16,8 +16,8 @@
             "scale": 0.25,
             "selectedLayer": 0,
             "viewCenter": {
-                "x": 1104,
-                "y": 350
+                "x": 960,
+                "y": 84
             }
         },
         "C:/Users/Komputer/source/repos/erybie222/RogueLikeGame/assets/tilesets/Catacombs.tsx": {
@@ -53,14 +53,15 @@
     "last.imagePath": "C:/Users/Komputer/source/repos/erybie222/RogueLikeGame/assets/designs",
     "openFiles": [
         "00.tmx",
-        "03.tmx"
+        "03.tmx",
+        "C:/Users/Komputer/source/repos/erybie222/RogueLikeGame/assets/tilesets/Catacombs.tsx"
     ],
     "project": "Maps.tiled-project",
     "property.type": "int",
     "recentFiles": [
         "00.tmx",
-        "03.tmx",
         "C:/Users/Komputer/source/repos/erybie222/RogueLikeGame/assets/tilesets/Catacombs.tsx",
+        "03.tmx",
         "C:/Users/Komputer/source/repos/erybie222/RogueLikeGame/assets/tilesets/mainlevbuild.tsx",
         "map0.tmx",
         "map1.tmx"
