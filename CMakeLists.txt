@@ -30,6 +30,7 @@ option(ENABLE_VCPKG_DEPS "Find and link deps via vcpkg (GLFW, GLM, Vulkan, ImGui
 # Dodaj swoje pliki źródłowe tutaj (na start mamy tylko main.cpp)
 add_executable(RogueLikeGame
         src/app/main.cpp
+
         src/engine/gfx/VulkanImGuiApp.cpp
         src/engine/vk/Window.cpp
         src/engine/vk/Instance.cpp
@@ -63,6 +64,15 @@ add_executable(RogueLikeGame
         src/game/factory/NpcFactory.h
         src/game/factory/PlayerFactory.cpp
         src/game/factory/PlayerFactory.h
+        src/game/item/Item.h
+        src/game/item/Equipment.h
+        src/game/item/Consumable.h
+        src/game/item/Usable.h
+        src/game/item/consumable/HealthPotion.h
+        src/game/item/consumable/StrengthPotion.h
+        src/game/item/consumable/SpeedPotion.h
+        src/game/item/Inventory.cpp
+        src/game/item/Inventory.h
 
 )
 

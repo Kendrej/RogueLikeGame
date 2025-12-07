@@ -32,13 +32,13 @@ public:
     {
         return maxHp;
     }
-    void setHp(int hp) {
-        if (hp>maxHp){
-            this->maxHp = hp;
-            this->hp = hp;
+    void setHp(int newHp) {
+        if (newHp > maxHp){
+            this->maxHp = newHp;
+            this->hp = newHp;
         }
         else {
-            this->hp = hp;
+            this->hp = newHp;
         }
     }
     void heal(int amount);

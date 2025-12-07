@@ -14,6 +14,10 @@ void setupGame(World& world)
 
     world.spawnPlayer({100.0f, 100.0f + World::UI_TOP_BAR_HEIGHT});
 
+    world.givePlayerHealthPotion();
+    world.givePlayerHealthPotion();
+    world.givePlayerHealthPotion();
+
     world.spawnNpc(NpcType::Orc, {12 * 64.0f, 3 * 64.0f + World::UI_TOP_BAR_HEIGHT});
     world.spawnNpc(NpcType::Skeleton_Archer, {17 * 64.0f, 3 * 64.0f + World::UI_TOP_BAR_HEIGHT});
 }

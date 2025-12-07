@@ -101,8 +101,13 @@ private:
     GatewaySide getSide(int gatewayIndex);
     void        spawnPlayerInNewScene(GatewaySide entrySide, float sourceGatewayX, float sourceGatewayY);
     void        spawnNpcs();
+public:
+    void        givePlayerHealthPotion();
+    int         getHealthPotionIconId() const { return healthPotionIconId_; }
+private:
     int         gatewayIndex    = -1;
     int         currentMapIndex = 0;
+    int         healthPotionIconId_ = -1;
     std::vector<std::unique_ptr<Map>>    maps_;
     std::vector<int>                     gatewayIndexes_;
     Assets*                              assets_{nullptr};

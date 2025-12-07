@@ -110,6 +110,7 @@ private:
 
     // Rysowanie świata
     void drawWorld();
+    void drawInventoryUI();
 
     // --- Helpery Vulkan używane przy ładowaniu tekstur ---
     uint32_t        findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties);

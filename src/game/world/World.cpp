@@ -10,6 +10,7 @@
 #include "game/entities/Projectile.h"
 #include "game/entities/StaticEntity.h"
 #include "../factory/NpcFactory.h"
+#include "game/item/consumable/HealthPotion.h"
 
 #include <algorithm>
 #include <iostream>
@@ -931,3 +932,19 @@ void World::addMapfromTmx(const std::string& path) {
     }
     maps_.push_back(std::move(m));
 }
+
+void World::givePlayerHealthPotion()
+{
+    if (!player_ || !assets_)
+        return;
+
+    if (healthPotionIconId_ < 0)
+    {
+        healthPotionIconId_ = assets_->getOrLoadIcon("assets/items/consumable/HealthPotion.png");
+    }
+
+    auto potion = std::make_unique<HealthPotion>();
+    potion->setIconId(healthPotionIconId_);
+    player_->getInventory().addItem(std::move(potion));
+}
+

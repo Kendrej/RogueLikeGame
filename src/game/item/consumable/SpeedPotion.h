@@ -1,0 +1,8 @@
+//
+// Created by erybi on 7.12.2025.
+//
+
+#ifndef ROGUELIKEGAME_SPEEDPOTION_H
+#define ROGUELIKEGAME_SPEEDPOTION_H
+
+#endif //ROGUELIKEGAME_SPEEDPOTION_H

@@ -43,7 +43,7 @@ public:
 protected:
     int      entityId;
     uint32_t width   = 0;
-  uint32_t height  = 0;
+    uint32_t height  = 0;
     bool     visible = true;
     bool     solid_  = false;
 

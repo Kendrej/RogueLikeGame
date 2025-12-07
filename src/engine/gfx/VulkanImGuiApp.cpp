@@ -7,6 +7,8 @@
 #include "game/world/Map.h"
 #include "game/entities/Player.h"
 #include "game/world/World.h"
+#include "game/item/Inventory.h"
+#include "game/item/Item.h"
 
 #include <GLFW/glfw3.h>
 #include <algorithm>
@@ -222,6 +224,19 @@ void VulkanImGuiApp::mainLoop()
                 player->toggleAttackMode();
             }
             lastQ = qPressed;
+
+            static bool lastNumKeys[10] = {false};
+            int keyMap[10] = {GLFW_KEY_1, GLFW_KEY_2, GLFW_KEY_3, GLFW_KEY_4, GLFW_KEY_5,
+                              GLFW_KEY_6, GLFW_KEY_7, GLFW_KEY_8, GLFW_KEY_9, GLFW_KEY_0};
+            for (int i = 0; i < 10; ++i)
+            {
+                bool pressed = glfwGetKey(window_, keyMap[i]) == GLFW_PRESS;
+                if (pressed && !lastNumKeys[i])
+                {
+                    player->getInventory().useItem(i, *player);
+                }
+                lastNumKeys[i] = pressed;
+            }
 
             // player attack
             if (glfwGetKey(window_, GLFW_KEY_SPACE) == GLFW_PRESS)
@@ -488,4 +503,57 @@ void VulkanImGuiApp::drawWorld()
     drawScaledSprite(iconId, pos, static_cast<float>(w), static_cast<float>(h), PLAYER_SPRITE_SCALE);
     drawHpBar(*player, pos.x, pos.y, static_cast<float>(w));
  }
+
+    drawInventoryUI();
+}
+
+void VulkanImGuiApp::drawInventoryUI()
+{
+    if (!assets_ || !world_)
+        return;
+
+    Player* player = world_->getPlayer();
+    if (!player)
+        return;
+
+    ImDrawList* bg = ImGui::GetBackgroundDrawList();
+    const Inventory& inv = player->getInventory();
+
+    const float slotSize = 40.0f;
+    const float padding = 4.0f;
+    const float startX = 200.0f;
+    const float startY = 8.0f;
+
+    for (int i = 0; i < Inventory::MAX_SLOTS; ++i)
+    {
+        float x = startX + i * (slotSize + padding);
+        float y = startY;
+
+        ImVec2 slotMin(x, y);
+        ImVec2 slotMax(x + slotSize, y + slotSize);
+        bg->AddRectFilled(slotMin, slotMax, IM_COL32(40, 40, 40, 200), 4.0f);
+        bg->AddRect(slotMin, slotMax, IM_COL32(100, 100, 100, 255), 4.0f);
+
+        char numBuf[4];
+        snprintf(numBuf, sizeof(numBuf), "%d", (i + 1) % 10);
+        bg->AddText(ImVec2(x + 2, y + 2), IM_COL32(150, 150, 150, 200), numBuf);
+
+        Item* item = inv.getItem(i);
+        if (item && item->getIconId() >= 0)
+        {
+            const auto& icon = assets_->icon(item->getIconId());
+            float iconSize = slotSize - 8.0f;
+            float iconX = x + 4.0f;
+            float iconY = y + 4.0f;
+            bg->AddImage(icon.imTex,
+                        ImVec2(iconX, iconY),
+                        ImVec2(iconX + iconSize, iconY + iconSize),
+                        ImVec2(0, 0), ImVec2(1, 1),
+                        IM_COL32_WHITE);
+        }
+    }
+
+    char hpBuf[32];
+    snprintf(hpBuf, sizeof(hpBuf), "HP: %d/%d", player->getHp(), player->getMaxHp());
+    bg->AddText(ImVec2(10, 20), IM_COL32(255, 255, 255, 255), hpBuf);
 }
