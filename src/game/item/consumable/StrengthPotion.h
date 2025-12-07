@@ -1,8 +1,21 @@
-//
-// Created by erybi on 7.12.2025.
-//
+#pragma once
+#include "game/item/Consumable.h"
+#include "game/entities/LivingEntity.h"
 
-#ifndef ROGUELIKEGAME_STRENGTHPOTION_H
-#define ROGUELIKEGAME_STRENGTHPOTION_H
+class StrengthPotion : public Consumable
+{
+public:
+    int damageBoost = 10;
 
-#endif //ROGUELIKEGAME_STRENGTHPOTION_H
+    StrengthPotion() : Consumable(3, "Strength Potion") {}
+
+    bool use(LivingEntity& target) override
+    {
+        if (!target.isAlive())
+            return false;
+
+        target.setMeleeDamage(target.getMeleeDamage() + damageBoost);
+        target.setRangedDamage(target.getRangedDamage() + damageBoost);
+        return true;
+    }
+};

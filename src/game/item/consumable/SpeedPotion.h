@@ -1,8 +1,22 @@
-//
-// Created by erybi on 7.12.2025.
-//
+#pragma once
+#include "game/item/Consumable.h"
+#include "game/entities/LivingEntity.h"
 
-#ifndef ROGUELIKEGAME_SPEEDPOTION_H
-#define ROGUELIKEGAME_SPEEDPOTION_H
+class SpeedPotion : public Consumable
+{
+public:
+    float speedBoost = 150.0f;
+    float accelerationBoost = 500.0f;
 
-#endif //ROGUELIKEGAME_SPEEDPOTION_H
+    SpeedPotion() : Consumable(2, "Speed Potion") {}
+
+    bool use(LivingEntity& target) override
+    {
+        if (!target.isAlive())
+            return false;
+
+        target.setMaxSpeed(target.getMaxSpeed() + speedBoost);
+        target.setAcceleration(target.getAcceleration() + accelerationBoost);
+        return true;
+    }
+};
