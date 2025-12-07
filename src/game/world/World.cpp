@@ -10,6 +10,9 @@
 #include "game/entities/Projectile.h"
 #include "game/entities/StaticEntity.h"
 #include "../factory/NpcFactory.h"
+#include "game/item/consumable/HealthPotion.h"
+#include "game/item/consumable/SpeedPotion.h"
+#include "game/item/consumable/StrengthPotion.h"
 
 #include <algorithm>
 #include <iostream>
@@ -931,3 +934,54 @@ void World::addMapfromTmx(const std::string& path) {
     }
     maps_.push_back(std::move(m));
 }
+
+int World::getConsumableIconId(ConsumableType type)
+{
+    if (!assets_)
+        return -1;
+
+    auto it = consumableIconIds_.find(type);
+    if (it != consumableIconIds_.end())
+        return it->second;
+
+    std::string path;
+    switch (type)
+    {
+        case ConsumableType::HealthPotion:   path = "assets/items/consumable/HealthPotion.png"; break;
+        case ConsumableType::SpeedPotion:    path = "assets/items/consumable/SpeedPotion.png"; break;
+        case ConsumableType::StrengthPotion: path = "assets/items/consumable/StrengthPotion.png"; break;
+    }
+
+    int iconId = assets_->getOrLoadIcon(path);
+    consumableIconIds_[type] = iconId;
+    return iconId;
+}
+
+void World::givePlayerConsumable(ConsumableType type)
+{
+    if (!player_ || !assets_)
+        return;
+
+    int iconId = getConsumableIconId(type);
+
+    std::unique_ptr<Item> item;
+    switch (type)
+    {
+        case ConsumableType::HealthPotion:
+            item = std::make_unique<HealthPotion>();
+            break;
+        case ConsumableType::SpeedPotion:
+            item = std::make_unique<SpeedPotion>();
+            break;
+        case ConsumableType::StrengthPotion:
+            item = std::make_unique<StrengthPotion>();
+            break;
+    }
+
+    if (item)
+    {
+        item->setIconId(iconId);
+        player_->getInventory().addItem(std::move(item));
+    }
+}
+

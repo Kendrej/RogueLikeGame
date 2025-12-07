@@ -1,6 +1,7 @@
 #pragma once
 #include "Entity.h"
 #include "LivingEntity.h"
+#include "game/item/Inventory.h"
 
 #include <memory>
 
@@ -37,6 +38,10 @@ public:
         return attackMode == AttackMode::Ranged;
     }
 
+    Inventory& getInventory() { return inventory_; }
+    const Inventory& getInventory() const { return inventory_; }
+
 private:
     AttackMode attackMode = AttackMode::Melee;
+    Inventory inventory_;
 };

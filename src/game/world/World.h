@@ -9,6 +9,7 @@
 #include <functional>
 #include <memory>
 #include <string>
+#include <unordered_map>
 #include <vector>
 
 enum class NpcType;
@@ -101,8 +102,14 @@ private:
     GatewaySide getSide(int gatewayIndex);
     void        spawnPlayerInNewScene(GatewaySide entrySide, float sourceGatewayX, float sourceGatewayY);
     void        spawnNpcs();
+public:
+    enum class ConsumableType { HealthPotion, SpeedPotion, StrengthPotion };
+    void        givePlayerConsumable(ConsumableType type);
+    int         getConsumableIconId(ConsumableType type);
+private:
     int         gatewayIndex    = -1;
     int         currentMapIndex = 0;
+    std::unordered_map<ConsumableType, int> consumableIconIds_;
     std::vector<std::unique_ptr<Map>>    maps_;
     std::vector<int>                     gatewayIndexes_;
     Assets*                              assets_{nullptr};
