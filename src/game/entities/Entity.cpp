@@ -2,8 +2,8 @@
 
 #include "engine/gfx/Assets.h"
 
-Entity::Entity(int entityId, uint32_t width, uint32_t height, float pos_x, float pos_y)
-    : entityId(entityId), width(width), height(height), pos{pos_x, pos_y}
+Entity::Entity(int entityId, uint32_t width, uint32_t height, float pos_x, float pos_y, bool solid)
+    : entityId(entityId), width(width), height(height), solid_(solid), pos{pos_x, pos_y}
 {
 }
 

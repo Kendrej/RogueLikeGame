@@ -29,6 +29,9 @@ int VulkanImGuiApp::run()
         initWindow();
         initVulkan();
         initImGui();
+
+        heartIconId_ = assets_->getOrLoadIcon("assets/design/heart.png");
+
         world_ = std::make_unique<World>(assets_.get());
         setupGame(*world_);
         mainLoop();
@@ -164,12 +167,13 @@ void VulkanImGuiApp::mainLoop()
     {
         glfwPollEvents();
 
-        // Sprawdz ESC najpierw, zanim ruszymy sync (unikanie potencjalnego czekania na fence po wyjściu)
-        if (glfwGetKey(window_, GLFW_KEY_ESCAPE) == GLFW_PRESS)
+        static bool lastEsc = false;
+        bool escPressed = glfwGetKey(window_, GLFW_KEY_ESCAPE) == GLFW_PRESS;
+        if (escPressed && !lastEsc)
         {
-            glfwSetWindowShouldClose(window_, GLFW_TRUE);
-            break; // wyjdz od razu
+            isPaused_ = !isPaused_;
         }
+        lastEsc = escPressed;
 
         VulkanImGuiApp::FrameSync& fs = frames_[currentFrame_];
         vkWaitForFences(device_, 1, &fs.inFlight, VK_TRUE, UINT64_MAX);
@@ -203,7 +207,9 @@ void VulkanImGuiApp::mainLoop()
         }
 
         // --- Proste sterowanie WASD oparte o GLFW (nie zależne od stanu przechwycenia klawiatury przez ImGui) ---
-        if (auto* player = world_ ? world_->getPlayer() : nullptr)
+        if (!isPaused_ && world_)
+        {
+        if (auto* player = world_->getPlayer())
         {
             float dx = 0.0f, dy = 0.0f;
             if (glfwGetKey(window_, GLFW_KEY_W) == GLFW_PRESS)
@@ -273,12 +279,16 @@ void VulkanImGuiApp::mainLoop()
                 }
             }
         }
+        }
 
-        if (world_)
+        if (!isPaused_ && world_)
             world_->update(dt);
 
         // --- Rysowanie swiata/tla (poza oknami) ---
         drawWorld();
+
+        if (isPaused_)
+            drawPauseMenu();
 
         // debug window
         if (world_)
@@ -519,9 +529,9 @@ void VulkanImGuiApp::drawInventoryUI()
     ImDrawList* bg = ImGui::GetBackgroundDrawList();
     const Inventory& inv = player->getInventory();
 
-    const float slotSize = 40.0f;
+    const float slotSize = 45.0f;
     const float padding = 4.0f;
-    const float startX = 200.0f;
+    const float startX = 1920.0f - (Inventory::MAX_SLOTS * (slotSize + padding)) - 20.0f;
     const float startY = 8.0f;
 
     for (int i = 0; i < Inventory::MAX_SLOTS; ++i)
@@ -553,7 +563,104 @@ void VulkanImGuiApp::drawInventoryUI()
         }
     }
 
-    char hpBuf[32];
-    snprintf(hpBuf, sizeof(hpBuf), "HP: %d/%d", player->getHp(), player->getMaxHp());
-    bg->AddText(ImVec2(10, 20), IM_COL32(255, 255, 255, 255), hpBuf);
+    drawHeartsUI(bg, player);
 }
+
+void VulkanImGuiApp::drawHeartsUI(ImDrawList* bg, Player* player)
+{
+    if (heartIconId_ < 0 || !assets_)
+        return;
+
+    const int hp = player->getHp();
+    const int maxHp = player->getMaxHp();
+
+    const int hpPerHeart = 10;
+    const int totalHearts = (maxHp + hpPerHeart - 1) / hpPerHeart;
+    const int fullHearts = hp / hpPerHeart;
+    const int partialHp = hp % hpPerHeart;
+
+    const float heartSize = 36.0f;
+    const float heartSpacing = 6.0f;
+    const float startX = 20.0f;
+    const float startY = 10.0f;
+
+    const auto& heartIcon = assets_->icon(heartIconId_);
+    if (!heartIcon.imTex)
+        return;
+
+    for (int i = 0; i < totalHearts; ++i)
+    {
+        float x = startX + i * (heartSize + heartSpacing);
+        float y = startY;
+
+        ImU32 tintColor;
+        if (i < fullHearts)
+        {
+            tintColor = IM_COL32(255, 255, 255, 255);
+        }
+        else if (i == fullHearts && partialHp > 0)
+        {
+            int brightness = 80 + (partialHp * 100 / hpPerHeart);
+            tintColor = IM_COL32(brightness, brightness / 3, brightness / 3, 255);
+        }
+        else
+        {
+            tintColor = IM_COL32(30, 30, 30, 120);
+        }
+
+        bg->AddImage(heartIcon.imTex,
+                    ImVec2(x, y),
+                    ImVec2(x + heartSize, y + heartSize),
+                    ImVec2(0, 0), ImVec2(1, 1),
+                    tintColor);
+    }
+}
+
+void VulkanImGuiApp::drawPauseMenu()
+{
+    auto& io = ImGui::GetIO();
+
+    ImDrawList* bg = ImGui::GetBackgroundDrawList();
+    bg->AddRectFilled(ImVec2(0, 0), io.DisplaySize, IM_COL32(0, 0, 0, 150));
+
+    ImVec2 windowSize(300, 200);
+    ImVec2 windowPos((io.DisplaySize.x - windowSize.x) / 2.0f, (io.DisplaySize.y - windowSize.y) / 2.0f);
+
+    ImGui::SetNextWindowPos(windowPos, ImGuiCond_Always);
+    ImGui::SetNextWindowSize(windowSize, ImGuiCond_Always);
+
+    ImGuiWindowFlags flags = ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove |
+                             ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoSavedSettings;
+
+    if (ImGui::Begin("PAUZA", nullptr, flags))
+    {
+        // Wycentrowany tekst
+        float textWidth = ImGui::CalcTextSize("GRA WSTRZYMANA").x;
+        ImGui::SetCursorPosX((windowSize.x - textWidth) / 2.0f);
+        ImGui::Text("GRA WSTRZYMANA");
+
+        ImGui::Spacing();
+        ImGui::Separator();
+        ImGui::Spacing();
+
+        // Przyciski wycentrowane
+        float buttonWidth = 200.0f;
+        float buttonX = (windowSize.x - buttonWidth) / 2.0f;
+
+        ImGui::SetCursorPosX(buttonX);
+        if (ImGui::Button("Wznow gre", ImVec2(buttonWidth, 40)))
+        {
+            isPaused_ = false;
+        }
+
+        ImGui::Spacing();
+
+        ImGui::SetCursorPosX(buttonX);
+        if (ImGui::Button("Wyjdz z gry", ImVec2(buttonWidth, 40)))
+        {
+            glfwSetWindowShouldClose(window_, GLFW_TRUE);
+        }
+    }
+    ImGui::End();
+}
+

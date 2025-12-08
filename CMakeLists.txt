@@ -46,8 +46,6 @@ add_executable(RogueLikeGame
         src/game/npc/Npc.cpp
         src/game/entities/LivingEntity.cpp
         src/game/world/World.cpp
-        src/game/entities/StaticEntity.cpp
-        src/game/entities/StaticEntity.h
         src/game/npc/INpcController.cpp
         src/game/npc/INpcController.h
         src/game/npc/MeleeController.cpp
