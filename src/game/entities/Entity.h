@@ -7,7 +7,7 @@ class Assets;
 class Entity
 {
 public:
-    Entity(int entityId, uint32_t width, uint32_t height, float pos_x, float pos_y);
+    Entity(int entityId, uint32_t width, uint32_t height, float pos_x, float pos_y, bool solid = false);
     virtual ~Entity() = default;
 
     ImVec2   getPosition() const;

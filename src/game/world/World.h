@@ -2,7 +2,6 @@
 #include "game/entities/Entity.h"
 #include "game/world/Map.h"
 #include "game/entities/Player.h"
-#include "game/entities/StaticEntity.h"
 #include "game/npc/Npc.h"
 
 #include <cstdint>
@@ -15,7 +14,6 @@
 enum class NpcType;
 class Projectile;
 class Assets;
-class StaticEntity;
 class Entity;
 class Npc;
 class World
@@ -25,7 +23,7 @@ public:
 
     explicit World(Assets* assets) noexcept : assets_(assets) {}
 
-    StaticEntity& spawnTile(const std::string& texturePath, uint32_t width, uint32_t height, float pos_x, float pos_y,
+    Entity& spawnTile(const std::string& texturePath, uint32_t width, uint32_t height, float pos_x, float pos_y,
                             bool solid);
  
     Player& spawnPlayer(ImVec2 pos);

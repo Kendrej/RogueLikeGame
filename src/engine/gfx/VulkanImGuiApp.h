@@ -84,6 +84,7 @@ private:
     std::unique_ptr<Assets> assets_ = nullptr;
     std::unique_ptr<World>  world_;
     IconId                  heartIconId_ = -1;
+    bool                    isPaused_ = false;
 
     // High-level steps
     void initWindow();
@@ -113,6 +114,7 @@ private:
     void drawWorld();
     void drawInventoryUI();
     void drawHeartsUI(ImDrawList* bg, Player* player);
+    void drawPauseMenu();
 
     // --- Helpery Vulkan używane przy ładowaniu tekstur ---
     uint32_t        findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties);

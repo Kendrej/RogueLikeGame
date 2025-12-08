@@ -8,7 +8,6 @@
 #include "utils/MathUtils.h"
 #include "game/entities/Player.h"
 #include "game/entities/Projectile.h"
-#include "game/entities/StaticEntity.h"
 #include "../factory/NpcFactory.h"
 #include "game/item/consumable/HealthPotion.h"
 #include "game/item/consumable/SpeedPotion.h"
@@ -20,11 +19,11 @@
 #include <utility>
 #include <tmxlite/TileLayer.hpp>
 
-StaticEntity& World::spawnTile(const std::string& texturePath, uint32_t width, uint32_t height, float pos_x,
+Entity& World::spawnTile(const std::string& texturePath, uint32_t width, uint32_t height, float pos_x,
                                float pos_y, bool solid)
 {
     const int entityId = assets_ ? assets_->getOrLoadIcon(texturePath) : -1;
-    return addEntity<StaticEntity>(entityId, width, height, pos_x, pos_y, solid);
+    return addEntity<Entity>(entityId, width, height, pos_x, pos_y, solid);
 }
 
 Player& World::spawnPlayer(ImVec2 pos)
@@ -265,7 +264,7 @@ void World::buildFromTmxMap() {
 
                     const float posX = static_cast<float>(x * tileSize.x);
                     const float posY = static_cast<float>(y * tileSize.y) + UI_TOP_BAR_HEIGHT;
-                    auto& tile = addEntity<StaticEntity>(info->textureId, info->texWidth, info->texHeight, posX, posY,
+                    auto& tile = addEntity<Entity>(info->textureId, info->texWidth, info->texHeight, posX, posY,
                                                          info->solid);
                     tile.setTexOffset(info->texX, info->texY);
                     if (info->door)
