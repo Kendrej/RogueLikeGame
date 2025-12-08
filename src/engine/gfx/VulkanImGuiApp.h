@@ -9,6 +9,7 @@
 #include <vulkan/vulkan_core.h>
 
 struct GLFWwindow;
+class Player;
 
 #include <cstdint>
 #include <optional>
@@ -82,8 +83,8 @@ private:
 
     std::unique_ptr<Assets> assets_ = nullptr;
     std::unique_ptr<World>  world_;
+    IconId                  heartIconId_ = -1;
 
-private:
     // High-level steps
     void initWindow();
     void initVulkan();
@@ -111,6 +112,7 @@ private:
     // Rysowanie świata
     void drawWorld();
     void drawInventoryUI();
+    void drawHeartsUI(ImDrawList* bg, Player* player);
 
     // --- Helpery Vulkan używane przy ładowaniu tekstur ---
     uint32_t        findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties);

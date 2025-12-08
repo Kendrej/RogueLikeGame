@@ -29,6 +29,9 @@ int VulkanImGuiApp::run()
         initWindow();
         initVulkan();
         initImGui();
+
+        heartIconId_ = assets_->getOrLoadIcon("assets/design/heart.png");
+
         world_ = std::make_unique<World>(assets_.get());
         setupGame(*world_);
         mainLoop();
@@ -521,7 +524,7 @@ void VulkanImGuiApp::drawInventoryUI()
 
     const float slotSize = 40.0f;
     const float padding = 4.0f;
-    const float startX = 200.0f;
+    const float startX = 1920.0f - (Inventory::MAX_SLOTS * (slotSize + padding)) - 20.0f;
     const float startY = 8.0f;
 
     for (int i = 0; i < Inventory::MAX_SLOTS; ++i)
@@ -553,7 +556,55 @@ void VulkanImGuiApp::drawInventoryUI()
         }
     }
 
-    char hpBuf[32];
-    snprintf(hpBuf, sizeof(hpBuf), "HP: %d/%d", player->getHp(), player->getMaxHp());
-    bg->AddText(ImVec2(10, 20), IM_COL32(255, 255, 255, 255), hpBuf);
+    drawHeartsUI(bg, player);
+}
+
+void VulkanImGuiApp::drawHeartsUI(ImDrawList* bg, Player* player)
+{
+    if (heartIconId_ < 0 || !assets_)
+        return;
+
+    const int hp = player->getHp();
+    const int maxHp = player->getMaxHp();
+
+    const int hpPerHeart = 10;
+    const int totalHearts = (maxHp + hpPerHeart - 1) / hpPerHeart;
+    const int fullHearts = hp / hpPerHeart;
+    const int partialHp = hp % hpPerHeart;
+
+    const float heartSize = 36.0f;
+    const float heartSpacing = 6.0f;
+    const float startX = 20.0f;
+    const float startY = 10.0f;
+
+    const auto& heartIcon = assets_->icon(heartIconId_);
+    if (!heartIcon.imTex)
+        return;
+
+    for (int i = 0; i < totalHearts; ++i)
+    {
+        float x = startX + i * (heartSize + heartSpacing);
+        float y = startY;
+
+        ImU32 tintColor;
+        if (i < fullHearts)
+        {
+            tintColor = IM_COL32(255, 255, 255, 255);
+        }
+        else if (i == fullHearts && partialHp > 0)
+        {
+            int brightness = 80 + (partialHp * 100 / hpPerHeart);
+            tintColor = IM_COL32(brightness, brightness / 3, brightness / 3, 255);
+        }
+        else
+        {
+            tintColor = IM_COL32(30, 30, 30, 120);
+        }
+
+        bg->AddImage(heartIcon.imTex,
+                    ImVec2(x, y),
+                    ImVec2(x + heartSize, y + heartSize),
+                    ImVec2(0, 0), ImVec2(1, 1),
+                    tintColor);
+    }
 }
