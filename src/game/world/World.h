@@ -105,15 +105,15 @@ public:
     void        givePlayerConsumable(ConsumableType type);
     int         getConsumableIconId(ConsumableType type);
 private:
-    int         gatewayIndex    = -1;
-    int         currentMapIndex = 0;
+    int gatewayIndex    = -1;
+    int currentMapIndex = 0;
     std::unordered_map<ConsumableType, int> consumableIconIds_;
-    std::vector<std::unique_ptr<Map>>    maps_;
-    std::vector<int>                     gatewayIndexes_;
-    Assets*                              assets_{nullptr};
+    std::vector<std::unique_ptr<Map>> maps_;
+    std::vector<Entity*> doorEntities_;  // Wskaüniki do encji drzwi
+    Assets* assets_{nullptr};
     std::vector<std::unique_ptr<Entity>> entities_;
-    std::unique_ptr<Player>              player_{nullptr};
-    float                                screenWidth_   = 0.0f;
-    float                                screenHeight_  = 0.0f;
-    bool                                 doorsUnlocked_ = false;
+    std::unique_ptr<Player> player_{nullptr};
+    float screenWidth_ = 0.0f;
+    float screenHeight_ = 0.0f;
+    bool doorsUnlocked_ = false;
 };

@@ -1,34 +1,13 @@
 {
-    "activeFile": "01.tmx",
+    "activeFile": "C:/Users/Dell/source/repos/RogueLikeGame/assets/tilesets/Catacombs.tsx",
     "expandedProjectPaths": [
         "."
     ],
     "fileStates": {
+        "": {
+            "scaleInDock": 1
+        },
         "00.tmx": {
-            "scale": 0.25,
-            "selectedLayer": 0,
-            "viewCenter": {
-                "x": 962,
-                "y": 510
-            }
-        },
-        "01.tmx": {
-            "scale": 0.39088541666666665,
-            "selectedLayer": 2,
-            "viewCenter": {
-                "x": 959.3604263824117,
-                "y": 511.65889407061945
-            }
-        },
-        "02.tmx": {
-            "scale": 0.39088541666666665,
-            "selectedLayer": 0,
-            "viewCenter": {
-                "x": 959.3604263824118,
-                "y": 512.9380413057961
-            }
-        },
-        "03.tmx": {
             "scale": 0.25,
             "selectedLayer": 0,
             "viewCenter": {
@@ -36,10 +15,163 @@
                 "y": 510
             }
         },
+        "01.tmx": {
+            "expandedObjectLayers": [
+                3
+            ],
+            "scale": 0.39088541666666665,
+            "selectedLayer": 2,
+            "viewCenter": {
+                "x": 959.3604263824118,
+                "y": 512.9380413057962
+            }
+        },
+        "02.tmx": {
+            "expandedObjectLayers": [
+                2
+            ],
+            "scale": 0.39088541666666665,
+            "selectedLayer": 0,
+            "viewCenter": {
+                "x": 959.3604263824118,
+                "y": 512.9380413057962
+            }
+        },
+        "03.tmx": {
+            "expandedObjectLayers": [
+                2
+            ],
+            "scale": 0.5,
+            "selectedLayer": 0,
+            "viewCenter": {
+                "x": 960,
+                "y": 183
+            }
+        },
+        "03.tmx#walls_floor": {
+            "dynamicWrapping": false
+        },
+        "C:/Users/Dell/source/repos/RogueLikeGame/assets/tilesets/Catacombs.tsx": {
+            "scaleInDock": 1,
+            "scaleInEditor": 1
+        },
+        "C:/Users/Dell/source/repos/RogueLikeGame/assets/tilesets/doors_lever_chest_animation.tsx": {
+            "scaleInDock": 1
+        },
+        "C:/Users/Dell/source/repos/RogueLikeGame/assets/tilesets/dungeon.tsx": {
+            "scaleInDock": 1,
+            "scaleInEditor": 1
+        },
+        "C:/Users/Dell/source/repos/RogueLikeGame/assets/tilesets/floorwalls.tsx": {
+            "dynamicWrapping": false,
+            "scaleInDock": 1
+        },
+        "C:/Users/Dell/source/repos/RogueLikeGame/assets/tilesets/roguelike.tsx": {
+            "dynamicWrapping": true,
+            "scaleInDock": 1
+        },
+        "C:/Users/Komputer/AppData/Local/Temp/c4f065db-03e8-4264-b2d0-979f4aea4a99_craftpix-net-169442-free-2d-top-down-pixel-dungeon-asset-pack(1).zip.a99/Tiled_files/Dungeon1.tmx": {
+            "scale": 0.73291015625,
+            "selectedLayer": 0,
+            "viewCenter": {
+                "x": 0,
+                "y": 246.96069287141904
+            }
+        },
+        "C:/Users/Komputer/AppData/Local/Temp/c4f065db-03e8-4264-b2d0-979f4aea4a99_craftpix-net-169442-free-2d-top-down-pixel-dungeon-asset-pack(1).zip.a99/Tiled_files/Dungeon1.tmx#Objects": {
+            "scaleInDock": 1
+        },
+        "C:/Users/Komputer/AppData/Local/Temp/c4f065db-03e8-4264-b2d0-979f4aea4a99_craftpix-net-169442-free-2d-top-down-pixel-dungeon-asset-pack(1).zip.a99/Tiled_files/Dungeon1.tmx#Water_coasts_animation": {
+            "scaleInDock": 1
+        },
+        "C:/Users/Komputer/AppData/Local/Temp/c4f065db-03e8-4264-b2d0-979f4aea4a99_craftpix-net-169442-free-2d-top-down-pixel-dungeon-asset-pack(1).zip.a99/Tiled_files/Dungeon1.tmx#Water_coasts_animation_decorative_cracks": {
+            "scaleInDock": 1
+        },
+        "C:/Users/Komputer/AppData/Local/Temp/c4f065db-03e8-4264-b2d0-979f4aea4a99_craftpix-net-169442-free-2d-top-down-pixel-dungeon-asset-pack(1).zip.a99/Tiled_files/Dungeon1.tmx#Water_detilazation": {
+            "scaleInDock": 1
+        },
+        "C:/Users/Komputer/AppData/Local/Temp/c4f065db-03e8-4264-b2d0-979f4aea4a99_craftpix-net-169442-free-2d-top-down-pixel-dungeon-asset-pack(1).zip.a99/Tiled_files/Dungeon1.tmx#cracked_tiles": {
+            "scaleInDock": 1
+        },
+        "C:/Users/Komputer/AppData/Local/Temp/c4f065db-03e8-4264-b2d0-979f4aea4a99_craftpix-net-169442-free-2d-top-down-pixel-dungeon-asset-pack(1).zip.a99/Tiled_files/Dungeon1.tmx#cracked_tiles_floor": {
+            "scaleInDock": 1
+        },
+        "C:/Users/Komputer/AppData/Local/Temp/c4f065db-03e8-4264-b2d0-979f4aea4a99_craftpix-net-169442-free-2d-top-down-pixel-dungeon-asset-pack(1).zip.a99/Tiled_files/Dungeon1.tmx#doors_lever_chest_animation": {
+            "scaleInDock": 1
+        },
+        "C:/Users/Komputer/AppData/Local/Temp/c4f065db-03e8-4264-b2d0-979f4aea4a99_craftpix-net-169442-free-2d-top-down-pixel-dungeon-asset-pack(1).zip.a99/Tiled_files/Dungeon1.tmx#fire_animation": {
+            "scaleInDock": 1
+        },
+        "C:/Users/Komputer/AppData/Local/Temp/c4f065db-03e8-4264-b2d0-979f4aea4a99_craftpix-net-169442-free-2d-top-down-pixel-dungeon-asset-pack(1).zip.a99/Tiled_files/Dungeon1.tmx#fire_animation2": {
+            "dynamicWrapping": false,
+            "scaleInDock": 1
+        },
+        "C:/Users/Komputer/AppData/Local/Temp/c4f065db-03e8-4264-b2d0-979f4aea4a99_craftpix-net-169442-free-2d-top-down-pixel-dungeon-asset-pack(1).zip.a99/Tiled_files/Dungeon1.tmx#trap_animation": {
+            "scaleInDock": 1
+        },
+        "C:/Users/Komputer/AppData/Local/Temp/c4f065db-03e8-4264-b2d0-979f4aea4a99_craftpix-net-169442-free-2d-top-down-pixel-dungeon-asset-pack(1).zip.a99/Tiled_files/Dungeon1.tmx#walls_floor": {
+            "scaleInDock": 1
+        },
+        "C:/Users/Komputer/Desktop/Tiled_files/Dungeon1.tmx": {
+            "scale": 1.5,
+            "selectedLayer": 9,
+            "viewCenter": {
+                "x": 298.6666666666667,
+                "y": 290
+            }
+        },
+        "C:/Users/Komputer/Desktop/Tiled_files/Dungeon1.tmx#Objects": {
+            "scaleInDock": 1
+        },
+        "C:/Users/Komputer/Desktop/Tiled_files/Dungeon1.tmx#Water_coasts_animation": {
+            "scaleInDock": 1.5
+        },
+        "C:/Users/Komputer/Desktop/Tiled_files/Dungeon1.tmx#Water_coasts_animation_decorative_cracks": {
+            "scaleInDock": 1
+        },
+        "C:/Users/Komputer/Desktop/Tiled_files/Dungeon1.tmx#Water_detilazation": {
+            "scaleInDock": 1
+        },
+        "C:/Users/Komputer/Desktop/Tiled_files/Dungeon1.tmx#cracked_tiles": {
+            "scaleInDock": 1
+        },
+        "C:/Users/Komputer/Desktop/Tiled_files/Dungeon1.tmx#cracked_tiles_floor": {
+            "scaleInDock": 1
+        },
+        "C:/Users/Komputer/Desktop/Tiled_files/Dungeon1.tmx#doors_lever_chest_animation": {
+            "scaleInDock": 1
+        },
+        "C:/Users/Komputer/Desktop/Tiled_files/Dungeon1.tmx#fire_animation": {
+            "scaleInDock": 1
+        },
+        "C:/Users/Komputer/Desktop/Tiled_files/Dungeon1.tmx#fire_animation2": {
+            "scaleInDock": 1.5
+        },
+        "C:/Users/Komputer/Desktop/Tiled_files/Dungeon1.tmx#trap_animation": {
+            "scaleInDock": 1
+        },
+        "C:/Users/Komputer/Desktop/Tiled_files/Dungeon1.tmx#walls_floor": {
+            "scaleInDock": 1
+        },
         "C:/Users/Komputer/source/repos/erybie222/RogueLikeGame/assets/tilesets/Catacombs.tsx": {
             "dynamicWrapping": false,
             "scaleInDock": 1,
             "scaleInEditor": 1
+        },
+        "C:/Users/Komputer/source/repos/erybie222/RogueLikeGame/assets/tilesets/doors_lever_chest_animation.tsx": {
+            "dynamicWrapping": false,
+            "scaleInDock": 0.75,
+            "scaleInEditor": 1
+        },
+        "C:/Users/Komputer/source/repos/erybie222/RogueLikeGame/assets/tilesets/dungeon.tsx": {
+            "dynamicWrapping": false,
+            "scaleInDock": 1,
+            "scaleInEditor": 1
+        },
+        "C:/Users/Komputer/source/repos/erybie222/RogueLikeGame/assets/tilesets/floorwalls.tsx": {
+            "dynamicWrapping": false,
+            "scaleInDock": 0.33,
+            "scaleInEditor": 0.5
         },
         "C:/Users/Komputer/source/repos/erybie222/RogueLikeGame/assets/tilesets/mainlevbuild.tsx": {
             "scaleInDock": 1,
@@ -48,6 +180,10 @@
         "C:/Users/Komputer/source/repos/erybie222/RogueLikeGame/assets/tilesets/roguelike.tsx": {
             "dynamicWrapping": true,
             "scaleInDock": 1
+        },
+        "C:/Users/Komputer/source/repos/erybie222/RogueLikeGame/assets/tilesets/wallflor.tsx": {
+            "scaleInDock": 1,
+            "scaleInEditor": 1
         },
         "map0.tmx": {
             "scale": 0.20385416666666664,
@@ -68,23 +204,27 @@
     },
     "last.imagePath": "C:/Users/Komputer/source/repos/erybie222/RogueLikeGame/assets/designs",
     "openFiles": [
-        "00.tmx",
         "03.tmx",
-        "C:/Users/Komputer/source/repos/erybie222/RogueLikeGame/assets/tilesets/Catacombs.tsx",
-        "02.tmx",
-        "01.tmx"
-    ],
-    "project": "Maps.tiled-project",
-    "property.type": "int",
-    "recentFiles": [
-        "00.tmx",
-        "03.tmx",
-        "C:/Users/Komputer/source/repos/erybie222/RogueLikeGame/assets/tilesets/Catacombs.tsx",
         "02.tmx",
         "01.tmx",
-        "C:/Users/Komputer/source/repos/erybie222/RogueLikeGame/assets/tilesets/mainlevbuild.tsx",
-        "map0.tmx",
-        "map1.tmx"
+        "C:/Users/Dell/source/repos/RogueLikeGame/assets/tilesets/dungeon.tsx",
+        "C:/Users/Dell/source/repos/RogueLikeGame/assets/tilesets/Catacombs.tsx"
+    ],
+    "project": "Maps.tiled-project",
+    "property.type": "bool",
+    "recentFiles": [
+        "03.tmx",
+        "02.tmx",
+        "01.tmx",
+        "C:/Users/Dell/source/repos/RogueLikeGame/assets/tilesets/dungeon.tsx",
+        "C:/Users/Dell/source/repos/RogueLikeGame/assets/tilesets/Catacombs.tsx",
+        "C:/Users/Komputer/source/repos/erybie222/RogueLikeGame/assets/tilesets/doors_lever_chest_animation.tsx",
+        "C:/Users/Komputer/source/repos/erybie222/RogueLikeGame/assets/tilesets/floorwalls.tsx",
+        "C:/Users/Komputer/source/repos/erybie222/RogueLikeGame/assets/tilesets/dungeon.tsx",
+        "C:/Users/Komputer/source/repos/erybie222/RogueLikeGame/assets/tilesets/Catacombs.tsx",
+        "C:/Users/Komputer/Desktop/Tiled_files/Dungeon1.tmx",
+        "C:/Users/Komputer/source/repos/erybie222/RogueLikeGame/assets/tilesets/wallflor.tsx",
+        "C:/Users/Komputer/AppData/Local/Temp/c4f065db-03e8-4264-b2d0-979f4aea4a99_craftpix-net-169442-free-2d-top-down-pixel-dungeon-asset-pack(1).zip.a99/Tiled_files/Dungeon1.tmx"
     ],
     "tileset.lastUsedFormat": "tsx",
     "tileset.tileSize": {

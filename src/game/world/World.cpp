@@ -225,7 +225,7 @@ void World::performRangedAttack(LivingEntity& attacker)
 }
 
 void World::buildFromTmxMap() {
-    gatewayIndexes_.clear();
+    doorEntities_.clear();
     if (currentMapIndex >= maps_.size() || !maps_[currentMapIndex])
     {
         throw std::runtime_error("Invalid map index or map not loaded");
@@ -269,8 +269,7 @@ void World::buildFromTmxMap() {
                     tile.setTexOffset(info->texX, info->texY);
                     if (info->door)
                     {
-                       
-                        gatewayIndexes_.push_back(tile.getEntityId());
+                            doorEntities_.push_back(&tile);
                     }
                 }
             }
@@ -736,20 +735,15 @@ void World::update(float dt)
     }
     if (aliveNpcCount == 0 && !doorsUnlocked_)
     {
-        // Unlock every entity whose entityId matches any collected door id
-        for (int doorEntityId : gatewayIndexes_)
+        // Unlock only door entities
+        for (Entity* doorEntity : doorEntities_)
         {
-            for (auto& up : entities_)
-            {
-                if (!up)
-                    continue;
-                if (up->getEntityId() == doorEntityId)
-                {
-                    up->setSolid(false);
-                }
-            }
+     if (doorEntity)
+       {
+                doorEntity->setSolid(false);
+  }
         }
-        doorsUnlocked_ = true;
+      doorsUnlocked_ = true;
     }
 
     // doors-teleports
@@ -872,12 +866,12 @@ void World::spawnPlayerInNewScene(GatewaySide entrySide, float sourceGatewayX, f
     case GatewaySide::Top:
         // Entering from top, exit at bottom - spawn as close to bottom edge as possible
         sourceGatewayX = player_->getPosition().x;
-        player_->setPosition(sourceGatewayX, mapHeight + UI_TOP_BAR_HEIGHT - tile - tile);
+        player_->setPosition(sourceGatewayX, mapHeight + UI_TOP_BAR_HEIGHT -tile*2);
         break;
     case GatewaySide::Bottom:
         // Entering from bottom, exit at top - spawn as close to top edge as possible (after UI bar)
         sourceGatewayX = player_->getPosition().x;
-        player_->setPosition(sourceGatewayX, UI_TOP_BAR_HEIGHT + tile);
+        player_->setPosition(sourceGatewayX, UI_TOP_BAR_HEIGHT + tile*3);
         break;
     case GatewaySide::Left:
         // Entering from left, exit at right - spawn as close to right edge as possible
