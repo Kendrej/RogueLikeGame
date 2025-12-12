@@ -59,8 +59,8 @@ void World::performMeleeAttack(LivingEntity& attacker)
     }
 
     ImVec2 pos = attacker.getPosition();
-    float  w   = attacker.getWidth();
-    float  h   = attacker.getHeight();
+    float  w   = static_cast<float>(attacker.getWidth());
+    float  h   = static_cast<float>(attacker.getHeight());
 
     // Kierunek ataku oparty głównie na facingDir (ostatni kierunek ruchu / patrzenia).
     ImVec2 dir = attacker.getFacingDir();
@@ -303,10 +303,10 @@ void World::buildFromTmxMap() {
                 // Zapisujemy gateway w Map (tak jak wcześniej przy '0'..'9')
                 map.addGateway(target, posX, posY);
 
-                int newGatewayIndex = static_cast<int>(map.gateways().size()) - 1;
+                int newGwIdx = static_cast<int>(map.gateways().size()) - 1;
 
                 // Ustalamy stronę (Top/Bottom/Left/Right) na podstawie pozycji
-                map.setGatewaySide(newGatewayIndex, getSide(newGatewayIndex));
+                map.setGatewaySide(newGwIdx, getSide(newGwIdx));
 
                 // (opcjonalnie debug)
                 // std::cout << "Gateway object at (" << posX << ", " << posY << ") -> target " << target << "\n";
@@ -316,9 +316,9 @@ void World::buildFromTmxMap() {
    
 }
 
-GatewaySide World::getSide(int gatewayIndex)
+GatewaySide World::getSide(int gwIdx)
 {
-    const Gateway& g     = maps_[currentMapIndex]->gateways()[gatewayIndex];
+    const Gateway& g     = maps_[currentMapIndex]->gateways()[gwIdx];
     int            tileX = static_cast<int>(g.posX / 64.0f);
     int            tileY = static_cast<int>((g.posY - UI_TOP_BAR_HEIGHT) / 64.0f); // Account for UI offset
 
@@ -355,8 +355,8 @@ bool World::intersectsAABBAt(const Entity& a, const Entity& b, float ax, float a
 bool World::intersectsRectWithEntity(const Entity& e, float rx, float ry, float rw, float rh)
 {
     ImVec2 p  = e.getPosition();
-    float  eh = e.getHeight();
-    float  ew = e.getWidth();
+    float  eh = static_cast<float>(e.getHeight());
+    float  ew = static_cast<float>(e.getWidth());
 
     return !(p.x + ew <= rx || rx + rw <= p.x || p.y + eh <= ry || ry + rh <= p.y);
 }
@@ -458,8 +458,8 @@ int World::playerInGateway()
         return -1;
 
     ImVec2 pos = player_->getPosition();
-    float  pw  = player_->getWidth();
-    float  ph  = player_->getHeight();
+    float  pw  = static_cast<float>(player_->getWidth());
+    float  ph  = static_cast<float>(player_->getHeight());
 
     for (auto& g : maps_[currentMapIndex]->gateways())
     {
@@ -821,7 +821,6 @@ void World::spawnNpcs()
             float x = obj.getPosition().x;
             float y = obj.getPosition().y + UI_TOP_BAR_HEIGHT;
             // czytamy property "target" z obiektu
-            const std::string& name = obj.getName();
             int maxHp = -1;
             for (const auto& p : obj.getProperties())
             {

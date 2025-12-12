@@ -6,7 +6,7 @@
 #include "game/world/World.h"
 
 
-void MeleeController::update(Npc& npc, World& world, float dt)
+void MeleeController::update(Npc& npc, World& world, float /*dt*/)
 {
     Player* player = world.getPlayer();
     if (!player)

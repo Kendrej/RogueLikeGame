@@ -104,7 +104,7 @@ void AnimationController::addRangedAttackAnimation(const int squareSize, const i
 
 void AnimationController::update(float dt)
 {
-    int frameAmount;
+    int frameAmount = 0;
     frameTimer_ += dt;
     if (frameTimer_ >= frameDuration_)
     {

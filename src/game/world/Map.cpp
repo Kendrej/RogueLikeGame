@@ -109,8 +109,8 @@ bool Map::loadFromTmxFile(const std::string& path, Assets *assets)
                 info.solid     = false;
                 info.door      = false;
 
-                const auto& tiles = ts.getTiles(); // vector<Tile>
-                auto it = std::find_if(tiles.begin(), tiles.end(), [&](const auto& t) { return t.ID == localId; });
+                const auto& tileList = ts.getTiles(); // vector<Tile>
+                auto it = std::find_if(tileList.begin(), tileList.end(), [&](const auto& t) { return t.ID == localId; });
 
                 if (it != tiles.end())
                 {

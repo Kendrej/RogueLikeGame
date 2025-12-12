@@ -40,7 +40,7 @@ void Entity::moveBy(float dx, float dy)
     pos.y += dy;
 }
 
-void Entity::setVisible(bool visible)
+void Entity::setVisible(bool isVisible)
 {
-    this->visible = visible;
+    visible = isVisible;
 }

@@ -4,10 +4,6 @@
 #include <iostream>
 #include <stdexcept>
 
-static void glfwErrorCallback(int error, const char* description)
-{
-    std::cerr << "[GLFW] Error " << error << ": " << description << std::endl;
-}
 
 void VulkanImGuiApp::initWindow()
 {

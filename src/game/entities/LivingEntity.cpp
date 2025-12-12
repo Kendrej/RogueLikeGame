@@ -40,14 +40,14 @@ void LivingEntity::setVelocity(const ImVec2& v)
     }
 }
 
-void LivingEntity::setAcceleration(float acceleration)
+void LivingEntity::setAcceleration(float newAcceleration)
 {
-    this->acceleration = acceleration;
+    acceleration = newAcceleration;
 }
 
-void LivingEntity::setMaxSpeed(float maxSpeed)
+void LivingEntity::setMaxSpeed(float newMaxSpeed)
 {
-    this->maxSpeed = maxSpeed;
+    maxSpeed = newMaxSpeed;
 }
 
 void LivingEntity::applyInput(const ImVec2& dir)

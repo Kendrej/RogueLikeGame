@@ -6,7 +6,7 @@
 #include "game/world/World.h"
 
 
-void RangeController::update(Npc& npc, World& world, float dt)
+void RangeController::update(Npc& npc, World& world, float /*dt*/)
 {
     Player* player = world.getPlayer();
     if (!player)

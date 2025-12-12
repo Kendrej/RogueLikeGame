@@ -97,7 +97,7 @@ private:
                                    const std::vector<std::unique_ptr<Entity>>& entities);
     static void pushOutOfSolids(Entity& mover, const std::vector<std::unique_ptr<Entity>>& entities);
     void        clampToScreen(Entity& mover);
-    GatewaySide getSide(int gatewayIndex);
+    GatewaySide getSide(int gwIndex);
     void        spawnPlayerInNewScene(GatewaySide entrySide, float sourceGatewayX, float sourceGatewayY);
     void        spawnNpcs();
 public:
@@ -109,7 +109,7 @@ private:
     int currentMapIndex = 0;
     std::unordered_map<ConsumableType, int> consumableIconIds_;
     std::vector<std::unique_ptr<Map>> maps_;
-    std::vector<Entity*> doorEntities_;  // WskaŸniki do encji drzwi
+    std::vector<Entity*> doorEntities_;  // Wskaï¿½niki do encji drzwi
     Assets* assets_{nullptr};
     std::vector<std::unique_ptr<Entity>> entities_;
     std::unique_ptr<Player> player_{nullptr};
