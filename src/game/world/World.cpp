@@ -253,10 +253,17 @@ void World::buildFromTmxMap() {
                 for (std::size_t x = 0; x < layerSize.x; ++x)
                 {
                     std::size_t   index = x + y * layerSize.x;
-                    std::uint32_t gid   = tiles[index].ID; // GID z TMX
+                    const auto& tileData = tiles[index];
 
-                    if (gid == 0)
+                    if (tileData.ID == 0)
                         continue; // puste pole
+
+
+                    bool flipH = (tileData.flipFlags & tmx::TileLayer::Horizontal) != 0;
+                    bool flipV = (tileData.flipFlags & tmx::TileLayer::Vertical) != 0;
+                    bool flipD = (tileData.flipFlags & tmx::TileLayer::Diagonal) != 0;
+
+                    std::uint32_t gid = tileData.ID;
 
                     const TileInfo* info = map.getTileInfo(gid);
                     if (!info)
@@ -267,6 +274,7 @@ void World::buildFromTmxMap() {
                     auto& tile = addEntity<Entity>(info->textureId, info->texWidth, info->texHeight, posX, posY,
                                                          info->solid);
                     tile.setTexOffset(info->texX, info->texY);
+                    tile.setFlipFlags(flipH, flipV, flipD);
                     if (info->door)
                     {
                             doorEntities_.push_back(&tile);
@@ -880,7 +888,7 @@ void World::spawnPlayerInNewScene(GatewaySide entrySide, float sourceGatewayX, f
     case GatewaySide::Right:
         // Entering from right, exit at left - spawn as close to left edge as possible
         sourceGatewayY = player_->getPosition().y;
-        player_->setPosition(tile, sourceGatewayY);
+        player_->setPosition(tile * 3, sourceGatewayY);
         break;
     }
 }
