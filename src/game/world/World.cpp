@@ -853,6 +853,14 @@ void World::spawnNpcs()
                     npc.setHp(maxHp);
                 }
             }
+            else if (obj.getName() == "Knight")
+            {
+                auto& npc = spawnNpc(NpcType::Knight, {x, y});
+                if (maxHp > 0)
+                {
+                    npc.setHp(maxHp);
+                }
+            }
         }
         
     }
