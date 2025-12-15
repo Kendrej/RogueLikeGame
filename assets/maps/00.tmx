@@ -133,29 +133,16 @@
     <property name="target" type="int" value="2"/>
    </properties>
   </object>
-  <object id="14" name="3" x="829.264" y="850.478" width="64" height="64">
+  <object id="14" name="3" x="832" y="860" width="64" height="64">
    <properties>
     <property name="target" type="int" value="3"/>
    </properties>
   </object>
-  <object id="15" name="3" x="771.988" y="850.478" width="64" height="64">
+  <object id="15" name="3" x="768" y="860" width="64" height="64">
    <properties>
     <property name="target" type="int" value="3"/>
    </properties>
   </object>
  </objectgroup>
- <objectgroup id="8" name="npcs">
-  <object id="7" name="Orc" x="1337.58" y="350.059">
-   <properties>
-    <property name="maxHp" type="int" value="10"/>
-   </properties>
-   <point/>
-  </object>
-  <object id="9" name="Knight" x="725.216" y="631.092" rotation="90">
-   <properties>
-    <property name="maxHp" type="int" value="30"/>
-   </properties>
-   <point/>
-  </object>
- </objectgroup>
+ <objectgroup id="8" name="npcs"/>
 </map>

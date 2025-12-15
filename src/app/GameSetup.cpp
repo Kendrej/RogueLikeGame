@@ -12,7 +12,7 @@ void setupGame(World& world)
 
     world.buildFromTmxMap();
 
-    world.spawnPlayer({100.0f, 100.0f + World::UI_TOP_BAR_HEIGHT});
+    world.spawnPlayer({200.0f, 200.0f + World::UI_TOP_BAR_HEIGHT});
 
     world.givePlayerConsumable(World::ConsumableType::HealthPotion);
     world.givePlayerConsumable(World::ConsumableType::StrengthPotion);

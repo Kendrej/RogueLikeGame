@@ -125,12 +125,12 @@
   </object>
   <object id="10" name="0" x="1755.16" y="447.385" width="64" height="64">
    <properties>
-    <property name="target" type="int" value="1"/>
+    <property name="target" type="int" value="0"/>
    </properties>
   </object>
   <object id="11" name="0" x="1755.56" y="387.508" width="64" height="64">
    <properties>
-    <property name="target" type="int" value="1"/>
+    <property name="target" type="int" value="0"/>
    </properties>
   </object>
  </objectgroup>

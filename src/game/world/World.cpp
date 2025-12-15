@@ -317,7 +317,7 @@ void World::buildFromTmxMap() {
                 map.setGatewaySide(newGwIdx, getSide(newGwIdx));
 
                 // (opcjonalnie debug)
-                // std::cout << "Gateway object at (" << posX << ", " << posY << ") -> target " << target << "\n";
+                 std::cout << "Gateway object at (" << posX << ", " << posY << ") -> target " << target << "\n";
             }
         }
     }
@@ -333,13 +333,13 @@ GatewaySide World::getSide(int gwIdx)
     int mapRows = maps_[currentMapIndex]->getRows();
     int mapCols = maps_[currentMapIndex]->getColumns();
 
-    if (tileY <= 1)
+    if (tileY <= 2)
         return GatewaySide::Top;
-    if (tileY >= mapRows - 2)
+    if (tileY >= mapRows - 3)
         return GatewaySide::Bottom;
-    if (tileX <= 1)
+    if (tileX <= 2)
         return GatewaySide::Left;
-    if (tileX >= mapCols - 2)
+    if (tileX >= mapCols - 3)
         return GatewaySide::Right;
 
     return GatewaySide::Top;
@@ -881,22 +881,22 @@ void World::spawnPlayerInNewScene(GatewaySide entrySide, float sourceGatewayX, f
     case GatewaySide::Top:
         // Entering from top, exit at bottom - spawn as close to bottom edge as possible
         sourceGatewayX = player_->getPosition().x;
-        player_->setPosition(sourceGatewayX, mapHeight + UI_TOP_BAR_HEIGHT -tile*2);
+        player_->setPosition(sourceGatewayX, mapHeight + UI_TOP_BAR_HEIGHT -tile*5);
         break;
     case GatewaySide::Bottom:
         // Entering from bottom, exit at top - spawn as close to top edge as possible (after UI bar)
         sourceGatewayX = player_->getPosition().x;
-        player_->setPosition(sourceGatewayX, UI_TOP_BAR_HEIGHT + tile*3);
+        player_->setPosition(sourceGatewayX, UI_TOP_BAR_HEIGHT + tile*5);
         break;
     case GatewaySide::Left:
         // Entering from left, exit at right - spawn as close to right edge as possible
         sourceGatewayY = player_->getPosition().y;
-        player_->setPosition(mapWidth - tile - tile, sourceGatewayY);
+        player_->setPosition(mapWidth - tile*3, sourceGatewayY);
         break;
     case GatewaySide::Right:
         // Entering from right, exit at left - spawn as close to left edge as possible
         sourceGatewayY = player_->getPosition().y;
-        player_->setPosition(tile * 3, sourceGatewayY);
+        player_->setPosition(tile * 4, sourceGatewayY);
         break;
     }
 }

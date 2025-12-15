@@ -113,14 +113,14 @@
 </data>
  </layer>
  <objectgroup id="2" name="gateways">
-  <object id="1" name="2" x="100.666" y="389.333" width="64" height="64">
+  <object id="1" name="0" x="100.666" y="389.333" width="64" height="64">
    <properties>
-    <property name="target" type="int" value="2"/>
+    <property name="target" type="int" value="0"/>
    </properties>
   </object>
-  <object id="5" name="2" x="100.333" y="450.667" width="64" height="64">
+  <object id="5" name="0" x="100.333" y="450.667" width="64" height="64">
    <properties>
-    <property name="target" type="int" value="2"/>
+    <property name="target" type="int" value="0"/>
    </properties>
   </object>
  </objectgroup>

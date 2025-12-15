@@ -14,6 +14,7 @@ bool Map::loadFromTmxFile(const std::string& path, Assets *assets)
     }
 
     gidToTileInfo_.clear();
+    gateways_.clear();
 
     auto tileCount = mapTmx.getTileCount();
     auto tileSize  = mapTmx.getTileSize();
