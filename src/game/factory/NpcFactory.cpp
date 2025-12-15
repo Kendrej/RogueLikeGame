@@ -70,6 +70,20 @@ Npc* NpcFactory::createNpc(NpcType type, World& world, ImVec2 pos)
             meleeAttackFrames   = 6;
             meleeAttackTrigger  = 4;
             break;
+        case NpcType::Knight:
+            controller        = std::make_unique<MeleeController>();
+            maxHp             = 30;
+            aggroRange        = 400.0f;
+            maxSpeed          = 100.0f;
+            accel             = 1000.0f;
+            meleeDamage       = 50;
+            meleeCooldown     = 1.0f;
+            meleeRange        = 50.0f;
+            animBasePath      = "assets/animations/knight/";
+            animPrefix        = "Knight";
+            meleeAttackFrames   = 6;
+            meleeAttackTrigger  = 4;
+            break;
     }
 
     auto* npc = new Npc(static_cast<int>(type), width, height, pos.x, pos.y, maxHp);

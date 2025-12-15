@@ -419,7 +419,9 @@ void VulkanImGuiApp::drawWorld()
 
     // Helper function to draw scaled sprite centered on position
     // texX, texY - lewy górny róg w spritesheet (piksele), 0 = pełna tekstura
-    auto drawScaledSprite = [bg, this](int iconId, ImVec2 pos, float width, float height, float scale, uint32_t texX = 0, uint32_t texY = 0)
+    auto drawScaledSprite = [bg, this](int iconId, ImVec2 pos, float width, float height, float scale,
+                                        uint32_t texX = 0, uint32_t texY = 0,
+                                        bool flipH = false, bool flipV = false, bool flipD = false)
     {
         const auto& icon = assets_->icon(iconId);
 
@@ -438,17 +440,57 @@ void VulkanImGuiApp::drawWorld()
         
         if (texX > 0 || texY > 0)
         {
-         // Używamy spritesheet - oblicz UV
+            // Używamy spritesheet - oblicz UV
             float texWidth  = static_cast<float>(icon.width);
             float texHeight = static_cast<float>(icon.height);
             uv0 = ImVec2(static_cast<float>(texX) / texWidth, 
-            static_cast<float>(texY) / texHeight);
+                         static_cast<float>(texY) / texHeight);
             uv1 = ImVec2(static_cast<float>(texX + static_cast<uint32_t>(width)) / texWidth,
-            static_cast<float>(texY + static_cast<uint32_t>(height)) / texHeight);
+                         static_cast<float>(texY + static_cast<uint32_t>(height)) / texHeight);
         }
 
-      bg->AddImage(icon.imTex, renderPos, ImVec2(renderPos.x + renderW, renderPos.y + renderH), 
-         uv0, uv1, IM_COL32_WHITE);
+
+        if (flipD)
+        {
+            ImVec2 uvTL = uv0;
+            ImVec2 uvTR = ImVec2(uv1.x, uv0.y);
+            ImVec2 uvBR = uv1;
+            ImVec2 uvBL = ImVec2(uv0.x, uv1.y);
+
+            std::swap(uvTR, uvBL);
+
+            if (flipH)
+            {
+                std::swap(uvTL, uvTR);
+                std::swap(uvBL, uvBR);
+            }
+            if (flipV)
+            {
+                std::swap(uvTL, uvBL);
+                std::swap(uvTR, uvBR);
+            }
+
+            ImVec2 p1(renderPos.x, renderPos.y);
+            ImVec2 p2(renderPos.x + renderW, renderPos.y);
+            ImVec2 p3(renderPos.x + renderW, renderPos.y + renderH);
+            ImVec2 p4(renderPos.x, renderPos.y + renderH);
+
+            bg->AddImageQuad(icon.imTex, p1, p2, p3, p4, uvTL, uvTR, uvBR, uvBL, IM_COL32_WHITE);
+        }
+        else
+        {
+            if (flipH)
+            {
+                std::swap(uv0.x, uv1.x);
+            }
+            if (flipV)
+            {
+                std::swap(uv0.y, uv1.y);
+            }
+
+            bg->AddImage(icon.imTex, renderPos, ImVec2(renderPos.x + renderW, renderPos.y + renderH),
+                         uv0, uv1, IM_COL32_WHITE);
+        }
     };
 
     for (const auto& up : world_->entities())
@@ -468,7 +510,8 @@ void VulkanImGuiApp::drawWorld()
         float ENTITY_SPRITE_SCALE = 1.0f;
         uint32_t texX = 0;
         uint32_t texY = 0;
-        
+        bool flipH = false, flipV = false, flipD = false;
+
         if (auto* living = dynamic_cast<LivingEntity*>(up.get()))
         {
             if (auto* animationController = living->getAnimationController())
@@ -488,8 +531,11 @@ void VulkanImGuiApp::drawWorld()
             iconId = e.getEntityId();
             texX = e.getTexX();
             texY = e.getTexY();
+            flipH = e.getFlipH();
+            flipV = e.getFlipV();
+            flipD = e.getFlipD();
         }
-        drawScaledSprite(iconId, pos, static_cast<float>(w), static_cast<float>(h), ENTITY_SPRITE_SCALE, texX, texY);
+        drawScaledSprite(iconId, pos, static_cast<float>(w), static_cast<float>(h), ENTITY_SPRITE_SCALE, texX, texY, flipH, flipV, flipD);
     }
 
     // Rysuj gracza
