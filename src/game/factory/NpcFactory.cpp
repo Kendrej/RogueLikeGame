@@ -47,7 +47,7 @@ Npc* NpcFactory::createNpc(NpcType type, World& world, ImVec2 pos)
             aggroRange        = 600.0f;
             maxSpeed          = 180.0f;
             accel             = 1500.0f;
-            rangedDamage      = 15;
+            rangedDamage      = 10;
             rangedCooldown    = 1.5f;
             rangedRange       = 500.0f;
             animBasePath      = "assets/animations/skeletonArcher/";
@@ -62,9 +62,9 @@ Npc* NpcFactory::createNpc(NpcType type, World& world, ImVec2 pos)
             aggroRange        = 400.0f;
             maxSpeed          = 200.0f;
             accel             = 2500.0f;
-            meleeDamage       = 25;
+            meleeDamage       = 5;
             meleeCooldown     = 1.0f;
-            meleeRange        = 50.0f;
+            meleeRange        = 80.0f;
             animBasePath      = "assets/animations/orc/";
             animPrefix        = "Orc";
             meleeAttackFrames   = 6;
@@ -76,13 +76,27 @@ Npc* NpcFactory::createNpc(NpcType type, World& world, ImVec2 pos)
             aggroRange        = 400.0f;
             maxSpeed          = 100.0f;
             accel             = 1000.0f;
-            meleeDamage       = 50;
+            meleeDamage       = 15;
             meleeCooldown     = 1.0f;
-            meleeRange        = 50.0f;
+            meleeRange        = 80.0f;
             animBasePath      = "assets/animations/knight/";
             animPrefix        = "Knight";
             meleeAttackFrames   = 6;
             meleeAttackTrigger  = 4;
+            break;
+        case NpcType::Elite_Orc:
+            controller         = std::make_unique<MeleeController>();
+            maxHp              = 100;
+            aggroRange         = 400.0f;
+            maxSpeed           = 120.0f;
+            accel              = 1000.0f;
+            meleeDamage        = 30;
+            meleeCooldown      = 1.0f;
+            meleeRange         = 150.0f;
+            animBasePath       = "assets/animations/eliteOrc/";
+            animPrefix         = "EliteOrc";
+            meleeAttackFrames  = 9;
+            meleeAttackTrigger = 5;
             break;
     }
 

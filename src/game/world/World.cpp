@@ -830,11 +830,16 @@ void World::spawnNpcs()
             float y = obj.getPosition().y + UI_TOP_BAR_HEIGHT;
             // czytamy property "target" z obiektu
             int maxHp = -1;
+            float size  = 1.0f;
             for (const auto& p : obj.getProperties())
             {
                 if (p.getName() == "maxHp")
                 {
                     maxHp = p.getIntValue();
+                }
+                if (p.getName() == "size")
+                {
+                    size = p.getFloatValue();
                 }
             }
             std::cout << maxHp << "\n";
@@ -843,6 +848,7 @@ void World::spawnNpcs()
                 if (maxHp > 0)
                 {
                     npc.setHp(maxHp); 
+                    npc.setSpriteScale(size);
                 }
             }
             else if (obj.getName() == "Skeleton_Archer")
@@ -851,6 +857,7 @@ void World::spawnNpcs()
                 if (maxHp > 0)
                 {
                     npc.setHp(maxHp);
+                    npc.setSpriteScale(size);
                 }
             }
             else if (obj.getName() == "Knight")
@@ -859,6 +866,16 @@ void World::spawnNpcs()
                 if (maxHp > 0)
                 {
                     npc.setHp(maxHp);
+                    npc.setSpriteScale(size);
+                }
+            }
+            else if (obj.getName() == "EliteOrc")
+            {
+                auto& npc = spawnNpc(NpcType::Elite_Orc, {x, y});
+                if (maxHp > 0)
+                {
+                    npc.setHp(maxHp);
+                    npc.setSpriteScale(size);
                 }
             }
         }
@@ -881,22 +898,22 @@ void World::spawnPlayerInNewScene(GatewaySide entrySide, float sourceGatewayX, f
     case GatewaySide::Top:
         // Entering from top, exit at bottom - spawn as close to bottom edge as possible
         sourceGatewayX = player_->getPosition().x;
-        player_->setPosition(sourceGatewayX, mapHeight + UI_TOP_BAR_HEIGHT -tile*5);
+        player_->setPosition(sourceGatewayX, mapHeight + UI_TOP_BAR_HEIGHT -tile*4);
         break;
     case GatewaySide::Bottom:
         // Entering from bottom, exit at top - spawn as close to top edge as possible (after UI bar)
         sourceGatewayX = player_->getPosition().x;
-        player_->setPosition(sourceGatewayX, UI_TOP_BAR_HEIGHT + tile*5);
+        player_->setPosition(sourceGatewayX, UI_TOP_BAR_HEIGHT + tile*3);
         break;
     case GatewaySide::Left:
         // Entering from left, exit at right - spawn as close to right edge as possible
         sourceGatewayY = player_->getPosition().y;
-        player_->setPosition(mapWidth - tile*3, sourceGatewayY);
+        player_->setPosition(mapWidth - tile*4, sourceGatewayY);
         break;
     case GatewaySide::Right:
         // Entering from right, exit at left - spawn as close to left edge as possible
         sourceGatewayY = player_->getPosition().y;
-        player_->setPosition(tile * 4, sourceGatewayY);
+        player_->setPosition(tile * 3, sourceGatewayY);
         break;
     }
 }

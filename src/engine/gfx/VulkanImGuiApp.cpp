@@ -393,24 +393,28 @@ void VulkanImGuiApp::drawWorld()
     bg->AddRectFilled(ImVec2(0.0f, 0.0f), ImVec2(ImGui::GetIO().DisplaySize.x, World::UI_TOP_BAR_HEIGHT),
                       IM_COL32(0, 0, 0, 255));
 
-    auto drawHpBar = [bg](const LivingEntity& le, float x, float y, float w)
+    auto drawHpBar = [bg](const LivingEntity& le, float x, float y, float w, float spriteScale = 1.0f)
     {
         int hp    = le.getHp();
-        int maxHp = le.getMaxHp();
+      int maxHp = le.getMaxHp();
         if (maxHp <= 0)
             return;
         float ratio           = static_cast<float>(hp) / static_cast<float>(maxHp);
-        ratio                 = std::clamp(ratio, 0.0f, 1.0f);
+    ratio        = std::clamp(ratio, 0.0f, 1.0f);
         const float barHeight = 6.0f;
-        ImVec2      barMin(x, y - barHeight - 4.0f);
-        ImVec2      barMax(x + w, y - 4.0f);
-        bg->AddRectFilled(barMin, barMax, IM_COL32(30, 30, 30, 200), 2.0f);
+        
+  // Dodatkowe przesunięcie w górę: (skala - 1) * wysokość tile'a
+        float offsetY = (spriteScale - 1.0f) * 64.0f;
+        
+        ImVec2      barMin(x, y - offsetY - barHeight - 4.0f);
+        ImVec2      barMax(x + w, y - offsetY - 4.0f);
+  bg->AddRectFilled(barMin, barMax, IM_COL32(30, 30, 30, 200), 2.0f);
         bg->AddRect(barMin, barMax, IM_COL32(200, 200, 200, 255), 2.0f);
         ImVec2 hpFill(barMin.x + (barMax.x - barMin.x) * ratio, barMax.y);
         ImU32  col = (ratio > 0.5f) ? IM_COL32(0, 200, 0, 220) : IM_COL32(200, 50, 0, 220);
         bg->AddRectFilled(ImVec2(barMin.x + 1, barMin.y + 1), ImVec2(hpFill.x - 1, barMax.y - 1), col, 2.0f);
         // Tekst HP (środek paska)
-        char buf[32];
+ char buf[32];
         snprintf(buf, sizeof(buf), "%d/%d", hp, maxHp);
         ImVec2 textSize = ImGui::CalcTextSize(buf);
         ImVec2 textPos(barMin.x + (barMax.x - barMin.x - textSize.x) * 0.5f, barMin.y - textSize.y - 1.0f);
@@ -514,17 +518,17 @@ void VulkanImGuiApp::drawWorld()
 
         if (auto* living = dynamic_cast<LivingEntity*>(up.get()))
         {
+            ENTITY_SPRITE_SCALE = living->getSpriteScale() * 5.0f;
             if (auto* animationController = living->getAnimationController())
             {
-                ENTITY_SPRITE_SCALE = 5.0f;
                 iconId  = animationController->getCurrentFrameIconId();
-                    // Animowane encje używają pełnej tekstury (UV 0-1)
+                // Animowane encje używają pełnej tekstury (UV 0-1)
             }
             else
             {
                 iconId = living->getEntityId();
             }
-            drawHpBar(*living, pos.x, pos.y, static_cast<float>(w));
+            drawHpBar(*living, pos.x, pos.y, static_cast<float>(w), living->getSpriteScale());
         }
         else
         {
@@ -544,20 +548,20 @@ void VulkanImGuiApp::drawWorld()
       const ImVec2   pos = player->getPosition();
         const uint32_t w   = player->getWidth();
         const uint32_t h   = player->getHeight();
-        int      iconId;
+        int   iconId;
         if (auto* animationController = player->getAnimationController())
         {
-            iconId = animationController->getCurrentFrameIconId();
+      iconId = animationController->getCurrentFrameIconId();
         }
-        else
+    else
         {
-            iconId = player->getEntityId();
+    iconId = player->getEntityId();
         }
 
-    // Draw player sprite with 5x scale
-    const float PLAYER_SPRITE_SCALE = 5.0f;
-    drawScaledSprite(iconId, pos, static_cast<float>(w), static_cast<float>(h), PLAYER_SPRITE_SCALE);
-    drawHpBar(*player, pos.x, pos.y, static_cast<float>(w));
+    // Draw player sprite using spriteScale from player
+        const float PLAYER_SPRITE_SCALE = player->getSpriteScale() * 5.0f;
+        drawScaledSprite(iconId, pos, static_cast<float>(w), static_cast<float>(h), PLAYER_SPRITE_SCALE);
+        drawHpBar(*player, pos.x, pos.y, static_cast<float>(w), player->getSpriteScale());
  }
 
     drawInventoryUI();

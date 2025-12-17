@@ -5,7 +5,7 @@ class Npc;
 class World;
 
 enum class NpcType {
-    Skeleton_Archer, Orc, Knight
+    Skeleton_Archer, Orc, Knight, Elite_Orc
 };
 
 class NpcFactory {

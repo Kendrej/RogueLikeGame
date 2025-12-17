@@ -3,7 +3,7 @@
 
 #include <memory>
 #include <string>
-
+#include "animation/AnimationController.h"
 class AnimationController;
 
 class LivingEntity : public Entity
@@ -180,6 +180,10 @@ public:
         return animationController_.get();
     }
 
+    // Sprite scale for rendering (independent of hitbox)
+    float getSpriteScale() const { return spriteScale_; }
+    void setSpriteScale(float scale) { spriteScale_ = scale; }
+
 protected:
     ImVec2 velocity{0.0f, 0.0f};
     float  maxSpeed     = 5.0f;
@@ -199,6 +203,8 @@ protected:
     float meleeCooldown = 0.f;
     float meleeRange    = 0.f;
     float meleeTimer    = 0.0f;
+
+    float spriteScale_ = 1.0f; // Visual scale for sprite rendering
 
 private:
     bool                                 isPerformingMelee  = false;

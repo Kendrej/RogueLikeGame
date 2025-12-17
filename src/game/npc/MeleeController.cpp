@@ -24,16 +24,8 @@ void MeleeController::update(Npc& npc, World& world, float /*dt*/)
 
     ImVec2 dirToPlayer = normalize(ImVec2{playerCenter.x - npcCenter.x, playerCenter.y - npcCenter.y});
 
-    const float aggroRange = 500.0f;
-    const float maxSpeed   = 250.0f;
-    const float accel      = 2000.0f;
-
-    npc.setMeleeRange(80.0f);
-    npc.setMeleeDamage(5);
-    npc.setMeleeCooldown(1.0f);
-    npc.setMaxSpeed(maxSpeed);
-    npc.setAcceleration(accel);
-
+    // Use values configured in NpcFactory instead of hardcoded overrides
+    float aggroRange = npc.getAggroRange();
     float attackRange = npc.getMeleeRange();
 
     Npc::State currentState = npc.getState();
@@ -93,7 +85,7 @@ void MeleeController::update(Npc& npc, World& world, float /*dt*/)
 
     case Npc::State::Kite:
     {
-        // Melee NPC nie używa kite state, ale dodajemy dla kompletności
+        // Melee NPC does not use kite state, fallback to chase
         npc.setState(Npc::State::Chase);
         break;
     }

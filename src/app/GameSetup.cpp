@@ -9,6 +9,8 @@ void setupGame(World& world)
     world.addMapfromTmx("assets/maps/01.tmx");
     world.addMapfromTmx("assets/maps/02.tmx");
     world.addMapfromTmx("assets/maps/03.tmx");
+    world.addMapfromTmx("assets/maps/04.tmx");
+
 
     world.buildFromTmxMap();
 

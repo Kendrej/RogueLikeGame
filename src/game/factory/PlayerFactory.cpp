@@ -13,9 +13,9 @@ Player* PlayerFactory::createPlayer(World& world, ImVec2 pos)
 
     int   meleeDamage   = 5;
     float meleeCooldown = 0.7f;
-    float meleeRange    = 50.0f;
+    float meleeRange    = 80.0f;
 
-    int   rangedDamage   = 5;
+    int   rangedDamage   = 10;
     float rangedCooldown = 0.7f;
     float rangedRange    = 200.0f;
 
