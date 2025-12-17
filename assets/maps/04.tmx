@@ -127,7 +127,7 @@
  <objectgroup id="8" name="npcs">
   <object id="9" name="EliteOrc" x="493.867" y="518.022">
    <properties>
-    <property name="maxHp" type="int" value="30"/>
+    <property name="maxHp" type="int" value="100"/>
     <property name="size" type="float" value="2"/>
    </properties>
    <point/>

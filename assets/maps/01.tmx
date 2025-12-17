@@ -143,7 +143,7 @@
   </object>
   <object id="12" name="Orc" x="1419.63" y="448.832">
    <properties>
-    <property name="maxHp" type="int" value="10"/>
+    <property name="maxHp" type="int" value="15"/>
    </properties>
    <point/>
   </object>

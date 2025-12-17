@@ -127,7 +127,7 @@
  <objectgroup id="8" name="npcs">
   <object id="7" name="Orc" x="1423.33" y="367.217">
    <properties>
-    <property name="maxHp" type="int" value="10"/>
+    <property name="maxHp" type="int" value="15"/>
    </properties>
    <point/>
   </object>
@@ -139,7 +139,7 @@
   </object>
   <object id="10" name="Orc" x="560" y="328">
    <properties>
-    <property name="maxHp" type="int" value="10"/>
+    <property name="maxHp" type="int" value="15"/>
    </properties>
    <point/>
   </object>

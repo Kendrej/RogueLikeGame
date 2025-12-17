@@ -22,17 +22,8 @@ void RangeController::update(Npc& npc, World& world, float /*dt*/)
     ImVec2 playerCenter{playerPos.x + static_cast<float>(player->getWidth()) * 0.5f, playerPos.y + static_cast<float>(player->getHeight()) * 0.5f};
     float  dist = distance(npcCenter, playerCenter);
 
-    const float aggroRange = 500.0f;
-    const float maxSpeed   = 250.0f;
-    const float accel      = 2000.0f;
-
-    npc.setRangedDamage(5);
-    npc.setRangedRange(300.0f);
-    npc.setRangedCooldown(1.0f);
-
-    npc.setMaxSpeed(maxSpeed);
-    npc.setAcceleration(accel);
-
+    // Use values configured in NpcFactory instead of hardcoded overrides
+    float aggroRange = npc.getAggroRange();
     float attackRange = npc.getRangedRange();
 
     Npc::State currentState = npc.getState();
