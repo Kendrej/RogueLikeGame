@@ -112,8 +112,6 @@ void LivingEntity::takeDamage(int dmg)
     if (hp < 0)
         hp = 0;
     damaged = true;
-    std::cout << "[LivingEntity] entityId=" << this->getEntityId() << " took " << dmg << " dmg -> hp=" << hp << "/"
-              << maxHp << std::endl;
 }
 
 void LivingEntity::heal(int amount)
@@ -123,8 +121,6 @@ void LivingEntity::heal(int amount)
     hp += amount;
     if (hp > maxHp)
         hp = maxHp;
-    std::cout << "[LivingEntity] entityId=" << this->getEntityId() << " healed " << amount << " -> hp=" << hp << "/"
-              << maxHp << std::endl;
 }
 
 AnimationController& LivingEntity::createAnimationController(

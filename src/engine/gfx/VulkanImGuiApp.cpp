@@ -297,8 +297,30 @@ void VulkanImGuiApp::mainLoop()
 
         ImGui::Render();
 
+        // Validate imageIndex and corresponding command buffer before use
+        if (imageIndex >= commandBuffers_.size())
+        {
+            std::cerr << "[Vulkan-ERROR] imageIndex (" << imageIndex << ") >= commandBuffers_.size() (" << commandBuffers_.size()
+                      << ") - recreating swapchain and skipping this frame" << std::endl;
+            recreateSwapchain();
+            continue;
+        }
+
         VkCommandBuffer cmd = commandBuffers_[imageIndex];
-        vkResetCommandBuffer(cmd, 0);
+        if (cmd == VK_NULL_HANDLE)
+        {
+            std::cerr << "[Vulkan-ERROR] commandBuffers_[" << imageIndex << "] is VK_NULL_HANDLE - recreating swapchain and skipping frame" << std::endl;
+            recreateSwapchain();
+            continue;
+        }
+
+        VkResult resetRes = vkResetCommandBuffer(cmd, 0);
+        if (resetRes != VK_SUCCESS)
+        {
+            std::cerr << "[Vulkan-ERROR] vkResetCommandBuffer failed: " << resetRes << " for cmd=" << cmd << " imageIndex=" << imageIndex << std::endl;
+            recreateSwapchain();
+            continue;
+        }
         recordCommandBuffer(cmd, imageIndex);
 
         VkPipelineStageFlags waitStages[] = {VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT};
@@ -746,7 +768,11 @@ void VulkanImGuiApp::drawDeathView() {
         ImGui::SetCursorPosX(buttonX);
         if (ImGui::Button("Odrodzenie", ImVec2(buttonWidth, 40)))
         {
+            if (device_)
+                vkDeviceWaitIdle(device_);
+            resourcesBeingUpdated_ = true;
             restartGame(*world_);
+            resourcesBeingUpdated_ = false;
 
         }
 
@@ -760,5 +786,3 @@ void VulkanImGuiApp::drawDeathView() {
     }
     ImGui::End();
 }
-
-

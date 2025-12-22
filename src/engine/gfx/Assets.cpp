@@ -4,6 +4,7 @@
 #include <imgui_impl_vulkan.h>
 #include <stdexcept>
 #include <vector>
+#include <iostream>
 
 #if __has_include(<stb_image.h>)
 #define STB_IMAGE_IMPLEMENTATION
@@ -21,6 +22,11 @@ Assets::~Assets()
     clear();
 }
 
+void Assets::setCommandPool(VkCommandPool pool)
+{
+    ctx_.commandPool = pool;
+}
+
 uint32_t Assets::findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties) const
 {
     VkPhysicalDeviceMemoryProperties memProps{};
@@ -35,23 +41,58 @@ uint32_t Assets::findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags prope
 
 VkCommandBuffer Assets::beginSingleTimeCommands() const
 {
+    if (ctx_.commandPool == VK_NULL_HANDLE)
+    {
+        std::cerr << "[Vulkan-ERROR] Assets::beginSingleTimeCommands called but commandPool is VK_NULL_HANDLE" << std::endl;
+        return VK_NULL_HANDLE;
+    }
+
     VkCommandBufferAllocateInfo allocInfo{VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO};
     allocInfo.level              = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
     allocInfo.commandPool        = ctx_.commandPool;
     allocInfo.commandBufferCount = 1;
 
     VkCommandBuffer cmd{};
-    vkAllocateCommandBuffers(ctx_.device, &allocInfo, &cmd);
+    VkResult allocRes = vkAllocateCommandBuffers(ctx_.device, &allocInfo, &cmd);
+    if (allocRes != VK_SUCCESS)
+    {
+        std::cerr << "[Vulkan-ERROR] Assets::beginSingleTimeCommands: vkAllocateCommandBuffers failed: " << allocRes << std::endl;
+        return VK_NULL_HANDLE;
+    }
 
     VkCommandBufferBeginInfo bi{VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO};
     bi.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
-    vkBeginCommandBuffer(cmd, &bi);
+    VkResult beginRes = vkBeginCommandBuffer(cmd, &bi);
+    if (beginRes != VK_SUCCESS)
+    {
+        std::cerr << "[Vulkan-ERROR] Assets::beginSingleTimeCommands: vkBeginCommandBuffer failed: " << beginRes << std::endl;
+        vkFreeCommandBuffers(ctx_.device, ctx_.commandPool, 1, &cmd);
+        return VK_NULL_HANDLE;
+    }
     return cmd;
 }
 
 void Assets::endSingleTimeCommands(VkCommandBuffer cmd) const
 {
-    vkEndCommandBuffer(cmd);
+    if (cmd == VK_NULL_HANDLE)
+    {
+        std::cerr << "[Vulkan-WARN] Assets::endSingleTimeCommands called with VK_NULL_HANDLE" << std::endl;
+        return;
+    }
+    if (ctx_.commandPool == VK_NULL_HANDLE)
+    {
+        std::cerr << "[Vulkan-ERROR] Assets::endSingleTimeCommands: commandPool is VK_NULL_HANDLE" << std::endl;
+        return;
+    }
+
+    VkResult endRes = vkEndCommandBuffer(cmd);
+    if (endRes != VK_SUCCESS)
+    {
+        std::cerr << "[Vulkan-ERROR] Assets::endSingleTimeCommands: vkEndCommandBuffer failed: " << endRes << std::endl;
+        vkFreeCommandBuffers(ctx_.device, ctx_.commandPool, 1, &cmd);
+        return;
+    }
+
     VkSubmitInfo submit{VK_STRUCTURE_TYPE_SUBMIT_INFO};
     submit.commandBufferCount = 1;
     submit.pCommandBuffers    = &cmd;
@@ -83,6 +124,11 @@ void Assets::transitionImageLayout(VkImage image, VkFormat /*format*/, VkImageLa
                                    VkImageLayout newLayout) const
 {
     VkCommandBuffer cmd = beginSingleTimeCommands();
+    if (cmd == VK_NULL_HANDLE)
+    {
+        std::cerr << "[Vulkan-ERROR] transitionImageLayout: failed to get command buffer, skipping" << std::endl;
+        return;
+    }
 
     VkImageMemoryBarrier barrier{VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER};
     barrier.oldLayout                       = oldLayout;
@@ -127,6 +173,11 @@ void Assets::transitionImageLayout(VkImage image, VkFormat /*format*/, VkImageLa
 void Assets::copyBufferToImage(VkBuffer buffer, VkImage image, uint32_t width, uint32_t height) const
 {
     VkCommandBuffer cmd = beginSingleTimeCommands();
+    if (cmd == VK_NULL_HANDLE)
+    {
+        std::cerr << "[Vulkan-ERROR] copyBufferToImage: failed to get command buffer, skipping" << std::endl;
+        return;
+    }
 
     VkBufferImageCopy region{};
     region.imageSubresource.aspectMask     = VK_IMAGE_ASPECT_COLOR_BIT;

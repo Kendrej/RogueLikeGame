@@ -85,6 +85,7 @@ private:
     std::unique_ptr<World>  world_;
     IconId                  heartIconId_ = -1;
     bool                    isPaused_ = false;
+    bool                    resourcesBeingUpdated_ = false;
 
     // High-level steps
     void initWindow();

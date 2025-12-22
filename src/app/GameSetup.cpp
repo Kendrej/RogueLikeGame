@@ -26,6 +26,7 @@ void setupGame(World& world)
 
 void restartGame(World& world) {
     world.setCurrentMapIndex(0);
-    world.clear();
+    world.reset();
     setupGame(world);
+
 }

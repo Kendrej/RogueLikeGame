@@ -220,6 +220,10 @@ void VulkanImGuiApp::recreateSwapchain()
     createRenderPass();
     createFramebuffers();
 
+    if (assets_)
+        assets_->setCommandPool(VK_NULL_HANDLE);
+    commandBuffers_.clear();
+
     if (commandPool_)
     {
         vkDestroyCommandPool(device_, commandPool_, nullptr);
@@ -227,7 +231,9 @@ void VulkanImGuiApp::recreateSwapchain()
     }
     createCommandPoolAndBuffers();
 
-    // Re-init ImGui Vulkan backend with the new render pass and image counts
+    if (assets_)
+        assets_->setCommandPool(commandPool_);
+
     reinitImGuiRenderer();
 
     ImGui_ImplVulkan_SetMinImageCount(static_cast<uint32_t>(swapchainImages_.size()));
@@ -235,8 +241,21 @@ void VulkanImGuiApp::recreateSwapchain()
 
 void VulkanImGuiApp::recordCommandBuffer(VkCommandBuffer cmd, uint32_t imageIndex)
 {
+    if (cmd == VK_NULL_HANDLE)
+    {
+        std::cerr << "[Vulkan-ERROR] recordCommandBuffer: command buffer is VK_NULL_HANDLE for imageIndex " << imageIndex
+                  << std::endl;
+        return;
+    }
+
     VkCommandBufferBeginInfo bi{VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO};
-    vkutils::checkVk(vkBeginCommandBuffer(cmd, &bi), "vkBeginCommandBuffer failed");
+    VkResult beginRes = vkBeginCommandBuffer(cmd, &bi);
+    if (beginRes != VK_SUCCESS)
+    {
+        std::cerr << "[Vulkan-ERROR] vkBeginCommandBuffer returned " << beginRes << " for cmd=" << cmd
+                  << " imageIndex=" << imageIndex << std::endl;
+        return;
+    }
 
     VkClearValue clear{};
     clear.color = {{0.10f, 0.15f, 0.20f, 1.0f}};
@@ -253,5 +272,10 @@ void VulkanImGuiApp::recordCommandBuffer(VkCommandBuffer cmd, uint32_t imageInde
     ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), cmd);
     vkCmdEndRenderPass(cmd);
 
-    vkutils::checkVk(vkEndCommandBuffer(cmd), "vkEndCommandBuffer failed");
+    VkResult endRes = vkEndCommandBuffer(cmd);
+    if (endRes != VK_SUCCESS)
+    {
+        std::cerr << "[Vulkan-ERROR] vkEndCommandBuffer returned " << endRes << " for cmd=" << cmd
+                  << " imageIndex=" << imageIndex << std::endl;
+    }
 }

@@ -35,6 +35,8 @@ public:
     explicit Assets(const Ctx& ctx);
     ~Assets();
 
+    void setCommandPool(VkCommandPool pool);
+
     IconId addIconFromFile(const std::string& path);
     IconId getOrLoadIcon(const std::string& path);
 
