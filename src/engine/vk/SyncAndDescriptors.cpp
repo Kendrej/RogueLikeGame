@@ -10,13 +10,23 @@ void VulkanImGuiApp::createCommandPoolAndBuffers()
     cpci.flags            = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
     vkutils::checkVk(vkCreateCommandPool(device_, &cpci, nullptr, &commandPool_), "vkCreateCommandPool failed");
 
-    commandBuffers_.resize(framebuffers_.size());
+    commandBuffers_.assign(framebuffers_.size(), VK_NULL_HANDLE);
+
     VkCommandBufferAllocateInfo cbai{VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO};
     cbai.commandPool        = commandPool_;
     cbai.level              = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
     cbai.commandBufferCount = static_cast<uint32_t>(commandBuffers_.size());
-    vkutils::checkVk(vkAllocateCommandBuffers(device_, &cbai, commandBuffers_.data()),
-                     "vkAllocateCommandBuffers failed");
+    if (commandBuffers_.empty())
+    {
+        return;
+    }
+
+    VkResult allocRes = vkAllocateCommandBuffers(device_, &cbai, commandBuffers_.data());
+    if (allocRes != VK_SUCCESS)
+    {
+        std::cerr << "[Vulkan-ERROR] vkAllocateCommandBuffers failed: " << allocRes << std::endl;
+        return;
+    }
 }
 
 void VulkanImGuiApp::createSyncObjects()

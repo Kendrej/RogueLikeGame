@@ -79,6 +79,13 @@ public:
         return assets_;
     }
     ImVec2 getDirToPlayer(LivingEntity* entity);
+    void        reset();
+
+
+    enum class ConsumableType { HealthPotion, SpeedPotion, StrengthPotion };
+    void        givePlayerConsumable(ConsumableType type);
+    int         getConsumableIconId(ConsumableType type);
+
 
 private:
     template <class T, class... Args> T& addEntity(Args&&... args)
@@ -100,16 +107,12 @@ private:
     GatewaySide getSide(int gwIndex);
     void        spawnPlayerInNewScene(GatewaySide entrySide, float sourceGatewayX, float sourceGatewayY);
     void        spawnNpcs();
-public:
-    enum class ConsumableType { HealthPotion, SpeedPotion, StrengthPotion };
-    void        givePlayerConsumable(ConsumableType type);
-    int         getConsumableIconId(ConsumableType type);
-private:
+
     int gatewayIndex    = -1;
     int currentMapIndex = 0;
     std::unordered_map<ConsumableType, int> consumableIconIds_;
     std::vector<std::unique_ptr<Map>> maps_;
-    std::vector<Entity*> doorEntities_;  // Wska�niki do encji drzwi
+    std::vector<Entity*> doorEntities_;
     Assets* assets_{nullptr};
     std::vector<std::unique_ptr<Entity>> entities_;
     std::unique_ptr<Player> player_{nullptr};

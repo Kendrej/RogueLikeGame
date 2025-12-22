@@ -316,8 +316,6 @@ void World::buildFromTmxMap() {
                 // Ustalamy stronę (Top/Bottom/Left/Right) na podstawie pozycji
                 map.setGatewaySide(newGwIdx, getSide(newGwIdx));
 
-                // (opcjonalnie debug)
-                 std::cout << "Gateway object at (" << posX << ", " << posY << ") -> target " << target << "\n";
             }
         }
     }
@@ -842,7 +840,6 @@ void World::spawnNpcs()
                     size = p.getFloatValue();
                 }
             }
-            std::cout << maxHp << "\n";
             if (obj.getName() == "Orc") {
                 auto& npc = spawnNpc(NpcType::Orc, {x, y});
                 if (maxHp > 0)
@@ -1010,3 +1007,10 @@ void World::givePlayerConsumable(ConsumableType type)
     }
 }
 
+void World::reset() {
+    this->clear();
+    for ( auto&& map: maps_)
+    {
+        map->setVisited(false);
+    }
+}
