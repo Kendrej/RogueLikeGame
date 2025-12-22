@@ -115,6 +115,7 @@ private:
     void drawInventoryUI();
     void drawHeartsUI(ImDrawList* bg, Player* player);
     void drawPauseMenu();
+    void drawDeathView();
 
     // --- Helpery Vulkan używane przy ładowaniu tekstur ---
     uint32_t        findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties);

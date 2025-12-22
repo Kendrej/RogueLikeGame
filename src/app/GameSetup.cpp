@@ -23,3 +23,9 @@ void setupGame(World& world)
     world.spawnNpc(NpcType::Orc, {12 * 64.0f, 3 * 64.0f + World::UI_TOP_BAR_HEIGHT});
     world.spawnNpc(NpcType::Skeleton_Archer, {17 * 64.0f, 3 * 64.0f + World::UI_TOP_BAR_HEIGHT});
 }
+
+void restartGame(World& world) {
+    world.setCurrentMapIndex(0);
+    world.clear();
+    setupGame(world);
+}

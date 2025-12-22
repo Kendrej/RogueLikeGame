@@ -1009,4 +1009,3 @@ void World::givePlayerConsumable(ConsumableType type)
         player_->getInventory().addItem(std::move(item));
     }
 }
-

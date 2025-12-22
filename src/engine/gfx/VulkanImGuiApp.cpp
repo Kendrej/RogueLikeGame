@@ -209,8 +209,10 @@ void VulkanImGuiApp::mainLoop()
         // --- Proste sterowanie WASD oparte o GLFW (nie zależne od stanu przechwycenia klawiatury przez ImGui) ---
         if (!isPaused_ && world_)
         {
-        if (auto* player = world_->getPlayer())
+        if (Player* player = world_->getPlayer())
         {
+            if (!player->isAlive()) drawDeathView();
+
             float dx = 0.0f, dy = 0.0f;
             if (glfwGetKey(window_, GLFW_KEY_W) == GLFW_PRESS)
                 dy -= 1.0f;
@@ -289,7 +291,6 @@ void VulkanImGuiApp::mainLoop()
 
         if (isPaused_)
             drawPauseMenu();
-
         // debug window
         if (world_)
             drawDebugOverlay(window_, world_->entities(), world_->getPlayer(), world_.get());
@@ -713,4 +714,51 @@ void VulkanImGuiApp::drawPauseMenu()
     }
     ImGui::End();
 }
+
+void VulkanImGuiApp::drawDeathView() {
+    auto& io = ImGui::GetIO();
+
+    ImDrawList* bg = ImGui::GetBackgroundDrawList();
+    bg->AddRectFilled(ImVec2(0, 0), io.DisplaySize, IM_COL32(0, 0, 0, 150));
+
+    ImVec2 windowSize(300, 200);
+    ImVec2 windowPos((io.DisplaySize.x - windowSize.x) / 2.0f, (io.DisplaySize.y - windowSize.y) / 2.0f);
+
+    ImGui::SetNextWindowPos(windowPos, ImGuiCond_Always);
+    ImGui::SetNextWindowSize(windowSize, ImGuiCond_Always);
+
+    ImGuiWindowFlags flags = ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove |
+                             ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoSavedSettings;
+
+    if (ImGui::Begin("Smierc", nullptr, flags))
+    {
+        float textWidth = ImGui::CalcTextSize("Przegrales!").x;
+        ImGui::SetCursorPosX((windowSize.x - textWidth) / 2.0f);
+        ImGui::Text("Przegrales!");
+
+        ImGui::Spacing();
+        ImGui::Separator();
+        ImGui::Spacing();
+
+        float buttonWidth = 200.0f;
+        float buttonX = (windowSize.x - buttonWidth) / 2.0f;
+
+        ImGui::SetCursorPosX(buttonX);
+        if (ImGui::Button("Odrodzenie", ImVec2(buttonWidth, 40)))
+        {
+            restartGame(*world_);
+
+        }
+
+        ImGui::Spacing();
+
+        ImGui::SetCursorPosX(buttonX);
+        if (ImGui::Button("Wyjdz z gry", ImVec2(buttonWidth, 40)))
+        {
+            glfwSetWindowShouldClose(window_, GLFW_TRUE);
+        }
+    }
+    ImGui::End();
+}
+
 
