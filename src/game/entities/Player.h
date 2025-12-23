@@ -1,12 +1,15 @@
 #pragma once
 #include "Entity.h"
 #include "LivingEntity.h"
-#include "game/item/Inventory.h"
 
 #include <memory>
 
+#include "game/item/Inventory.h"
+
 class Assets;
 class World;
+class Inventory;
+
 
 enum class AttackMode
 {
@@ -39,7 +42,6 @@ public:
     }
 
     Inventory& getInventory() { return inventory_; }
-    const Inventory& getInventory() const { return inventory_; }
 
 private:
     AttackMode attackMode = AttackMode::Melee;

@@ -1,18 +1,26 @@
 #include "Inventory.h"
 #include "Consumable.h"
 #include "game/entities/LivingEntity.h"
+Inventory::Inventory(int capacity) {
+    items_.resize(capacity);
+}
 
-void Inventory::addItem(std::unique_ptr<Item> item)
-{
-    if (static_cast<int>(items_.size()) >= MAX_SLOTS)
-        return;
 
-    items_.push_back(std::move(item));
+bool Inventory::addItem(std::unique_ptr<Item> item) {
+    if (!item) return false;
+
+    for (int i =0; i < items_.size(); i++) {
+        if (items_[i] == nullptr) {
+            items_[i] = std::move(item);
+            return true;
+        }
+    }
+    return false;
 }
 
 bool Inventory::useItem(int slot, LivingEntity& target)
 {
-    if (slot < 0 || slot >= static_cast<int>(items_.size()))
+    if (slot < 0 || slot >= items_.size())
         return false;
 
     Item* item = items_[slot].get();
@@ -34,15 +42,15 @@ bool Inventory::useItem(int slot, LivingEntity& target)
 
 void Inventory::removeItem(int slot)
 {
-    if (slot < 0 || slot >= static_cast<int>(items_.size()))
+    if (slot < 0 || slot >= items_.size())
         return;
 
-    items_.erase(items_.begin() + slot);
+    items_[slot].reset();
 }
 
 Item* Inventory::getItem(int slot) const
 {
-    if (slot < 0 || slot >= static_cast<int>(items_.size()))
+    if (slot < 0 || slot >= items_.size())
         return nullptr;
 
     return items_[slot].get();

@@ -604,14 +604,14 @@ void VulkanImGuiApp::drawInventoryUI()
         return;
 
     ImDrawList* bg = ImGui::GetBackgroundDrawList();
-    const Inventory& inv = player->getInventory();
-
+    Inventory& inv = player->getInventory();
+    int  capacity = inv.getInventoryCapacity();
     const float slotSize = 45.0f;
     const float padding = 4.0f;
-    const float startX = 1920.0f - (Inventory::MAX_SLOTS * (slotSize + padding)) - 20.0f;
+    const float startX = 1920.0f - (capacity * (slotSize + padding)) - 20.0f;
     const float startY = 8.0f;
 
-    for (int i = 0; i < Inventory::MAX_SLOTS; ++i)
+    for (int i = 0; i < capacity; ++i)
     {
         float x = startX + i * (slotSize + padding);
         float y = startY;
