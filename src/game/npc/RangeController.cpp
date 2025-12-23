@@ -80,7 +80,7 @@ void RangeController::update(Npc& npc, World& world, float /*dt*/)
             npc.setFacingDir(dirToPlayer);
             if (!npc.getAnimationController())
             {
-                world.performRangedAttack(npc);
+                world.performRangedAttack(npc, npc.getFacingDir());
             }
             else if (!npc.isPerformingRangedAttack())
             {
@@ -102,7 +102,7 @@ void RangeController::update(Npc& npc, World& world, float /*dt*/)
             npc.setFacingDir(dirToPlayer);
             if (!npc.getAnimationController())
             {
-                world.performRangedAttack(npc);
+                world.performRangedAttack(npc, npc.getFacingDir());
             }
             else if (!npc.isPerformingRangedAttack())
             {

@@ -22,6 +22,8 @@
 #include <vector>
 #include <vk_utils.h>
 
+#include "utils/MathUtils.h"
+
 int VulkanImGuiApp::run()
 {
     try
@@ -270,7 +272,9 @@ void VulkanImGuiApp::mainLoop()
                     {
                         if (!player->getAnimationController())
                         {
-                            world_->performRangedAttack(*player);
+                            ImVec2 mousePos = ImGui::GetIO().MousePos;
+                            ImVec2 aimDir = normalize({mousePos.x - player->getPosition().x, mousePos.y - player->getPosition().y});
+                            world_->performRangedAttack(*player, aimDir);
                         }
                         else
                         {

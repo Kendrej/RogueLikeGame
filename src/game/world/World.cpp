@@ -164,7 +164,7 @@ void World::performMeleeAttack(LivingEntity& attacker)
     }
 }
 
-void World::performRangedAttack(LivingEntity& attacker)
+void World::performRangedAttack(LivingEntity& attacker, ImVec2 direction)
 {
     const std::string projTexture  = "assets/design/Arrow01.png";
     const uint32_t    projW        = 32;
@@ -174,51 +174,18 @@ void World::performRangedAttack(LivingEntity& attacker)
 
     ImVec2 pos = attacker.getPosition();
     ImVec2 attackerCenter{pos.x + 0.5f * attacker.getWidth(), pos.y + 0.5f * attacker.getHeight()};
-
-    // Użyj facingDir jako głównego kierunku (ustawianego przez kontroler przed strzelaniem)
-    ImVec2 dir = attacker.getFacingDir();
-
-    // Jeśli facingDir jest zerowy, spróbuj użyć desiredDir
-    if (dir.x == 0.0f && dir.y == 0.0f)
-    {
-        dir = attacker.getDesiredDir();
-        if (dir.x != 0.0f || dir.y != 0.0f)
-        {
-            attacker.setFacingDir(dir);
-        }
-    }
-
-    // Jeśli nadal zerowy, użyj velocity
-    if (dir.x == 0.0f && dir.y == 0.0f)
-    {
-        dir = attacker.getVelocity();
-    }
-
-    // Normalize direction
-    float length = std::sqrt(dir.x * dir.x + dir.y * dir.y);
-    if (length > 0.0f)
-    {
-        dir.x /= length;
-        dir.y /= length;
-    }
-    else
-    {
-        // Default direction if no direction is set
-        dir = ImVec2(1.0f, 0.0f);
-    }
-    bool facingRight = (dir.x >= 0.0f);
-    if (auto* ac = attacker.getAnimationController())
-    {
-        facingRight = ac->isFacingRight();
-    }
+    ImVec2 normDir = normalize(direction);
+    float spawnDistance = (attacker.getWidth() * 0.5f) + (projW * 0.5f) + 5.0f;
+    float spawnCenterX = attackerCenter.x + (normDir.x * spawnDistance);
+    float spawnCenterY = attackerCenter.y + (normDir.y * spawnDistance);
 
     const float projHalfW = static_cast<float>(projW) * 0.5f;
     const float projHalfH = static_cast<float>(projH) * 0.5f;
-    const float offsetX   = (static_cast<float>(attacker.getWidth()) * 0.5f) + projHalfW;
+    // const float offsetX   = (static_cast<float>(attacker.getWidth()) * 0.5f) + projHalfW;
 
-    ImVec2 spawnPos{attackerCenter.x + (facingRight ? offsetX : -offsetX), attackerCenter.y - projHalfH};
+    ImVec2 spawnPos{spawnCenterX - projHalfW , spawnCenterY - projHalfH};
 
-    ImVec2 velocity{dir.x * projSpeed, dir.y * projSpeed};
+    ImVec2 velocity{normDir.x * projSpeed, normDir.y * projSpeed};
 
     spawnProjectile(projW, projH, spawnPos.x, spawnPos.y, velocity, projLifetime, attacker.getRangedDamage(), &attacker,
                     projTexture);
@@ -553,7 +520,9 @@ void World::update(float dt)
                 animationController->setToRangedAttack();
                 if (animationController->isInRangedAttackFrame() && player_->isPerformingRangedAttack())
                 {
-                    this->performRangedAttack(*player_);
+                    ImVec2 mousePos = ImGui::GetIO().MousePos;
+                    ImVec2 aimDir = normalize({mousePos.x - player_->getPosition().x, mousePos.y - player_->getPosition().y});
+                    this->performRangedAttack(*player_, aimDir);
                     player_->setIsPerformingRangedAttack(false);
                 }
             }
@@ -606,7 +575,7 @@ void World::update(float dt)
                     {
                         // Ensure NPC's facingDir points at player right before spawning projectile
                         livingEntity->setFacingDir(getDirToPlayer(livingEntity));
-                        this->performRangedAttack(*livingEntity);
+                        this->performRangedAttack(*livingEntity, livingEntity->getFacingDir());
                         livingEntity->setIsPerformingRangedAttack(false);
                     }
                 }

@@ -34,7 +34,7 @@ public:
                                 float lifetime, int damage, LivingEntity* owner, const std::string& texturePath);
 
     void performMeleeAttack(LivingEntity& attacker);
-    void performRangedAttack(LivingEntity& attacker);
+    void performRangedAttack(LivingEntity& attacker, ImVec2 direction);
 
     void buildFromTmxMap();
 
