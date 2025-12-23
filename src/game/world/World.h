@@ -16,6 +16,8 @@ class Projectile;
 class Assets;
 class Entity;
 class Npc;
+class LivingEntity;
+
 class World
 {
 public:
@@ -106,10 +108,11 @@ private:
     void        clampToScreen(Entity& mover);
     GatewaySide getSide(int gwIndex);
     void        spawnPlayerInNewScene(GatewaySide entrySide, float sourceGatewayX, float sourceGatewayY);
+    void        updateEntityLogic(LivingEntity* livingEntity, float dt);
     void        spawnNpcs();
 
-    int gatewayIndex    = -1;
     int currentMapIndex = 0;
+    int gatewayIndex    = -1;
     std::unordered_map<ConsumableType, int> consumableIconIds_;
     std::vector<std::unique_ptr<Map>> maps_;
     std::vector<Entity*> doorEntities_;
@@ -119,4 +122,5 @@ private:
     float screenWidth_ = 0.0f;
     float screenHeight_ = 0.0f;
     bool doorsUnlocked_ = false;
+    std::vector<Entity*> toRemove;
 };

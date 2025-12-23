@@ -487,119 +487,113 @@ void World::clampToScreen(Entity& mover)
 
     mover.setPosition(p.x, p.y);
 }
+void World::updateEntityLogic(LivingEntity* livingEntity, float dt) {
+        if (!livingEntity || !livingEntity->isAlive()) return;
+
+        auto* animationController = livingEntity->getAnimationController();
+        if (!animationController) return;
+
+        ImVec2 vel = livingEntity->getVelocity();
+
+        // Melee
+        if (livingEntity->isPerformingMeleeAttack() || animationController->isMeleeAttackAnimation())
+        {
+            animationController->setToMeleeAttack();
+            if (animationController->isInAttackFrame() && livingEntity->isPerformingMeleeAttack())
+            {
+                this->performMeleeAttack(*livingEntity);
+                livingEntity->setIsPerformingMeleeAttack(false);
+            }
+        }
+        // Ranged
+        else if (livingEntity->isPerformingRangedAttack() || animationController->isRangedAttackAnimation())
+        {
+            animationController->setToRangedAttack();
+            if (animationController->isInRangedAttackFrame() && livingEntity->isPerformingRangedAttack())
+            {
+                bool isPlayer = (player_ && livingEntity == player_.get());
+
+                if (!isPlayer && player_)
+                {
+                    ImVec2 pCenter = { player_->getPosition().x + player_->getWidth() * 0.5f,
+                                       player_->getPosition().y + player_->getHeight() * 0.5f };
+
+                    ImVec2 npcCenter = { livingEntity->getPosition().x + livingEntity->getWidth() * 0.5f,
+                                         livingEntity->getPosition().y + livingEntity->getHeight() * 0.5f };
+
+                    ImVec2 aimDir = { pCenter.x - npcCenter.x, pCenter.y - npcCenter.y };
+
+                    livingEntity->setFacingDir(aimDir);
+                    this->performRangedAttack(*livingEntity, aimDir);
+                }
+                else if (isPlayer)
+                {
+                    ImVec2 mousePos = ImGui::GetIO().MousePos;
+                    ImVec2 pPos = livingEntity->getPosition();
+                    ImVec2 aimDir = { mousePos.x - pPos.x, mousePos.y - pPos.y };
+                    this->performRangedAttack(*livingEntity, aimDir);
+                }
+                livingEntity->setIsPerformingRangedAttack(false);
+            }
+        }
+        // Damaged
+        else if (livingEntity->isDamaged())
+        {
+            livingEntity->setDamaged(false);
+            animationController->setToHurt();
+        }
+        // Walk/Idle
+        else if (!animationController->isHurtAnimation() &&
+                 !animationController->isMeleeAttackAnimation() &&
+                 !animationController->isRangedAttackAnimation())
+        {
+            animationController->setToWalkOrIdle(vel.x, vel.y);
+        }
+
+        animationController->update(dt);
+}
 
 void World::update(float dt)
 {
-    std::vector<Entity*> toRemove;
-
-    // player update and animations
     if (player_)
     {
         player_->update(dt);
-        if (auto* animationController = player_->getAnimationController())
-        {
-            ImVec2 vel = player_->getVelocity();
 
-            if (!player_->isAlive())
-            {
-                animationController->setToDeath();
-                animationController->update(dt);
-                return;
-            }
-            else if (player_->isPerformingMeleeAttack() || animationController->isMeleeAttackAnimation())
-            {
-                animationController->setToMeleeAttack();
-                if (animationController->isInAttackFrame() && player_->isPerformingMeleeAttack())
-                {
-                    this->performMeleeAttack(*player_);
-                    player_->setIsPerformingMeleeAttack(false);
-                }
-            }
-            else if (player_->isPerformingRangedAttack() || animationController->isRangedAttackAnimation())
-            {
-                animationController->setToRangedAttack();
-                if (animationController->isInRangedAttackFrame() && player_->isPerformingRangedAttack())
-                {
-                    ImVec2 mousePos = ImGui::GetIO().MousePos;
-                    ImVec2 aimDir = normalize({mousePos.x - player_->getPosition().x, mousePos.y - player_->getPosition().y});
-                    this->performRangedAttack(*player_, aimDir);
-                    player_->setIsPerformingRangedAttack(false);
-                }
-            }
-            else if (player_->isDamaged())
-            {
-                player_->setDamaged(false);
-                animationController->setToHurt();
-            }
-            else if (!animationController->isHurtAnimation() && !animationController->isMeleeAttackAnimation() &&
-                     !animationController->isRangedAttackAnimation())
-            {
-                animationController->setToWalkOrIdle(vel.x, vel.y);
-            }
-            animationController->update(dt);
+        if (auto* livingPlayer = dynamic_cast<LivingEntity*>(player_.get()))
+        {
+            updateEntityLogic(livingPlayer, dt);
         }
     }
-
-    // update all the entities (AI, timers, etc.)
+    //npc update
     for (auto& up : entities_)
     {
-        if (!up)
-            continue;
+        if (!up) continue;
+
+        if (player_ && up.get() == player_.get()) continue;
+
         up->update(dt);
+
         if (auto* livingEntity = dynamic_cast<LivingEntity*>(up.get()))
         {
-            if (auto* animationController = livingEntity->getAnimationController())
+            if (!livingEntity->isAlive())
             {
-                ImVec2 vel = livingEntity->getVelocity();
-
-                if (!livingEntity->isAlive())
+                livingEntity->setSolid(false);
+                if (auto* ac = livingEntity->getAnimationController())
                 {
-                    livingEntity->setSolid(false);
-                    animationController->setToDeath();
-                    animationController->update(dt);
-                    continue;
+                    ac->setToDeath();
+                    ac->update(dt);
                 }
-                else if (livingEntity->isPerformingMeleeAttack() || animationController->isMeleeAttackAnimation())
-                {
-                    animationController->setToMeleeAttack();
-                    if (animationController->isInAttackFrame() && livingEntity->isPerformingMeleeAttack())
-                    {
-                        this->performMeleeAttack(*livingEntity);
-                        livingEntity->setIsPerformingMeleeAttack(false);
-                    }
-                }
-                else if (livingEntity->isPerformingRangedAttack() || animationController->isRangedAttackAnimation())
-                {
-                    animationController->setToRangedAttack();
-                    if (animationController->isInRangedAttackFrame() && livingEntity->isPerformingRangedAttack())
-                    {
-                        // Ensure NPC's facingDir points at player right before spawning projectile
-                        livingEntity->setFacingDir(getDirToPlayer(livingEntity));
-                        this->performRangedAttack(*livingEntity, livingEntity->getFacingDir());
-                        livingEntity->setIsPerformingRangedAttack(false);
-                    }
-                }
-                else if (livingEntity->isDamaged())
-                {
-                    livingEntity->setDamaged(false);
-                    animationController->setToHurt();
-                }
-                else if (!animationController->isHurtAnimation() && !animationController->isMeleeAttackAnimation() &&
-                         !animationController->isRangedAttackAnimation())
-                {
-                    animationController->setToWalkOrIdle(vel.x, vel.y);
-                }
-                animationController->update(dt);
+                continue;
             }
+            updateEntityLogic(livingEntity, dt);
         }
     }
 
-    // projectile
+    // pociski
     for (auto& up : entities_)
     {
         auto* proj = dynamic_cast<Projectile*>(up.get());
-        if (!proj)
-            continue;
+        if (!proj) continue;
 
         if (proj->isDead())
         {
@@ -607,35 +601,29 @@ void World::update(float dt)
             continue;
         }
 
-        // projectile collision with solid tiles / solid entities / livingEntity
+        // Kolizje pocisków
         for (auto& other : entities_)
         {
-            if (!other || other.get() == proj)
-                continue;
-            if (!other->isSolid())
-                continue;
-            // Ignore collision with projectile owner to avoid immediate self-collision on spawn
-            if (other.get() == proj->getOwner())
-                continue;
+            if (!other || other.get() == proj) continue;
+            if (!other->isSolid()) continue;
+            if (other.get() == proj->getOwner()) continue;
 
             if (intersectsAABB(*proj, *other))
             {
                 if (auto* living = dynamic_cast<LivingEntity*>(other.get()))
                 {
+                    // Friendly Fire Check
                     if (living != proj->getOwner())
-                    {
                         living->takeDamage(proj->getDamage());
-                    }
                 }
                 proj->kill();
                 toRemove.push_back(proj);
                 break;
             }
         }
-        if (proj->isDead())
-            continue;
 
-        // projectile collision with player
+        if (proj->isDead()) continue;
+
         if (player_)
         {
             auto* livingPlayer = dynamic_cast<LivingEntity*>(getPlayer());
@@ -647,7 +635,8 @@ void World::update(float dt)
             }
         }
     }
-    // player movement
+
+    // ruch gracza
     if (player_)
     {
         auto* livingPlayer = dynamic_cast<LivingEntity*>(player_.get());
@@ -657,71 +646,60 @@ void World::update(float dt)
             float  dx  = vel.x * dt;
             float  dy  = vel.y * dt;
             moveWithCollisions(*livingPlayer, dx, dy, entities_);
+            clampToScreen(*player_);
         }
-        clampToScreen(*player_);
     }
-    // npc movement
 
+    // ruch npc
     for (auto& up : entities_)
     {
-        if (!up)
-            continue;
+        if (!up) continue;
+        if (player_ && up.get() == player_.get()) continue;
+
         auto* living = dynamic_cast<LivingEntity*>(up.get());
-        if (!living)
-            continue;
-        if (!living->isAlive())
-            continue;
+        if (!living || !living->isAlive()) continue;
 
         ImVec2 oldPos = living->getPosition();
         ImVec2 vel    = living->getVelocity();
         float  dx     = vel.x * dt;
         float  dy     = vel.y * dt;
+
         moveWithCollisions(*living, dx, dy, entities_);
 
-        // dodatkowo: nie pozwól NPC/innym LivingEntity wejść w playera
-        if (player_)
+        // Kolizja z graczem
+        if (player_ && intersectsAABB(*living, *player_))
         {
-            if (intersectsAABB(*living, *player_))
-            {
-                // cofnij ruch tej klatki względem gracza
-                living->setPosition(oldPos.x, oldPos.y);
-            }
+            living->setPosition(oldPos.x, oldPos.y);
         }
-
-        clampToScreen(*living);
     }
 
-    // Remove dead projectiles
+    // czyszczenie
     for (auto* e : toRemove)
     {
         remove(e);
     }
+    toRemove.clear();
 
+    // Drzwi
     int aliveNpcCount = 0;
     for (auto& up : entities_)
     {
-        if (!up)
-            continue;
+        if (!up) continue;
+        if (player_ && up.get() == player_.get()) continue;
+
         auto* npc = dynamic_cast<Npc*>(up.get());
-        if (npc && npc->isAlive())
-        {
-            aliveNpcCount++;
-        }
-    }
-    if (aliveNpcCount == 0 && !doorsUnlocked_)
-    {
-        // Unlock only door entities
-        for (Entity* doorEntity : doorEntities_)
-        {
-     if (doorEntity)
-       {
-                doorEntity->setSolid(false);
-  }
-        }
-      doorsUnlocked_ = true;
+        if (npc && npc->isAlive()) aliveNpcCount++;
     }
 
-    // doors-teleports
+    if (aliveNpcCount == 0 && !doorsUnlocked_)
+    {
+        for (Entity* doorEntity : doorEntities_)
+        {
+            if (doorEntity) doorEntity->setSolid(false);
+        }
+        doorsUnlocked_ = true;
+    }
+
     this->gatewayIndex = playerInGateway();
     if (gatewayIndex >= 0)
     {
