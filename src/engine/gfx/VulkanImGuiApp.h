@@ -84,8 +84,12 @@ private:
     std::unique_ptr<Assets> assets_ = nullptr;
     std::unique_ptr<World>  world_;
     IconId                  heartIconId_ = -1;
+    IconId                  bowIconId_ = -1;
+    IconId                  swordIconId_ = -1;
     bool                    isPaused_ = false;
     bool                    resourcesBeingUpdated_ = false;
+    float const             slotSize = 45.0f;
+    float const             padding = 4.0f;
 
     // High-level steps
     void initWindow();
@@ -117,6 +121,7 @@ private:
     void drawHeartsUI(ImDrawList* bg, Player* player);
     void drawPauseMenu();
     void drawDeathView();
+    void drawAttackMode(AttackMode attack_mode);
 
     // --- Helpery Vulkan używane przy ładowaniu tekstur ---
     uint32_t        findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties);
