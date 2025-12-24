@@ -207,11 +207,14 @@ void VulkanImGuiApp::mainLoop()
             auto& io = ImGui::GetIO();
             world_->setScreenBounds(io.DisplaySize.x, io.DisplaySize.y);
         }
+        Player* player = world_->getPlayer();
+        AttackMode attack_mode = player->getAttackMode();
+
 
         // --- Proste sterowanie WASD oparte o GLFW (nie zależne od stanu przechwycenia klawiatury przez ImGui) ---
         if (!isPaused_ && world_)
         {
-        if (Player* player = world_->getPlayer())
+        if (player)
         {
             if (!player->isAlive()) drawDeathView();
 
@@ -226,12 +229,16 @@ void VulkanImGuiApp::mainLoop()
                 dx += 1.0f;
             player->applyInput(ImVec2(dx, dy));
 
+            bowIconId_ = assets_->getOrLoadIcon("assets/design/bow.png");
+            swordIconId_ = assets_->getOrLoadIcon("assets/design/sword.png");
+
             // change attack mode
             static bool lastQ    = false;
             bool        qPressed = glfwGetKey(window_, GLFW_KEY_Q) == GLFW_PRESS;
             if (qPressed && !lastQ)
             {
                 player->toggleAttackMode();
+                attack_mode = player->getAttackMode();
             }
             lastQ = qPressed;
 
@@ -292,7 +299,7 @@ void VulkanImGuiApp::mainLoop()
 
         // --- Rysowanie swiata/tla (poza oknami) ---
         drawWorld();
-
+        drawAttackMode(attack_mode);
         if (isPaused_)
             drawPauseMenu();
         // debug window
@@ -606,9 +613,8 @@ void VulkanImGuiApp::drawInventoryUI()
     ImDrawList* bg = ImGui::GetBackgroundDrawList();
     Inventory& inv = player->getInventory();
     int  capacity = inv.getInventoryCapacity();
-    const float slotSize = 45.0f;
-    const float padding = 4.0f;
-    const float startX = 1920.0f - (capacity * (slotSize + padding)) - 20.0f;
+
+    const float startX = 1920.0f - (capacity * (slotSize + padding));
     const float startY = 8.0f;
 
     for (int i = 0; i < capacity; ++i)
@@ -692,6 +698,46 @@ void VulkanImGuiApp::drawHeartsUI(ImDrawList* bg, Player* player)
                     tintColor);
     }
 }
+
+void VulkanImGuiApp::drawAttackMode(AttackMode attack_mode) {
+    ImDrawList* bg = ImGui::GetBackgroundDrawList();
+    Player* player = world_->getPlayer();
+    if (!player)
+        return;
+    Inventory& inv = player->getInventory();
+    int  capacity = inv.getInventoryCapacity();
+    float iconSize = 40.0f;
+
+    float start_x = 1920.0f - (capacity * (slotSize + padding)) - iconSize - 10.0f;
+    if (attack_mode == AttackMode::Melee) {
+
+        if (swordIconId_ < 0 || !assets_) {
+            std::cout<< "Error loading sword icon"<< std::endl;
+            return;
+        }
+
+        const IconGPU swordIcon = assets_->icon(swordIconId_);
+        bg->AddImage(swordIcon.imTex,
+                     ImVec2(start_x, 8.0f),
+                     ImVec2(start_x + iconSize, 8.0f + iconSize),
+                     ImVec2(0, 0), ImVec2(1, 1));
+
+    }
+    else if ( attack_mode == AttackMode::Ranged) {
+
+        if (bowIconId_ < 0 || !assets_) {
+            std::cout<< "Error loading bow icon"<< std::endl;
+            return;
+        }
+
+        const IconGPU bowIcon = assets_->icon(bowIconId_);
+        bg->AddImage(bowIcon.imTex,
+                     ImVec2(start_x, 8.0f),
+                     ImVec2(start_x + 36.0f, 8.0f + 36.0f),
+                     ImVec2(0, 0), ImVec2(1, 1));
+    }
+}
+
 
 void VulkanImGuiApp::drawPauseMenu()
 {
