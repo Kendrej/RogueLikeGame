@@ -744,7 +744,11 @@ void VulkanImGuiApp::drawPauseMenu()
     auto& io = ImGui::GetIO();
 
     ImDrawList* bg = ImGui::GetBackgroundDrawList();
-    bg->AddRectFilled(ImVec2(0, 0), io.DisplaySize, IM_COL32(0, 0, 0, 150));
+    ImGui::PushStyleColor(ImGuiCol_ModalWindowDimBg, ImVec4(0.0f, 0.0f, 0.0f, 0.6f));
+
+    if (!ImGui::IsPopupOpen("Pauza")) {
+        ImGui::OpenPopup("Pauza");
+    }
 
     ImVec2 windowSize(300, 200);
     ImVec2 windowPos((io.DisplaySize.x - windowSize.x) / 2.0f, (io.DisplaySize.y - windowSize.y) / 2.0f);
@@ -755,8 +759,9 @@ void VulkanImGuiApp::drawPauseMenu()
     ImGuiWindowFlags flags = ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove |
                              ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoSavedSettings;
 
-    if (ImGui::Begin("PAUZA", nullptr, flags))
-    {
+
+    if (ImGui::BeginPopupModal("Pauza", nullptr, flags)) {
+
         // Wycentrowany tekst
         float textWidth = ImGui::CalcTextSize("GRA WSTRZYMANA").x;
         ImGui::SetCursorPosX((windowSize.x - textWidth) / 2.0f);
@@ -783,15 +788,19 @@ void VulkanImGuiApp::drawPauseMenu()
         {
             glfwSetWindowShouldClose(window_, GLFW_TRUE);
         }
+            ImGui::EndPopup();
     }
-    ImGui::End();
+    ImGui::PopStyleColor(1);
+
 }
 
 void VulkanImGuiApp::drawDeathView() {
+    if (!ImGui::IsPopupOpen("Smierc")) {
+        ImGui::OpenPopup("Smierc");
+    }
     auto& io = ImGui::GetIO();
-
     ImDrawList* bg = ImGui::GetBackgroundDrawList();
-    bg->AddRectFilled(ImVec2(0, 0), io.DisplaySize, IM_COL32(0, 0, 0, 150));
+    ImGui::PushStyleColor(ImGuiCol_ModalWindowDimBg, ImVec4(0.0f, 0.0f, 0.0f, 0.6f));
 
     ImVec2 windowSize(300, 200);
     ImVec2 windowPos((io.DisplaySize.x - windowSize.x) / 2.0f, (io.DisplaySize.y - windowSize.y) / 2.0f);
@@ -802,8 +811,10 @@ void VulkanImGuiApp::drawDeathView() {
     ImGuiWindowFlags flags = ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove |
                              ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoSavedSettings;
 
-    if (ImGui::Begin("Smierc", nullptr, flags))
+
+    if (ImGui::BeginPopupModal("Smierc", nullptr, flags))
     {
+
         float textWidth = ImGui::CalcTextSize("Przegrales!").x;
         ImGui::SetCursorPosX((windowSize.x - textWidth) / 2.0f);
         ImGui::Text("Przegrales!");
@@ -833,6 +844,8 @@ void VulkanImGuiApp::drawDeathView() {
         {
             glfwSetWindowShouldClose(window_, GLFW_TRUE);
         }
+        ImGui::EndPopup();
+
     }
-    ImGui::End();
+    ImGui::PopStyleColor(1);
 }
