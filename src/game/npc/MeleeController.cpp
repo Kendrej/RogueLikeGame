@@ -9,7 +9,7 @@
 void MeleeController::update(Npc& npc, World& world, float /*dt*/)
 {
     Player* player = world.getPlayer();
-    if (!player)
+    if (!player || !npc.isAlive())
     {
         npc.applyInput(ImVec2(0.0f, 0.0f));
         return;
