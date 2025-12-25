@@ -146,7 +146,6 @@ void AnimationController::update(float dt)
                 }
                 else if (isDeathAnimation())
                 {
-                    // Pozosta� na ostatniej klatce animacji �mierci
                     currentFrameIndex_ = frameAmount - 1;
                 }
                 else
@@ -157,7 +156,6 @@ void AnimationController::update(float dt)
         }
         else
         {
-            // Pobierz frameAmount dla aktualnej animacji Left
             if (currentAnimationType_ == AnimationType::MeleeAttackLeft)
             {
                 frameAmount = meleeAttackLeftFrameAmount_;
@@ -194,7 +192,6 @@ void AnimationController::update(float dt)
                 }
                 else if (isDeathAnimation())
                 {
-                    // Pozosta� na ostatniej klatce animacji �mierci (dla Left to klatka 0)
                     currentFrameIndex_ = 0;
                 }
                 else
@@ -206,78 +203,66 @@ void AnimationController::update(float dt)
     }
 }
 
-void AnimationController::setToIdle()
+void AnimationController::setToIdle(bool facingRight)
 {
-    if (currentAnimationType_ == AnimationType::WalkLeft || currentAnimationType_ == AnimationType::IdleLeft)
-        this->setCurrentAnimationType(AnimationType::IdleLeft);
-    else
-    {
+    if (facingRight)
         this->setCurrentAnimationType(AnimationType::IdleRight);
-    }
+    else
+        this->setCurrentAnimationType(AnimationType::IdleLeft);
 }
 
-void AnimationController::setToWalkOrIdle(float x, float y)
+void AnimationController::setToWalkOrIdle(float x, float y, bool facingRight)
 {
     if (x != 0.0f || y != 0.0f)
     {
-        if (x < 0.0f)
-            this->setCurrentAnimationType(AnimationType::WalkLeft);
-        else if (x > 0.0f)
-        {
+        if (facingRight)
             this->setCurrentAnimationType(AnimationType::WalkRight);
-        }
+        else
+            this->setCurrentAnimationType(AnimationType::WalkLeft);
     }
     else
     {
-        this->setToIdle();
+        this->setToIdle(facingRight);
     }
 }
 
-void AnimationController::setToHurt()
+void AnimationController::setToHurt(bool facingRight)
 {
-    if (!isRightFacing_)
-        this->setCurrentAnimationType(AnimationType::HurtLeft);
-    else
-    {
+    if (facingRight)
         this->setCurrentAnimationType(AnimationType::HurtRight);
-    }
+    else
+        this->setCurrentAnimationType(AnimationType::HurtLeft);
 }
 
-void AnimationController::setToDeath()
+void AnimationController::setToDeath(bool facingRight)
 {
-    if (!isRightFacing_)
-        this->setCurrentAnimationType(AnimationType::DeathLeft);
-    else
-    {
+    if (facingRight)
         this->setCurrentAnimationType(AnimationType::DeathRight);
-    }
+    else
+        this->setCurrentAnimationType(AnimationType::DeathLeft);
 }
 
-void AnimationController::setToMeleeAttack()
+void AnimationController::setToMeleeAttack(bool facingRight)
 {
-    if (!isRightFacing_)
-        this->setCurrentAnimationType(AnimationType::MeleeAttackLeft);
-    else
-    {
+    if (facingRight)
         this->setCurrentAnimationType(AnimationType::MeleeAttackRight);
-    }
+    else
+        this->setCurrentAnimationType(AnimationType::MeleeAttackLeft);
 }
 
-void AnimationController::setToRangedAttack()
+void AnimationController::setToRangedAttack(bool facingRight)
 {
-    if (!isRightFacing_)
-        this->setCurrentAnimationType(AnimationType::RangedAttackLeft);
-    else
-    {
+    if (facingRight)
         this->setCurrentAnimationType(AnimationType::RangedAttackRight);
-    }
+    else
+        this->setCurrentAnimationType(AnimationType::RangedAttackLeft);
 }
 
 void AnimationController::setCurrentAnimationType(AnimationType type)
 {
     if (currentAnimationType_ == type)
     {
-        return; // Ju� w tym stanie, nie resetuj!
+        return;
     }
     isRightFacing_        = (type == AnimationType::WalkRight || type == AnimationType::IdleRight ||
                       type == AnimationType::HurtRight || type == AnimationType::DeathRight ||

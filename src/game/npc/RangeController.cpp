@@ -4,6 +4,7 @@
 #include "game/npc/Npc.h"
 #include "game/entities/Player.h"
 #include "game/world/World.h"
+#include "game/entities/animation/AnimationController.h"
 
 
 void RangeController::update(Npc& npc, World& world, float /*dt*/)
@@ -16,13 +17,11 @@ void RangeController::update(Npc& npc, World& world, float /*dt*/)
     }
     ImVec2 npcPos    = npc.getPosition();
     ImVec2 playerPos = player->getPosition();
-
+    ImVec2 dirToPlayer = world.getDirToPlayer(&npc);
     ImVec2 npcCenter{npcPos.x + static_cast<float>(npc.getWidth()) * 0.5f, npcPos.y + static_cast<float>(npc.getHeight()) * 0.5f};
-
     ImVec2 playerCenter{playerPos.x + static_cast<float>(player->getWidth()) * 0.5f, playerPos.y + static_cast<float>(player->getHeight()) * 0.5f};
     float  dist = distance(npcCenter, playerCenter);
 
-    // Use values configured in NpcFactory instead of hardcoded overrides
     float aggroRange = npc.getAggroRange();
     float attackRange = npc.getRangedRange();
 
@@ -57,7 +56,6 @@ void RangeController::update(Npc& npc, World& world, float /*dt*/)
             npc.setState(Npc::State::Chase);
     }
 
-    ImVec2 dirToPlayer = normalize(ImVec2{playerCenter.x - npcCenter.x, playerCenter.y - npcCenter.y});
 
     switch (npc.getState())
     {
@@ -74,24 +72,22 @@ void RangeController::update(Npc& npc, World& world, float /*dt*/)
         const float checkDist = 50.0f;
         ImVec2 avoidDir = findAvoidanceDirection(npc, world, stepBack, checkDist);
         npc.applyInput(avoidDir);
+        npc.setFacingDir(dirToPlayer);
 
         if (npc.canShoot())
         {
             npc.setFacingDir(dirToPlayer);
             if (!npc.getAnimationController())
             {
-                npc.setFacingDir(world.getDirToPlayer(&npc));
-                ImVec2 playerPos = player->getPosition();
-                ImVec2 npcPos = npc.getPosition();
-                ImVec2 aimDir = {playerPos.x - npcPos.x, playerPos.y - npcPos.y};
-                world.performRangedAttack(npc, aimDir);
+                world.performRangedAttack(npc, dirToPlayer);
                 npc.setIsPerformingRangedAttack(false);
             }
             else if (!npc.isPerformingRangedAttack())
             {
+                npc.setAimLock(0.5f);
                 npc.setIsPerformingRangedAttack(true);
             }
-            npc.startRangedCooldown();
+             npc.startRangedCooldown();
         }
 
         break;
@@ -102,20 +98,20 @@ void RangeController::update(Npc& npc, World& world, float /*dt*/)
 
         npc.applyInput(ImVec2(0.0f, 0.0f));
         npc.setVelocity(ImVec2(0.0f, 0.0f));
+        npc.setFacingDir(dirToPlayer);
+
         if (npc.canShoot())
         {
             npc.setFacingDir(dirToPlayer);
             if (!npc.getAnimationController())
             {
-                npc.setFacingDir(world.getDirToPlayer(&npc));
-                ImVec2 playerPos = player->getPosition();
-                ImVec2 npcPos = npc.getPosition();
-                ImVec2 aimDir = {playerPos.x - npcPos.x, playerPos.y - npcPos.y};
-                world.performRangedAttack(npc, aimDir);
+                npc.setFacingDir(dirToPlayer);
+                world.performRangedAttack(npc, dirToPlayer);
                 npc.setIsPerformingRangedAttack(false);
             }
             else if (!npc.isPerformingRangedAttack())
             {
+                npc.setAimLock(0.5f);
                 npc.setIsPerformingRangedAttack(true);
             }
             npc.startRangedCooldown();

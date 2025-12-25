@@ -60,11 +60,14 @@ void LivingEntity::applyInput(const ImVec2& dir)
         float  len = std::sqrt(dir.x * dir.x + dir.y * dir.y);
         ImVec2 norm{dir.x / len, dir.y / len};
         desiredDir = norm;
-        facingDir  = norm;
     }
     else
     {
         desiredDir = ImVec2(0.0f, 0.0f);
+    }
+    if (aimLockTimer <= 0.0f) {
+        if (desiredDir.x != 0.0f || desiredDir.y != 0.0f)
+        facingDir  = desiredDir;
     }
 }
 
@@ -100,6 +103,12 @@ void LivingEntity::update(float dt)
         meleeTimer -= dt;
         if (meleeTimer < 0.f)
             meleeTimer = 0.f;
+    }
+    if (aimLockTimer > 0.f)
+    {
+        aimLockTimer -= dt;
+        if (aimLockTimer < 0.f)
+            aimLockTimer = 0.f;
     }
 }
 
