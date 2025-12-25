@@ -485,12 +485,14 @@ void World::updateEntityLogic(LivingEntity* livingEntity, float dt) {
         auto* animationController = livingEntity->getAnimationController();
         if (!animationController) return;
 
+        bool facingRight = (livingEntity->getFacingDir().x >= 0.0f);
         ImVec2 vel = livingEntity->getVelocity();
 
         // Melee
         if (livingEntity->isPerformingMeleeAttack() || animationController->isMeleeAttackAnimation())
         {
-            animationController->setToMeleeAttack();
+
+            animationController->setToMeleeAttack(facingRight);
             if (animationController->isInAttackFrame() && livingEntity->isPerformingMeleeAttack())
             {
                 this->performMeleeAttack(*livingEntity);
@@ -500,31 +502,23 @@ void World::updateEntityLogic(LivingEntity* livingEntity, float dt) {
         // Ranged
         else if (livingEntity->isPerformingRangedAttack() || animationController->isRangedAttackAnimation())
         {
-            animationController->setToRangedAttack();
+
+                bool isPlayer = (player_ && livingEntity == player_.get());
+                ImVec2 aimDir;
+                if (isPlayer) {
+                    ImVec2 mousePos = ImGui::GetIO().MousePos;
+                    ImVec2 playerPos = livingEntity->getPosition();
+                    aimDir = {mousePos.x - playerPos.x, mousePos.y  -playerPos.y};
+                }
+                else {
+                    aimDir = getDirToPlayer(livingEntity);
+                }
+                livingEntity->setFacingDir(aimDir);
+                facingRight = (livingEntity->getFacingDir().x >= 0.0f);
+                animationController->setToRangedAttack(facingRight);
             if (animationController->isInRangedAttackFrame() && livingEntity->isPerformingRangedAttack())
             {
-                bool isPlayer = (player_ && livingEntity == player_.get());
-
-                if (!isPlayer && player_)
-                {
-                    ImVec2 pCenter = { player_->getPosition().x + player_->getWidth() * 0.5f,
-                                       player_->getPosition().y + player_->getHeight() * 0.5f };
-
-                    ImVec2 npcCenter = { livingEntity->getPosition().x + livingEntity->getWidth() * 0.5f,
-                                         livingEntity->getPosition().y + livingEntity->getHeight() * 0.5f };
-
-                    ImVec2 aimDir = { pCenter.x - npcCenter.x, pCenter.y - npcCenter.y };
-
-                    livingEntity->setFacingDir(aimDir);
-                    this->performRangedAttack(*livingEntity, aimDir);
-                }
-                else if (isPlayer)
-                {
-                    ImVec2 mousePos = ImGui::GetIO().MousePos;
-                    ImVec2 pPos = livingEntity->getPosition();
-                    ImVec2 aimDir = { mousePos.x - pPos.x, mousePos.y - pPos.y };
-                    this->performRangedAttack(*livingEntity, aimDir);
-                }
+                this->performRangedAttack(*livingEntity, aimDir);
                 livingEntity->setIsPerformingRangedAttack(false);
             }
         }
@@ -532,14 +526,14 @@ void World::updateEntityLogic(LivingEntity* livingEntity, float dt) {
         else if (livingEntity->isDamaged())
         {
             livingEntity->setDamaged(false);
-            animationController->setToHurt();
+            animationController->setToHurt(facingRight);
         }
         // Walk/Idle
         else if (!animationController->isHurtAnimation() &&
                  !animationController->isMeleeAttackAnimation() &&
                  !animationController->isRangedAttackAnimation())
         {
-            animationController->setToWalkOrIdle(vel.x, vel.y);
+            animationController->setToWalkOrIdle(vel.x, vel.y, facingRight);
         }
 
         animationController->update(dt);
@@ -572,7 +566,8 @@ void World::update(float dt)
                 livingEntity->setSolid(false);
                 if (auto* ac = livingEntity->getAnimationController())
                 {
-                    ac->setToDeath();
+                    bool facingRight = (livingEntity->getFacingDir().x >= 0.0f);
+                    ac->setToDeath(facingRight);
                     ac->update(dt);
                 }
                 continue;

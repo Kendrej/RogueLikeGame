@@ -22,7 +22,6 @@ void RangeController::update(Npc& npc, World& world, float /*dt*/)
     ImVec2 playerCenter{playerPos.x + static_cast<float>(player->getWidth()) * 0.5f, playerPos.y + static_cast<float>(player->getHeight()) * 0.5f};
     float  dist = distance(npcCenter, playerCenter);
 
-    // Use values configured in NpcFactory instead of hardcoded overrides
     float aggroRange = npc.getAggroRange();
     float attackRange = npc.getRangedRange();
 
@@ -80,20 +79,11 @@ void RangeController::update(Npc& npc, World& world, float /*dt*/)
             npc.setFacingDir(dirToPlayer);
             if (!npc.getAnimationController())
             {
-                // No animation controller: perform attack immediately and set facing in world
                 world.performRangedAttack(npc, dirToPlayer);
                 npc.setIsPerformingRangedAttack(false);
             }
             else if (!npc.isPerformingRangedAttack())
             {
-                // Ensure the animation controller knows which side to play (left/right)
-                AnimationController* ac = npc.getAnimationController();
-                if (ac)
-                {
-                    bool faceRight = (dirToPlayer.x >= 0.0f);
-                    ac->setCurrentAnimationType(faceRight ? AnimationType::RangedAttackRight
-                                                          : AnimationType::RangedAttackLeft);
-                }
                 npc.setAimLock(0.5f);
                 npc.setIsPerformingRangedAttack(true);
             }
@@ -121,14 +111,6 @@ void RangeController::update(Npc& npc, World& world, float /*dt*/)
             }
             else if (!npc.isPerformingRangedAttack())
             {
-                // Make sure animation plays with correct facing
-                AnimationController* ac = npc.getAnimationController();
-                if (ac)
-                {
-                    bool faceRight = (dirToPlayer.x >= 0.0f);
-                    ac->setCurrentAnimationType(faceRight ? AnimationType::RangedAttackRight
-                                                          : AnimationType::RangedAttackLeft);
-                }
                 npc.setAimLock(0.5f);
                 npc.setIsPerformingRangedAttack(true);
             }

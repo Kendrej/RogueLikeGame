@@ -92,12 +92,12 @@ public:
             return (currentFrameIndex_ == rangedAttackLeftFrameAmount_ - rangedAttackFrame_);
         }
     }
-    void setToIdle();
-    void setToWalkOrIdle(float x, float y);
-    void setToHurt();
-    void setToDeath();
-    void setToMeleeAttack();
-    void setToRangedAttack();
+    void setToIdle(bool facingRight);
+    void setToWalkOrIdle(float x, float y, bool facingRight);
+    void setToHurt(bool facingRight);
+    void setToDeath(bool facingRight);
+    void setToMeleeAttack(bool facingRight);
+    void setToRangedAttack(bool facingRight);
 
 private:
     void addWalkAnimation(const int squareSize, const std::string walkRightPath, const std::string walkLeftPath);
@@ -136,6 +136,7 @@ private:
     int  rangedAttackRightFrameAmount_;
     int  rangedAttackLeftFrameAmount_;
     int  rangedAttackFrame_;
+
     bool isRightFacing_ = true;
 
     AnimationType                          currentAnimationType_ = AnimationType::IdleRight;

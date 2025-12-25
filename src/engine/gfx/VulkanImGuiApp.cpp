@@ -285,17 +285,6 @@ void VulkanImGuiApp::mainLoop()
                         }
                         else
                         {
-                            AnimationController* ac = player->getAnimationController();
-                            if (ac)
-                            {
-                                ImVec2 mousePos = ImGui::GetIO().MousePos;
-                                ImVec2 pPos = player->getPosition();
-                                ImVec2 aimDir = {mousePos.x - pPos.x, mousePos.y - pPos.y};
-                                player->setFacingDir(aimDir);
-                                bool faceRight = (aimDir.x >= 0.0f);
-                                ac->setCurrentAnimationType(faceRight ? AnimationType::RangedAttackRight
-                                                                      : AnimationType::RangedAttackLeft);
-                            }
                             player->setAimLock(0.5f);
                             player->setIsPerformingRangedAttack(true);
                         }
