@@ -18,6 +18,7 @@
 #include <stdexcept>
 #include <utility>
 #include <tmxlite/TileLayer.hpp>
+#include <cmath>
 
 Entity& World::spawnTile(const std::string& texturePath, uint32_t width, uint32_t height, float pos_x,
                                float pos_y, bool solid)
@@ -185,6 +186,8 @@ void World::performRangedAttack(LivingEntity& attacker, ImVec2 direction)
 
 void World::buildFromTmxMap() {
     doorEntities_.clear();
+    animatedTiles_.clear();
+
     if (currentMapIndex >= maps_.size() || !maps_[currentMapIndex])
     {
         throw std::runtime_error("Invalid map index or map not loaded");
@@ -230,13 +233,30 @@ void World::buildFromTmxMap() {
 
                     const float posX = static_cast<float>(x * tileSize.x);
                     const float posY = static_cast<float>(y * tileSize.y) + UI_TOP_BAR_HEIGHT;
-                    auto& tile = addEntity<Entity>(info->textureId, info->texWidth, info->texHeight, posX, posY,
-                                                         info->solid);
+
+                    auto& tile = addEntity<Entity>(info->textureId, info->texWidth, info->texHeight, posX, posY, info->solid);
                     tile.setTexOffset(info->texX, info->texY);
                     tile.setFlipFlags(flipH, flipV, flipD);
                     if (info->door)
                     {
-                            doorEntities_.push_back(&tile);
+                        doorEntities_.push_back(&tile);
+                    }
+
+                    if (info->animated)
+                    {
+                        // Register per-instance animated tile for runtime animation
+                        const auto* regFrames = map.getAnimatedFrames(gid);
+                        if (regFrames && !regFrames->empty())
+                        {
+                            AnimatedTile at{};
+                            at.entity = &tile;
+                            at.frames = regFrames;
+                            at.frameIndex = info->currentAnimationState % static_cast<int>(regFrames->size());
+                            at.timer = 0.0f;
+                            // prefer duration from TileInfo if available, else fallback to 0.1s
+                            at.frameDuration = (info->animationDuration > 0.0f) ? info->animationDuration : 0.1f;
+                            animatedTiles_.push_back(at);
+                        }
                     }
                 }
             }
@@ -278,7 +298,7 @@ void World::buildFromTmxMap() {
             }
         }
     }
-   
+
 }
 
 GatewaySide World::getSide(int gwIdx)
@@ -541,6 +561,29 @@ void World::updateEntityLogic(LivingEntity* livingEntity, float dt) {
 
 void World::update(float dt)
 {
+    // Update per-instance animated tiles
+    if (!animatedTiles_.empty() && currentMapIndex >= 0 && currentMapIndex < static_cast<int>(maps_.size()) && maps_[currentMapIndex])
+    {
+        Map& m = *maps_[currentMapIndex];
+        for (auto& at : animatedTiles_)
+        {
+            if (!at.entity || !at.frames || at.frames->empty())
+                continue;
+            at.timer += dt;
+            if (at.timer >= at.frameDuration)
+            {
+                at.timer -= at.frameDuration;
+                at.frameIndex = (at.frameIndex + 1) % static_cast<int>(at.frames->size());
+                std::uint32_t gid = (*(at.frames))[at.frameIndex];
+                const TileInfo* fi = m.getTileInfo(gid);
+                if (fi)
+                {
+                    at.entity->setTexOffset(fi->texX, fi->texY);
+                }
+            }
+        }
+    }
+
     if (player_)
     {
         player_->update(dt);

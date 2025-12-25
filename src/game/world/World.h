@@ -119,6 +119,15 @@ private:
     Assets* assets_{nullptr};
     std::vector<std::unique_ptr<Entity>> entities_;
     std::unique_ptr<Player> player_{nullptr};
+    struct AnimatedTile
+    {
+        Entity* entity = nullptr;
+        const std::vector<std::uint32_t>* frames = nullptr; // pointer into Map's animatedFrames_
+        int frameIndex = 0;
+        float timer = 0.0f;
+        float frameDuration = 0.1f; // default 100ms
+    };
+    std::vector<AnimatedTile> animatedTiles_;
     float screenWidth_ = 0.0f;
     float screenHeight_ = 0.0f;
     bool doorsUnlocked_ = false;
