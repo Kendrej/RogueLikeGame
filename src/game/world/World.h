@@ -126,6 +126,8 @@ private:
         int frameIndex = 0;
         float timer = 0.0f;
         float frameDuration = 0.1f; // default 100ms
+        std::string use; // optional property value (e.g., "door")
+        bool oneTimeAnimationDone = false;
     };
     std::vector<AnimatedTile> animatedTiles_;
     float screenWidth_ = 0.0f;

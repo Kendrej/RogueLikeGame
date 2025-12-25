@@ -36,6 +36,7 @@ struct TileInfo
 
     bool solid = false; // czy kafelek jest "sztywny" (kolizje)
     bool door  = false; // czy kafelek jest drzwiami
+    std::string use = "";    // optional string property read from TMX (e.g., "use")
     bool animated = false;
 };
 

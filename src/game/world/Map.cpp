@@ -90,9 +90,13 @@ bool Map::loadFromTmxFile(const std::string& path, Assets *assets)
                     {
                         info.solid = true;
                     }
-                    else if (prop.getName() == "door" && prop.getBoolValue())
+                    if (prop.getName() == "door" && prop.getBoolValue())
                     {
                         info.door = true;
+                    }
+                    if (prop.getName() == "use")
+                    {
+                        info.use = prop.getStringValue();
                     }
                 }
 
@@ -155,6 +159,10 @@ bool Map::loadFromTmxFile(const std::string& path, Assets *assets)
                             info.solid = true;
                         if (prop.getName() == "door" && prop.getBoolValue())
                             info.door = true;
+                        if (prop.getName() == "use")
+                        {
+                            info.use = prop.getStringValue();
+                        }
                     }
 
                     // If this tile has animation frames, record their global GIDs and capture duration
