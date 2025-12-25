@@ -49,7 +49,7 @@ Npc* NpcFactory::createNpc(NpcType type, World& world, ImVec2 pos)
             accel             = 1500.0f;
             rangedDamage      = 10;
             rangedCooldown    = 1.5f;
-            rangedRange       = 500.0f;
+            rangedRange       = 400.0f;
             animBasePath      = "assets/animations/skeletonArcher/";
             animPrefix        = "SkeletonArcher";
             rangedAttackFrames  = 9;

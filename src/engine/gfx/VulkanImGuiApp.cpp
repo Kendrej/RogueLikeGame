@@ -212,12 +212,12 @@ void VulkanImGuiApp::mainLoop()
 
 
         // --- Proste sterowanie WASD oparte o GLFW (nie zależne od stanu przechwycenia klawiatury przez ImGui) ---
-        if (!isPaused_ && world_)
+        if (!player->isAlive()) drawDeathView();
+
+        if (!isPaused_ && world_ && player->isAlive())
         {
         if (player)
         {
-            if (!player->isAlive()) drawDeathView();
-
             float dx = 0.0f, dy = 0.0f;
             if (glfwGetKey(window_, GLFW_KEY_W) == GLFW_PRESS)
                 dy -= 1.0f;
@@ -285,6 +285,18 @@ void VulkanImGuiApp::mainLoop()
                         }
                         else
                         {
+                            AnimationController* ac = player->getAnimationController();
+                            if (ac)
+                            {
+                                ImVec2 mousePos = ImGui::GetIO().MousePos;
+                                ImVec2 pPos = player->getPosition();
+                                ImVec2 aimDir = {mousePos.x - pPos.x, mousePos.y - pPos.y};
+                                player->setFacingDir(aimDir);
+                                bool faceRight = (aimDir.x >= 0.0f);
+                                ac->setCurrentAnimationType(faceRight ? AnimationType::RangedAttackRight
+                                                                      : AnimationType::RangedAttackLeft);
+                            }
+                            player->setAimLock(0.5f);
                             player->setIsPerformingRangedAttack(true);
                         }
                         player->startRangedCooldown();
@@ -294,7 +306,7 @@ void VulkanImGuiApp::mainLoop()
         }
         }
 
-        if (!isPaused_ && world_)
+        if (!isPaused_ && world_ && player->isAlive())
             world_->update(dt);
 
         // --- Rysowanie swiata/tla (poza oknami) ---

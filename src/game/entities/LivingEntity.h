@@ -109,6 +109,9 @@ public:
     {
         meleeCooldown = meleeCooldown_;
     }
+    void setAimLock(float time) {
+        aimLockTimer = time;
+    }
     void setMeleeRange(float meleeRange_)
     {
         meleeRange = meleeRange_;
@@ -203,6 +206,7 @@ protected:
     float meleeCooldown = 0.f;
     float meleeRange    = 0.f;
     float meleeTimer    = 0.0f;
+    float aimLockTimer  = 0.0f;
 
     float spriteScale_ = 1.0f; // Visual scale for sprite rendering
 

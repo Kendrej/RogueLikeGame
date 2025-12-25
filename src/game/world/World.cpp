@@ -64,29 +64,18 @@ void World::performMeleeAttack(LivingEntity& attacker)
 
     // Kierunek ataku oparty głównie na facingDir (ostatni kierunek ruchu / patrzenia).
     ImVec2 dir = attacker.getFacingDir();
+    attacker.setAimLock(0.5f);
     if (dir.x == 0.0f && dir.y == 0.0f)
     {
-        // awaryjnie użyj desiredDir
-        dir = attacker.getDesiredDir();
+        dir = ImVec2{0.0f, 1.0f};
     }
-    if (dir.x == 0.0f && dir.y == 0.0f)
-    {
-        // jeszcze awaryjniej użyj velocity
-        dir = attacker.getVelocity();
-    }
-    if (dir.x == 0.0f && dir.y == 0.0f)
-    {
-        // ostateczny fallback: w prawo
-        dir = ImVec2(1.0f, 0.0f);
-    }
+
 
     float attackX = 0.0f;
     float attackY = 0.0f;
     float attackW = 0.0f;
     float attackH = 0.0f;
 
-    // Jeśli |x| >= |y| → atak poziomy (lewo/prawo),
-    // w przeciwnym razie pionowy (góra/dół)
     if (std::abs(dir.x) >= std::abs(dir.y))
     {
         // poziomo
@@ -189,6 +178,9 @@ void World::performRangedAttack(LivingEntity& attacker, ImVec2 direction)
 
     spawnProjectile(projW, projH, spawnPos.x, spawnPos.y, velocity, projLifetime, attacker.getRangedDamage(), &attacker,
                     projTexture);
+    attacker.setFacingDir(normDir);
+    attacker.setAimLock(0.5f);
+
 }
 
 void World::buildFromTmxMap() {
