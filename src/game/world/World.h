@@ -11,6 +11,7 @@
 #include <unordered_map>
 #include <vector>
 
+enum class ItemId;
 enum class NpcType;
 class Projectile;
 class Assets;
@@ -31,6 +32,8 @@ public:
     Player& spawnPlayer(ImVec2 pos);
 
     Npc& spawnNpc(NpcType type, ImVec2 pos);
+
+    Item& spawnItem(ItemId id, float x, float y);
 
     Projectile& spawnProjectile(uint32_t width, uint32_t height, float pos_x, float pos_y, ImVec2 velocity,
                                 float lifetime, int damage, LivingEntity* owner, const std::string& texturePath);

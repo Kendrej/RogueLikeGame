@@ -120,6 +120,8 @@ private:
         return currentAnimationType_ == AnimationType::DeathRight || currentAnimationType_ == AnimationType::DeathLeft;
     }
 
+    bool isDeathAnimationFinished() const;
+
     Assets* assets_;
     int     walkRightFrameAmount_;
     int     walkLeftFrameAmount_;

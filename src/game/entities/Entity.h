@@ -1,8 +1,12 @@
 #pragma once
 #include <cstdint>
 #include <imgui.h>
+#include <memory>
+
+
 
 class Assets;
+class Item;
 
 class Entity
 {
@@ -31,7 +35,6 @@ public:
         solid_ = solid;
     }
 
-    // Lewy gorny rog kafelka w spritesheet (w pikselach)
     void setTexOffset(uint32_t x, uint32_t y)
     {
         texX_ = x;
@@ -50,21 +53,27 @@ public:
     bool getFlipV() const { return flipV_; }
     bool getFlipD() const { return flipD_; }
 
+    void setDroppingItem(std::unique_ptr<Item> itemToDrop);
+
+    Item* getDroppingItem();
+
+    std::unique_ptr<Item> takeDroppingItem();
+
 protected:
     int      entityId;
     uint32_t width   = 0;
     uint32_t height  = 0;
     bool     visible = true;
     bool     solid_  = false;
+    std::unique_ptr<Item> itemToDrop_ = nullptr;
 
-    // Lewy gorny rog w spritesheet (0,0 = pelna tekstura)
-    uint32_t texX_ = 0;
-    uint32_t texY_ = 0;
+     uint32_t texX_ = 0;
+     uint32_t texY_ = 0;
 
-    bool flipH_ = false;
-    bool flipV_ = false;
-    bool flipD_ = false;
+     bool flipH_ = false;
+     bool flipV_ = false;
+     bool flipD_ = false;
 
-private:
-    ImVec2 pos{0.0f, 0.0f};
-};
+ private:
+     ImVec2 pos{0.0f, 0.0f};
+ };

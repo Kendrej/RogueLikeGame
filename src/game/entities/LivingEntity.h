@@ -24,6 +24,8 @@ public:
     void setAcceleration(float acceleration);
     void applyInput(const ImVec2& dir);
 
+    void Die();
+
     int getHp() const
     {
         return hp;
@@ -45,7 +47,7 @@ public:
 
     bool isAlive() const
     {
-        return hp > 0;
+        return isDead_;
     }
     void takeDamage(int dmg);
     void setDamaged(bool dmg)
@@ -160,6 +162,8 @@ public:
         facingDir = dir;
     }
 
+
+
     AnimationController& createAnimationController(Assets* assets, const int squareSize,
                                                    const std::string& walkRightPath, int walkRightFrameAmount,
                                                    const std::string& walkLeftPath, int walkLeftFrameAmount,
@@ -209,6 +213,7 @@ protected:
     float aimLockTimer  = 0.0f;
 
     float spriteScale_ = 1.0f; // Visual scale for sprite rendering
+    bool isDead_ = false;
 
 private:
     bool                                 isPerformingMelee  = false;

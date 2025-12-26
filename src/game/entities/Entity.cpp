@@ -44,3 +44,15 @@ void Entity::setVisible(bool isVisible)
 {
     visible = isVisible;
 }
+
+void Entity::setDroppingItem(std::unique_ptr<Item> itemToDrop) {
+    this->itemToDrop_ = std::move(itemToDrop);
+}
+
+Item* Entity::getDroppingItem()  {
+    return itemToDrop_.get();
+}
+
+std::unique_ptr<Item> Entity::takeDroppingItem() {
+    return std::move(itemToDrop_);
+}

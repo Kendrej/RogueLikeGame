@@ -20,8 +20,10 @@
 #include <tmxlite/TileLayer.hpp>
 #include <cmath>
 
+#include "game/factory/ItemFactory.h"
+
 Entity& World::spawnTile(const std::string& texturePath, uint32_t width, uint32_t height, float pos_x,
-                               float pos_y, bool solid)
+                         float pos_y, bool solid)
 {
     const int entityId = assets_ ? assets_->getOrLoadIcon(texturePath) : -1;
     return addEntity<Entity>(entityId, width, height, pos_x, pos_y, solid);
@@ -47,6 +49,16 @@ Projectile& World::spawnProjectile(uint32_t width, uint32_t height, float pos_x,
     auto& projectile = addEntity<Projectile>(projId, width, height, pos_x, pos_y, velocity, lifetime, damage, owner);
     return projectile;
 }
+
+Item &World::spawnItem(ItemId id, float x, float y) {
+    Item* newItem = ItemFactory::createItem(id);
+    if (newItem) {
+        newItem->setPosition(x, y);
+        entities_.emplace_back(newItem);
+    }
+    return *newItem;
+}
+
 
 void World::performMeleeAttack(LivingEntity& attacker)
 {
@@ -1044,3 +1056,4 @@ void World::reset() {
         map->setVisited(false);
     }
 }
+

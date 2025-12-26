@@ -71,6 +71,8 @@ add_executable(RogueLikeGame
         src/game/item/consumable/SpeedPotion.h
         src/game/item/Inventory.cpp
         src/game/item/Inventory.h
+        src/game/factory/ItemFactory.cpp
+        src/game/factory/ItemFactory.h
 
 )
 
