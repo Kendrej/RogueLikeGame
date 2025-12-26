@@ -15,6 +15,7 @@ bool Map::loadFromTmxFile(const std::string& path, Assets *assets)
 
     gidToTileInfo_.clear();
     gateways_.clear();
+    animatedFrames_.clear();
 
     auto tileCount = mapTmx.getTileCount();
     auto tileSize  = mapTmx.getTileSize();
@@ -43,9 +44,32 @@ bool Map::loadFromTmxFile(const std::string& path, Assets *assets)
                 std::uint32_t localId = tile.ID;            // 0, 1, 2, 3...
                 std::uint32_t gid     = firstGID + localId; // globalny ID w warstwach
 
-                std::string fullPath = tile.imagePath; // np. "./assets/../designs/floor.png"
+                // If this tile has animation frames, record their global GIDs and capture duration
+                float animDurationSec = 0.0f;
+                if (!tile.animation.frames.empty())
+                {
+                    std::vector<std::uint32_t> frames;
+                    frames.reserve(tile.animation.frames.size());
+                    for (const auto& f : tile.animation.frames)
+                    {
+                        std::uint32_t frameGid = 0;
+                        // tmxlite may provide frame.tileID as either local or already global in some cases
+                        if (f.tileID >= firstGID)
+                            frameGid = f.tileID; // already global
+                        else
+                            frameGid = firstGID + f.tileID; // local -> convert
+                        frames.push_back(frameGid);
+                    }
+                    if (!frames.empty())
+                    {
+                        animatedFrames_[gid] = std::move(frames);
+                        // duration stored in ms in TMX
+                        animDurationSec = static_cast<float>(tile.animation.frames[0].duration) / 1000.0f;
+                    }
+                }
 
-                int textureId = assets->getOrLoadIcon(fullPath); // tu Twój Assets
+                std::string fullPath = tile.imagePath; // e.g. "./assets/../designs/floor.png"
+                int textureId = assets->getOrLoadIcon(fullPath);
                 if (textureId < 0)
                 {
                     std::cerr << "Failed to load tile image: " << fullPath << "\n";
@@ -54,6 +78,7 @@ bool Map::loadFromTmxFile(const std::string& path, Assets *assets)
 
                 TileInfo info;
                 info.textureId = textureId;
+                info.animationDuration = animDurationSec;
                 info.texX      = 0; // cały obrazek
                 info.texY      = 0;
                 info.texWidth  = tileSize.x; // 64
@@ -65,11 +90,22 @@ bool Map::loadFromTmxFile(const std::string& path, Assets *assets)
                     {
                         info.solid = true;
                     }
-                    else if (prop.getName() == "door" && prop.getBoolValue())
+                    if (prop.getName() == "door" && prop.getBoolValue())
                     {
                         info.door = true;
                     }
+                    if (prop.getName() == "use")
+                    {
+                        info.use = prop.getStringValue();
+                    }
                 }
+
+                auto itAnim = animatedFrames_.find(gid);
+                if (itAnim != animatedFrames_.end())
+                {
+                    info.animated = true;
+                }
+
                 gidToTileInfo_[gid] = info;
             }
         }
@@ -113,16 +149,49 @@ bool Map::loadFromTmxFile(const std::string& path, Assets *assets)
                 const auto& tileList = ts.getTiles(); // vector<Tile>
                 auto it = std::find_if(tileList.begin(), tileList.end(), [&](const auto& t) { return t.ID == localId; });
 
-                if (it != tiles.end())
+                if (it != tileList.end())
                 {
                     const auto& tileWithProps = *it;
+                    float animDurationSec = 0.0f;
                     for (const auto& prop : tileWithProps.properties)
                     {
                         if (prop.getName() == "solid" && prop.getBoolValue())
                             info.solid = true;
                         if (prop.getName() == "door" && prop.getBoolValue())
                             info.door = true;
+                        if (prop.getName() == "use")
+                        {
+                            info.use = prop.getStringValue();
+                        }
                     }
+
+                    // If this tile has animation frames, record their global GIDs and capture duration
+                    if (!tileWithProps.animation.frames.empty())
+                    {
+                        std::vector<std::uint32_t> frames;
+                        frames.reserve(tileWithProps.animation.frames.size());
+                        for (const auto& f : tileWithProps.animation.frames)
+                        {
+                            std::uint32_t frameGid = 0;
+                            if (f.tileID >= firstGID)
+                                frameGid = f.tileID;
+                            else
+                                frameGid = firstGID + f.tileID;
+                            frames.push_back(frameGid);
+                        }
+                        if (!frames.empty())
+                        {
+                            animatedFrames_[gid] = std::move(frames);
+                            animDurationSec = static_cast<float>(tileWithProps.animation.frames[0].duration) / 1000.0f;
+                        }
+                    }
+                    info.animationDuration = animDurationSec;
+                }
+
+                auto itAnim = animatedFrames_.find(gid);
+                if (itAnim != animatedFrames_.end())
+                {
+                    info.animated = true;
                 }
                 gidToTileInfo_[gid] = info;
             }

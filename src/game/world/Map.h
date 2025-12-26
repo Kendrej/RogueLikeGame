@@ -26,7 +26,8 @@ struct Gateway
 struct TileInfo
 {
     int textureId = -1; // ID tekstury z Assets
-
+    int currentAnimationState = 0;
+    float animationDuration= 0.0f;
     // prostok¹t w tej teksturze (w pikselach)
     uint32_t texX = 0; // lewy górny róg kafelka w teksturze
     uint32_t texY = 0;
@@ -35,6 +36,8 @@ struct TileInfo
 
     bool solid = false; // czy kafelek jest "sztywny" (kolizje)
     bool door  = false; // czy kafelek jest drzwiami
+    std::string use = "";    // optional string property read from TMX (e.g., "use")
+    bool animated = false;
 };
 
 
@@ -97,6 +100,14 @@ public:
         return mapTmx.getLayers();
     }
 
+    // Animation accessors: returns nullptr if not found
+    const std::vector<std::uint32_t>* getAnimatedFrames(std::uint32_t baseGid) const
+    {
+        auto it = animatedFrames_.find(baseGid);
+        if (it == animatedFrames_.end())
+            return nullptr;
+        return &it->second;
+    }
 private:
     bool visited = 0;
     int rows = 0;
@@ -106,4 +117,5 @@ private:
     float mapWidth = 0.f;
     float mapHeight = 0.f;
     std::unordered_map<std::uint32_t, TileInfo> gidToTileInfo_;
+    std::unordered_map<std::uint32_t, std::vector<std::uint32_t>> animatedFrames_;
 };
