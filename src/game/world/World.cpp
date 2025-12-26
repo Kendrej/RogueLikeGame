@@ -244,7 +244,9 @@ void World::buildFromTmxMap() {
 
                     if (info->animated)
                     {
-                        // Register per-instance animated tile for runtime animation
+                        // at.frameIndex = static_cast<int>(at.frames->size()) - 1;
+
+                        // Register per-instance animated tile for runtime animatio
                         const auto* regFrames = map.getAnimatedFrames(gid);
                         if (regFrames && !regFrames->empty())
                         {
@@ -256,6 +258,17 @@ void World::buildFromTmxMap() {
                             at.use = info->use;
                             // prefer duration from TileInfo if available, else fallback to 0.1s
                             at.frameDuration = (info->animationDuration > 0.0f) ? info->animationDuration : 0.1f;
+                            // If this map was already visited or doors were unlocked, freeze door animations on last frame
+                            if (map.isVisited() && at.use == "door")
+                            {
+                                at.frameIndex = static_cast<int>(at.frames->size()) - 1;
+                                at.oneTimeAnimationDone = true;
+                                std::uint32_t gidLast = (*(at.frames))[at.frameIndex];
+                                if (const TileInfo* fi = map.getTileInfo(gidLast))
+                                {
+                                    at.entity->setTexOffset(fi->texX, fi->texY);
+                                }
+                            }
                             animatedTiles_.push_back(at);
                         }
                     }
@@ -764,6 +777,11 @@ void World::update(float dt)
             if (doorEntity) doorEntity->setSolid(false);
         }
         doorsUnlocked_ = true;
+        // Persist that doors are unlocked on this map by marking it visited
+        if (currentMapIndex >= 0 && currentMapIndex < static_cast<int>(maps_.size()) && maps_[currentMapIndex])
+        {
+            maps_[currentMapIndex]->setVisited(true);
+        }
     }
 
     this->gatewayIndex = playerInGateway();
@@ -891,7 +909,6 @@ void World::spawnNpcs()
         }
         
     }
-    maps_[currentMapIndex]->setVisited(true);
 }
 
 void World::spawnPlayerInNewScene(GatewaySide entrySide, float sourceGatewayX, float sourceGatewayY)
