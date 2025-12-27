@@ -46,6 +46,9 @@ public:
 
     const IconGPU& icon(IconId id) const
     {
+        static IconGPU empty{};
+        if (id < 0 || static_cast<size_t>(id) >= icons_.size())
+            return empty;
         return icons_[id];
     }
 

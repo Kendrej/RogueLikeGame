@@ -12,12 +12,14 @@ class Entity
 {
 public:
     Entity(int entityId, uint32_t width, uint32_t height, float pos_x, float pos_y, bool solid = false);
-    virtual ~Entity() = default;
+    virtual ~Entity();
 
     ImVec2   getPosition() const;
     uint32_t getWidth() const;
     uint32_t getHeight() const;
+    void setSize(uint32_t w, uint32_t h);
     int      getEntityId() const;
+    void     setEntityId(int id);
     bool     isVisible() const;
 
     void setVisible(bool visible);

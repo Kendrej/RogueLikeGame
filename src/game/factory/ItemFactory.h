@@ -4,18 +4,17 @@
 class StrengthPotion;
 class SpeedPotion;
 class HealthPotion;
+class Assets;
 
 enum class ItemId
 {
     HealthPotion,
     SpeedPotion,
-    StrengthPotion
-
+    StrengthPotion,
+    None
 };
 
 class ItemFactory {
 public:
-    std::unique_ptr<Item> createItem(ItemId id);
+   static std::unique_ptr<Item> createItem(ItemId id, Assets* assets);
 };
-
-

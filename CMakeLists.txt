@@ -73,6 +73,7 @@ add_executable(RogueLikeGame
         src/game/item/Inventory.h
         src/game/factory/ItemFactory.cpp
         src/game/factory/ItemFactory.h
+        src/game/item/usableItem/key.h
 
 )
 

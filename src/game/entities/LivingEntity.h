@@ -47,7 +47,7 @@ public:
 
     bool isAlive() const
     {
-        return isDead_;
+        return !isDead_;
     }
     void takeDamage(int dmg);
     void setDamaged(bool dmg)

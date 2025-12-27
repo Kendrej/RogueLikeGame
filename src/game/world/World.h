@@ -33,7 +33,7 @@ public:
 
     Npc& spawnNpc(NpcType type, ImVec2 pos);
 
-    Item& spawnItem(ItemId id, float x, float y);
+    Item* spawnItem(ItemId id, float x, float y);
 
     Projectile& spawnProjectile(uint32_t width, uint32_t height, float pos_x, float pos_y, ImVec2 velocity,
                                 float lifetime, int damage, LivingEntity* owner, const std::string& texturePath);
@@ -89,7 +89,6 @@ public:
 
     enum class ConsumableType { HealthPotion, SpeedPotion, StrengthPotion };
     void        givePlayerConsumable(ConsumableType type);
-    int         getConsumableIconId(ConsumableType type);
 
 
 private:
@@ -116,7 +115,6 @@ private:
 
     int currentMapIndex = 0;
     int gatewayIndex    = -1;
-    std::unordered_map<ConsumableType, int> consumableIconIds_;
     std::vector<std::unique_ptr<Map>> maps_;
     std::vector<Entity*> doorEntities_;
     Assets* assets_{nullptr};

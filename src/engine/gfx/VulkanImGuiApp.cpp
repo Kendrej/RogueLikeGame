@@ -34,6 +34,17 @@ int VulkanImGuiApp::run()
 
         heartIconId_ = assets_->getOrLoadIcon("assets/design/heart.png");
 
+        if (assets_) {
+            try {
+                bowIconId_ = assets_->getOrLoadIcon("assets/design/bow.png");
+                swordIconId_ = assets_->getOrLoadIcon("assets/design/sword.png");
+            } catch (const std::exception& e) {
+                std::cerr << "Warning: failed to load UI icons: " << e.what() << std::endl;
+                bowIconId_ = -1;
+                swordIconId_ = -1;
+            }
+        }
+
         world_ = std::make_unique<World>(assets_.get());
         setupGame(*world_);
         mainLoop();
@@ -228,9 +239,6 @@ void VulkanImGuiApp::mainLoop()
             if (glfwGetKey(window_, GLFW_KEY_D) == GLFW_PRESS)
                 dx += 1.0f;
             player->applyInput(ImVec2(dx, dy));
-
-            bowIconId_ = assets_->getOrLoadIcon("assets/design/bow.png");
-            swordIconId_ = assets_->getOrLoadIcon("assets/design/sword.png");
 
             // change attack mode
             static bool lastQ    = false;
@@ -463,6 +471,10 @@ void VulkanImGuiApp::drawWorld()
                                         bool flipH = false, bool flipV = false, bool flipD = false)
     {
         const auto& icon = assets_->icon(iconId);
+        if (!icon.imTex)
+        {
+            return;
+        }
 
         const float renderW = width * scale;
         const float renderH = height * scale;
@@ -567,14 +579,25 @@ void VulkanImGuiApp::drawWorld()
         }
         else
         {
-            iconId = e.getEntityId();
-            texX = e.getTexX();
-            texY = e.getTexY();
-            flipH = e.getFlipH();
-            flipV = e.getFlipV();
-            flipD = e.getFlipD();
+            if (auto* item = dynamic_cast<Item*>(up.get())) {
+                iconId = item->getIconId();
+                texX = 0;
+                texY = 0;
+            } else {
+                iconId = e.getEntityId();
+                texX = e.getTexX();
+                texY = e.getTexY();
+                flipH = e.getFlipH();
+                flipV = e.getFlipV();
+                flipD = e.getFlipD();
+            }
         }
-        drawScaledSprite(iconId, pos, static_cast<float>(w), static_cast<float>(h), ENTITY_SPRITE_SCALE, texX, texY, flipH, flipV, flipD);
+        if (iconId >= 0 && assets_) {
+            const IconGPU& checkIcon = assets_->icon(iconId);
+            if (checkIcon.imTex) {
+                drawScaledSprite(iconId, pos, static_cast<float>(w), static_cast<float>(h), ENTITY_SPRITE_SCALE, texX, texY, flipH, flipV, flipD);
+            }
+        }
     }
 
     // Rysuj gracza
@@ -593,9 +616,13 @@ void VulkanImGuiApp::drawWorld()
     iconId = player->getEntityId();
         }
 
-    // Draw player sprite using spriteScale from player
         const float PLAYER_SPRITE_SCALE = player->getSpriteScale() * 5.0f;
-        drawScaledSprite(iconId, pos, static_cast<float>(w), static_cast<float>(h), PLAYER_SPRITE_SCALE);
+        if (iconId >= 0 && assets_) {
+            const IconGPU& checkIcon = assets_->icon(iconId);
+            if (checkIcon.imTex) {
+                drawScaledSprite(iconId, pos, static_cast<float>(w), static_cast<float>(h), PLAYER_SPRITE_SCALE);
+            }
+        }
         drawHpBar(*player, pos.x, pos.y, static_cast<float>(w), player->getSpriteScale());
  }
 
@@ -633,18 +660,20 @@ void VulkanImGuiApp::drawInventoryUI()
         bg->AddText(ImVec2(x + 2, y + 2), IM_COL32(150, 150, 150, 200), numBuf);
 
         Item* item = inv.getItem(i);
-        if (item && item->getIconId() >= 0)
-        {
-            const auto& icon = assets_->icon(item->getIconId());
-            float iconSize = slotSize - 8.0f;
-            float iconX = x + 4.0f;
-            float iconY = y + 4.0f;
-            bg->AddImage(icon.imTex,
-                        ImVec2(iconX, iconY),
-                        ImVec2(iconX + iconSize, iconY + iconSize),
-                        ImVec2(0, 0), ImVec2(1, 1),
-                        IM_COL32_WHITE);
-        }
+        if (item && item->getIconId() >= 0 && assets_)
+            {
+                const auto& icon = assets_->icon(item->getIconId());
+                if (icon.imTex) {
+                    float iconSize = slotSize - 8.0f;
+                    float iconX = x + 4.0f;
+                    float iconY = y + 4.0f;
+                    bg->AddImage(icon.imTex,
+                                ImVec2(iconX, iconY),
+                                ImVec2(iconX + iconSize, iconY + iconSize),
+                                ImVec2(0, 0), ImVec2(1, 1),
+                                IM_COL32_WHITE);
+                }
+            }
     }
 
     drawHeartsUI(bg, player);
@@ -718,6 +747,10 @@ void VulkanImGuiApp::drawAttackMode(AttackMode attack_mode) {
         }
 
         const IconGPU swordIcon = assets_->icon(swordIconId_);
+        if (!swordIcon.imTex) {
+            std::cout << "Error: sword icon has no GPU texture" << std::endl;
+            return;
+        }
         bg->AddImage(swordIcon.imTex,
                      ImVec2(start_x, 8.0f),
                      ImVec2(start_x + iconSize, 8.0f + iconSize),
