@@ -109,6 +109,7 @@ private:
     GatewaySide getSide(int gwIndex);
     void        spawnPlayerInNewScene(GatewaySide entrySide, float sourceGatewayX, float sourceGatewayY);
     void        updateEntityLogic(LivingEntity* livingEntity, float dt);
+    void        updateAnimatedTiles(float dt);
     void        spawnNpcs();
 
     int currentMapIndex = 0;

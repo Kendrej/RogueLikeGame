@@ -573,64 +573,67 @@ void World::updateEntityLogic(LivingEntity* livingEntity, float dt) {
         animationController->update(dt);
 }
 
+void World::updateAnimatedTiles(float dt) {
+    Map& m = *maps_[currentMapIndex];
+    for (auto& at : animatedTiles_)
+    {
+        if (!at.entity || !at.frames || at.frames->empty())
+            continue;
+
+        // Door tiles: animate only after doors are unlocked, play once and freeze on last frame
+        if (at.use == "door")
+        {
+            if (!doorsUnlocked_)
+                continue; // still locked
+            if (at.oneTimeAnimationDone)
+                continue; // already played
+
+            at.timer += dt;
+            if (at.timer >= at.frameDuration)
+            {
+                at.timer -= at.frameDuration;
+                // advance towards final frame; when reaching last frame, mark done (no wrap)
+                if (at.frameIndex + 1 < static_cast<int>(at.frames->size()))
+                {
+                    at.frameIndex += 1;
+                }
+                else
+                {
+                    // reached last frame -> freeze
+                    at.oneTimeAnimationDone = true;
+                }
+
+                std::uint32_t   gid = (*(at.frames))[at.frameIndex];
+                const TileInfo* fi  = m.getTileInfo(gid);
+                if (fi)
+                    at.entity->setTexOffset(fi->texX, fi->texY);
+            }
+        }
+        else
+        {
+            // normal looping animation
+            at.timer += dt;
+            if (at.timer >= at.frameDuration)
+            {
+                at.timer -= at.frameDuration;
+                at.frameIndex += 1;
+                if (at.frameIndex >= static_cast<int>(at.frames->size()))
+                    at.frameIndex = 0;
+                std::uint32_t   gid = (*(at.frames))[at.frameIndex];
+                const TileInfo* fi  = m.getTileInfo(gid);
+                if (fi)
+                    at.entity->setTexOffset(fi->texX, fi->texY);
+            }
+        }
+    }
+}
+
 void World::update(float dt)
 {
     // Update per-instance animated tile
-    if (!animatedTiles_.empty() && currentMapIndex >= 0 && currentMapIndex < static_cast<int>(maps_.size()) &&
-        maps_[currentMapIndex])
+    if (!animatedTiles_.empty())
     {
-        Map& m = *maps_[currentMapIndex];
-        for (auto& at : animatedTiles_)
-        {
-            if (!at.entity || !at.frames || at.frames->empty())
-                continue;
-
-            // Door tiles: animate only after doors are unlocked, play once and freeze on last frame
-            if (at.use == "door")
-            {
-                if (!doorsUnlocked_)
-                    continue; // still locked
-                if (at.oneTimeAnimationDone)
-                    continue; // already played
-
-                at.timer += dt;
-                if (at.timer >= at.frameDuration)
-                {
-                    at.timer -= at.frameDuration;
-                    // advance towards final frame; when reaching last frame, mark done (no wrap)
-                    if (at.frameIndex + 1 < static_cast<int>(at.frames->size()))
-                    {
-                        at.frameIndex += 1;
-                    }
-                    else
-                    {
-                        // reached last frame -> freeze
-                        at.oneTimeAnimationDone = true;
-                    }
-
-                    std::uint32_t   gid = (*(at.frames))[at.frameIndex];
-                    const TileInfo* fi  = m.getTileInfo(gid);
-                    if (fi)
-                        at.entity->setTexOffset(fi->texX, fi->texY);
-                }
-            }
-            else
-            {
-                // normal looping animation
-                at.timer += dt;
-                if (at.timer >= at.frameDuration)
-                {
-                    at.timer -= at.frameDuration;
-                    at.frameIndex += 1;
-                    if (at.frameIndex >= static_cast<int>(at.frames->size()))
-                        at.frameIndex = 0;
-                    std::uint32_t   gid = (*(at.frames))[at.frameIndex];
-                    const TileInfo* fi  = m.getTileInfo(gid);
-                    if (fi)
-                        at.entity->setTexOffset(fi->texX, fi->texY);
-                }
-            }
-        }
+        updateAnimatedTiles(dt);
     }
 
     if (player_)
