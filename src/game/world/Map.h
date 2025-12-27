@@ -23,6 +23,17 @@ struct Gateway
     GatewaySide side;
 };
 
+struct ChestInfo
+{
+    float posX;
+    float posY;
+    float width;
+    float height;
+    bool opened = false;
+    bool itemsTaken = false;
+    std::vector<std::string> items;
+};
+
 struct TileInfo
 {
     int textureId = -1; // ID tekstury z Assets
@@ -58,6 +69,38 @@ public:
     {
         gateways_.push_back(Gateway{targetIndex, posX, posY, GatewaySide::Top});
     }
+    void addChestInfo(float posX, float posY, float width, float height)
+    {
+        chestInfo_ = ChestInfo{posX, posY, width, height, false};
+    }
+    void setChestOpened(bool opened)
+    {
+        chestInfo_.opened = opened;
+    }
+    void addItemToChest(const std::string& item)
+    {
+        chestInfo_.items.push_back(item);
+    }
+    void setChestItemsTaken(bool taken)
+    {
+        chestInfo_.itemsTaken = taken;
+    }
+    ChestInfo getChestInfo() const
+    {
+        return chestInfo_;
+    }
+    bool isChestOpened() const
+    {
+        return chestInfo_.opened;
+    }
+    bool isChestItemsTaken() const
+    {
+        return chestInfo_.itemsTaken;
+    }
+    std::vector<std::string> getChestItems() const
+    {
+        return chestInfo_.items;
+    }
     const std::vector<Gateway>& gateways() const
     {
         return gateways_;
@@ -76,7 +119,7 @@ public:
     void setVisited(bool v)
     {
         visited = v;
-    }
+    }   
     bool isVisited() const
     {
         return visited;
@@ -113,6 +156,7 @@ private:
     int rows = 0;
     int columns = 0;
     std::vector<Gateway> gateways_;
+    ChestInfo chestInfo_;
     tmx::Map mapTmx;
     float mapWidth = 0.f;
     float mapHeight = 0.f;

@@ -129,4 +129,52 @@
    <property name="use" value="door"/>
   </properties>
  </tile>
+ <tile id="80">
+  <properties>
+   <property name="use" value="chest"/>
+  </properties>
+  <animation>
+   <frame tileid="80" duration="100"/>
+   <frame tileid="82" duration="100"/>
+   <frame tileid="84" duration="100"/>
+   <frame tileid="86" duration="100"/>
+   <frame tileid="88" duration="100"/>
+  </animation>
+ </tile>
+ <tile id="81">
+  <properties>
+   <property name="use" value="chest"/>
+  </properties>
+  <animation>
+   <frame tileid="81" duration="100"/>
+   <frame tileid="83" duration="100"/>
+   <frame tileid="85" duration="100"/>
+   <frame tileid="87" duration="100"/>
+   <frame tileid="89" duration="100"/>
+  </animation>
+ </tile>
+ <tile id="90">
+  <properties>
+   <property name="use" value="chest"/>
+  </properties>
+  <animation>
+   <frame tileid="90" duration="100"/>
+   <frame tileid="92" duration="100"/>
+   <frame tileid="94" duration="100"/>
+   <frame tileid="96" duration="100"/>
+   <frame tileid="98" duration="100"/>
+  </animation>
+ </tile>
+ <tile id="91">
+  <properties>
+   <property name="use" value="chest"/>
+  </properties>
+  <animation>
+   <frame tileid="91" duration="100"/>
+   <frame tileid="93" duration="100"/>
+   <frame tileid="95" duration="100"/>
+   <frame tileid="97" duration="100"/>
+   <frame tileid="99" duration="100"/>
+  </animation>
+ </tile>
 </tileset>

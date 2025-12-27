@@ -16,7 +16,7 @@ void setupGame(World& world)
 
     world.spawnPlayer({200.0f, 200.0f + World::UI_TOP_BAR_HEIGHT});
 
-    world.givePlayerConsumable(World::ConsumableType::HealthPotion);
+    //world.givePlayerConsumable(World::ConsumableType::HealthPotion);
     world.givePlayerConsumable(World::ConsumableType::StrengthPotion);
     world.givePlayerConsumable(World::ConsumableType::SpeedPotion);
 
