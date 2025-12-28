@@ -5,7 +5,7 @@
 
 void setupGame(World& world)
 {
-    world.addMapfromTmx("assets/maps/00.tmx");
+    world.addMapfromTmx("assets/maps/10.tmx");
     world.addMapfromTmx("assets/maps/01.tmx");
     world.addMapfromTmx("assets/maps/02.tmx");
     world.addMapfromTmx("assets/maps/03.tmx");

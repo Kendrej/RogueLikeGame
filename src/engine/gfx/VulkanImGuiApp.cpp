@@ -297,17 +297,19 @@ void VulkanImGuiApp::mainLoop()
             if (ePressed && !lastE)
             {
                 auto* map = world_->getMap(world_->getCurrentMapIndex());
-                if (!map || map->isChestOpened())
-                    return;
-                ImVec2 p  = player->getPosition();
-                float  pw = static_cast<float>(player->getWidth());
-                float  ph = static_cast<float>(player->getHeight());
-
-                ChestInfo info = map->getChestInfo();
-                if (p.x + pw > info.posX && p.x < info.posX + info.width && p.y + ph > info.posY && p.y < info.posY + info.height)
+                if (map && !map->isChestOpened())
                 {
-                    map->setChestOpened(true);
-                }                
+                    ImVec2 p  = player->getPosition();
+                    float  pw = static_cast<float>(player->getWidth());
+                    float  ph = static_cast<float>(player->getHeight());
+
+                    ChestInfo info = map->getChestInfo();
+                    if (p.x + pw > info.posX && p.x < info.posX + info.width && p.y + ph > info.posY &&
+                        p.y < info.posY + info.height)
+                    {
+                        map->setChestOpened(true);
+                    }  
+                }         
             }
             lastE = ePressed;
         }
