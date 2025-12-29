@@ -8,10 +8,14 @@
 class Assets;
 class Item;
 
+enum class EntityType {
+    Default, Item, Player, Npc, Projectile, Tile
+};
+
 class Entity
 {
 public:
-    Entity(int entityId, uint32_t width, uint32_t height, float pos_x, float pos_y, bool solid = false);
+    Entity(int entityId, uint32_t width, uint32_t height, float pos_x, float pos_y, bool solid = false, EntityType type = EntityType::Default);
     virtual ~Entity();
 
     ImVec2   getPosition() const;
@@ -27,6 +31,12 @@ public:
 
     virtual void update(float /*dt*/) {}
     void         moveBy(float dx, float dy);
+
+    EntityType     getEntityType() const {return type_ ;}
+
+    bool isItem() const { return type_ == EntityType::Item ;}
+    bool isNpc() const { return type_ == EntityType::Npc ;}
+
 
     bool isSolid() const
     {
@@ -63,6 +73,7 @@ public:
 
 protected:
     int      entityId;
+    EntityType type_ = EntityType::Default;
     uint32_t width   = 0;
     uint32_t height  = 0;
     bool     visible = true;

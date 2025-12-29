@@ -523,6 +523,33 @@ void World::clampToScreen(Entity& mover)
 
     mover.setPosition(p.x, p.y);
 }
+
+
+// Tylko gracz ma ekwipunek aktualnie
+bool World::collectItem(Player* collector, Item* itemToPick) {
+    if (!collector || !itemToPick) return false;
+
+    auto it = std::find_if(entities_.begin(), entities_.end(),
+        [itemToPick](const std::unique_ptr<Entity>& e) {
+            return e.get() == itemToPick;
+        });
+
+    if (it == entities_.end()) return false;
+
+    std::unique_ptr<Entity> entityPtr = std::move(*it);
+
+    Item* rawItem = static_cast<Item*>(entityPtr.release());
+    std::unique_ptr<Item> itemUnique(rawItem);
+
+    if (collector->getInventory().addItem(std::move(itemUnique))) {
+        return true;
+    } else {
+        std::unique_ptr<Entity> backToWorld(itemUnique.release());
+        *it = std::move(backToWorld);
+        return false;
+    }
+}
+
 void World::updateEntityLogic(LivingEntity* livingEntity, float dt) {
         if (!livingEntity || !livingEntity->isAlive()) return;
 
@@ -661,6 +688,12 @@ void World::update(float dt)
         if (player_ && up.get() == player_.get()) continue;
 
         up->update(dt);
+
+        if (up->isItem()) {
+            if (intersectsAABB(*up, *player_)) {
+                collectItem(player_.get(), static_cast<Item*>(up.get()));
+            }
+        }
 
         if (auto* livingEntity = dynamic_cast<LivingEntity*>(up.get()))
         {

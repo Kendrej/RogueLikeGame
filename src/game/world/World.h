@@ -112,6 +112,7 @@ private:
     void        spawnPlayerInNewScene(GatewaySide entrySide, float sourceGatewayX, float sourceGatewayY);
     void        updateEntityLogic(LivingEntity* livingEntity, float dt);
     void        spawnNpcs();
+    bool        collectItem(Player* collector, Item* item);
 
     int currentMapIndex = 0;
     int gatewayIndex    = -1;

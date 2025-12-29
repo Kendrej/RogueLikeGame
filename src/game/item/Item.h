@@ -19,7 +19,7 @@ public:
     const std::string name;
 
     Item(ItemType t, int iconId, std::string n)
-        : Entity(iconId, 16, 16, 0.0f, 0.0f), type(t), name(std::move(n))
+        : Entity(iconId, 16, 16, 0.0f, 0.0f,false, EntityType::Item), type(t), name(std::move(n))
     {
     }
 

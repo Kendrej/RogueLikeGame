@@ -7,8 +7,8 @@
 
 #include "game/item/Item.h"
 
-LivingEntity::LivingEntity(int entityId, uint32_t width, uint32_t height, float pos_x, float pos_y, int maxHp_)
-    : Entity(entityId, width, height, pos_x, pos_y), maxHp(maxHp_), hp(maxHp_)
+LivingEntity::LivingEntity(int entityId, uint32_t width, uint32_t height, float pos_x, float pos_y, int maxHp_, EntityType type)
+    : Entity(entityId, width, height, pos_x, pos_y, true, type), maxHp(maxHp_), hp(maxHp_)
 {
 }
 
