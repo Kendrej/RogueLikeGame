@@ -5,6 +5,8 @@
 #include "game/world/World.h"
 #include <memory>
 
+#include "ItemFactory.h"
+
 Npc* NpcFactory::createNpc(NpcType type, World& world, ImVec2 pos)
 {
     std::unique_ptr<INpcController> controller;
@@ -39,6 +41,8 @@ Npc* NpcFactory::createNpc(NpcType type, World& world, ImVec2 pos)
     int rangedAttackFrames    = 0;
     int rangedAttackTrigger   = 0;
 
+    ItemId itemToDropId = ItemId::None;
+
     switch (type)
     {
         case NpcType::Skeleton_Archer:
@@ -54,6 +58,7 @@ Npc* NpcFactory::createNpc(NpcType type, World& world, ImVec2 pos)
             animPrefix        = "SkeletonArcher";
             rangedAttackFrames  = 9;
             rangedAttackTrigger = 7;
+            itemToDropId = ItemId::HealthPotion;
             break;
 
         case NpcType::Orc:
@@ -69,6 +74,7 @@ Npc* NpcFactory::createNpc(NpcType type, World& world, ImVec2 pos)
             animPrefix        = "Orc";
             meleeAttackFrames   = 6;
             meleeAttackTrigger  = 4;
+            itemToDropId = ItemId::HealthPotion;
             break;
         case NpcType::Knight:
             controller        = std::make_unique<MeleeController>();
@@ -83,6 +89,7 @@ Npc* NpcFactory::createNpc(NpcType type, World& world, ImVec2 pos)
             animPrefix        = "Knight";
             meleeAttackFrames   = 6;
             meleeAttackTrigger  = 4;
+            itemToDropId = ItemId::HealthPotion;
             break;
         case NpcType::Elite_Orc:
             controller         = std::make_unique<MeleeController>();
@@ -97,6 +104,7 @@ Npc* NpcFactory::createNpc(NpcType type, World& world, ImVec2 pos)
             animPrefix         = "EliteOrc";
             meleeAttackFrames  = 9;
             meleeAttackTrigger = 5;
+            itemToDropId = ItemId::HealthPotion;
             break;
     }
 
@@ -117,6 +125,8 @@ Npc* NpcFactory::createNpc(NpcType type, World& world, ImVec2 pos)
     npc->setRangedDamage(rangedDamage);
     npc->setRangedCooldown(rangedCooldown);
     npc->setRangedRange(rangedRange);
+
+    npc->setDroppingItem(ItemFactory::createItem(itemToDropId, world.getAssets()));
 
     npc->createAnimationController(
         world.getAssets(), animSquareSize,

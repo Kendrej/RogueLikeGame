@@ -5,8 +5,10 @@
 #include <cmath>
 #include <iostream>
 
-LivingEntity::LivingEntity(int entityId, uint32_t width, uint32_t height, float pos_x, float pos_y, int maxHp_)
-    : Entity(entityId, width, height, pos_x, pos_y), maxHp(maxHp_), hp(maxHp_)
+#include "game/item/Item.h"
+
+LivingEntity::LivingEntity(int entityId, uint32_t width, uint32_t height, float pos_x, float pos_y, int maxHp_, EntityType type)
+    : Entity(entityId, width, height, pos_x, pos_y, true, type), maxHp(maxHp_), hp(maxHp_)
 {
 }
 
@@ -52,7 +54,7 @@ void LivingEntity::setMaxSpeed(float newMaxSpeed)
 
 void LivingEntity::applyInput(const ImVec2& dir)
 {
-    if (!isAlive())
+    if ( !isAlive())
         return;
 
     if (dir.x != 0.0f || dir.y != 0.0f)
@@ -118,10 +120,18 @@ void LivingEntity::takeDamage(int dmg)
         return;
 
     hp -= dmg;
-    if (hp < 0)
+    if (hp <= 0)
+    {
         hp = 0;
+        Die();
+    }
     damaged = true;
 }
+
+void LivingEntity::Die() {
+    isDead_ = true;
+}
+
 
 void LivingEntity::heal(int amount)
 {

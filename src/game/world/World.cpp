@@ -9,9 +9,6 @@
 #include "game/entities/Player.h"
 #include "game/entities/Projectile.h"
 #include "../factory/NpcFactory.h"
-#include "game/item/consumable/HealthPotion.h"
-#include "game/item/consumable/SpeedPotion.h"
-#include "game/item/consumable/StrengthPotion.h"
 
 #include <algorithm>
 #include <iostream>
@@ -20,8 +17,10 @@
 #include <tmxlite/TileLayer.hpp>
 #include <cmath>
 
+#include "game/factory/ItemFactory.h"
+
 Entity& World::spawnTile(const std::string& texturePath, uint32_t width, uint32_t height, float pos_x,
-                               float pos_y, bool solid)
+                         float pos_y, bool solid)
 {
     const int entityId = assets_ ? assets_->getOrLoadIcon(texturePath) : -1;
     return addEntity<Entity>(entityId, width, height, pos_x, pos_y, solid);
@@ -47,6 +46,17 @@ Projectile& World::spawnProjectile(uint32_t width, uint32_t height, float pos_x,
     auto& projectile = addEntity<Projectile>(projId, width, height, pos_x, pos_y, velocity, lifetime, damage, owner);
     return projectile;
 }
+
+Item* World::spawnItem(ItemId id, float x, float y) {
+    std::unique_ptr<Item> newItem = ItemFactory::createItem(id, assets_);
+    if (!newItem) return nullptr;
+
+    newItem->setPosition(x, y);
+    Item* rawPtr = newItem.get();
+    entities_.push_back(std::move(newItem));
+    return rawPtr;
+}
+
 
 void World::performMeleeAttack(LivingEntity& attacker)
 {
@@ -537,6 +547,33 @@ void World::clampToScreen(Entity& mover)
 
     mover.setPosition(p.x, p.y);
 }
+
+
+// Tylko gracz ma ekwipunek aktualnie
+bool World::collectItem(Player* collector, Item* itemToPick) {
+    if (!collector || !itemToPick) return false;
+
+    auto it = std::find_if(entities_.begin(), entities_.end(),
+        [itemToPick](const std::unique_ptr<Entity>& e) {
+            return e.get() == itemToPick;
+        });
+
+    if (it == entities_.end()) return false;
+
+    std::unique_ptr<Entity> entityPtr = std::move(*it);
+
+    Item* rawItem = static_cast<Item*>(entityPtr.release());
+    std::unique_ptr<Item> itemUnique(rawItem);
+
+    if (collector->getInventory().addItem(std::move(itemUnique))) {
+        return true;
+    } else {
+        std::unique_ptr<Entity> backToWorld(itemUnique.release());
+        *it = std::move(backToWorld);
+        return false;
+    }
+}
+
 void World::updateEntityLogic(LivingEntity* livingEntity, float dt) {
         if (!livingEntity || !livingEntity->isAlive()) return;
 
@@ -710,6 +747,7 @@ void World::updateAnimatedTiles(float dt) {
 
 void World::update(float dt)
 {
+    std::vector<std::unique_ptr<Item>> newLoot;
     // Update per-instance animated tile
     if (!animatedTiles_.empty())
     {
@@ -734,11 +772,35 @@ void World::update(float dt)
 
         up->update(dt);
 
+        if (up->isItem()) {
+            if (intersectsAABB(*up, *player_)) {
+                collectItem(player_.get(), static_cast<Item*>(up.get()));
+            }
+        }
+
         if (auto* livingEntity = dynamic_cast<LivingEntity*>(up.get()))
         {
             if (!livingEntity->isAlive())
             {
                 livingEntity->setSolid(false);
+
+
+                std::unique_ptr<Item> itemFromLivingEntity = livingEntity->takeDroppingItem();
+                if (itemFromLivingEntity) {
+                    const uint32_t DROP_W = 32;
+                    const uint32_t DROP_H = 32;
+                    itemFromLivingEntity->setSize(DROP_W, DROP_H);
+
+
+                    ImVec2 livingEntityPos = livingEntity->getPosition();
+                    float livingCenterX = livingEntityPos.x + static_cast<float>(livingEntity->getWidth()) * 0.5f;
+                    float livingCenterY = livingEntityPos.y + static_cast<float>(livingEntity->getHeight()) * 0.5f;
+                    float itemPosX = livingCenterX - static_cast<float>(DROP_W) * 0.5f;
+                    float itemPosY = livingCenterY - static_cast<float>(DROP_H) * 0.5f;
+                    itemFromLivingEntity->setPosition(itemPosX, itemPosY);
+                    newLoot.push_back(std::move(itemFromLivingEntity));
+                    }
+
                 if (auto* ac = livingEntity->getAnimationController())
                 {
                     bool facingRight = (livingEntity->getFacingDir().x >= 0.0f);
@@ -833,6 +895,10 @@ void World::update(float dt)
         {
             living->setPosition(oldPos.x, oldPos.y);
         }
+    }
+
+    for(auto& loot: newLoot) {
+        entities_.push_back(std::move(loot));
     }
 
     // czyszczenie
@@ -958,7 +1024,7 @@ void World::spawnNpcs()
                 auto& npc = spawnNpc(NpcType::Orc, {x, y});
                 if (maxHp > 0)
                 {
-                    npc.setHp(maxHp); 
+                    npc.setHp(maxHp);
                     npc.setSpriteScale(size);
                 }
             }
@@ -990,7 +1056,7 @@ void World::spawnNpcs()
                 }
             }
         }
-        
+
     }
 }
 
@@ -1070,52 +1136,27 @@ void World::addMapfromTmx(const std::string& path) {
     maps_.push_back(std::move(m));
 }
 
-int World::getConsumableIconId(ConsumableType type)
-{
-    if (!assets_)
-        return -1;
-
-    auto it = consumableIconIds_.find(type);
-    if (it != consumableIconIds_.end())
-        return it->second;
-
-    std::string path;
-    switch (type)
-    {
-        case ConsumableType::HealthPotion:   path = "assets/items/consumable/HealthPotion.png"; break;
-        case ConsumableType::SpeedPotion:    path = "assets/items/consumable/SpeedPotion.png"; break;
-        case ConsumableType::StrengthPotion: path = "assets/items/consumable/StrengthPotion.png"; break;
-    }
-
-    int iconId = assets_->getOrLoadIcon(path);
-    consumableIconIds_[type] = iconId;
-    return iconId;
-}
-
 void World::givePlayerConsumable(ConsumableType type)
 {
     if (!player_ || !assets_)
         return;
 
-    int iconId = getConsumableIconId(type);
-
     std::unique_ptr<Item> item;
     switch (type)
     {
         case ConsumableType::HealthPotion:
-            item = std::make_unique<HealthPotion>();
+            item = ItemFactory::createItem(ItemId::HealthPotion, assets_);
             break;
         case ConsumableType::SpeedPotion:
-            item = std::make_unique<SpeedPotion>();
+            item = ItemFactory::createItem(ItemId::SpeedPotion, assets_);
             break;
         case ConsumableType::StrengthPotion:
-            item = std::make_unique<StrengthPotion>();
+            item = ItemFactory::createItem(ItemId::StrengthPotion, assets_);
             break;
     }
 
     if (item)
     {
-        item->setIconId(iconId);
         player_->getInventory().addItem(std::move(item));
     }
 }

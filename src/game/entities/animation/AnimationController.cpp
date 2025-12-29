@@ -301,3 +301,18 @@ void AnimationController::setCurrentAnimationType(AnimationType type)
     }
     frameTimer_ = 0.0f;
 }
+
+bool AnimationController::isDeathAnimationFinished() const
+{
+    if (!isDeathAnimation())
+        return false;
+
+    if (isRightFacing_)
+    {
+        return (currentFrameIndex_ >= (deathRightFrameAmount_ - 1));
+    }
+    else
+    {
+        return (currentFrameIndex_ <= 0);
+    }
+}

@@ -1,19 +1,29 @@
 #pragma once
 #include <cstdint>
 #include <imgui.h>
+#include <memory>
+
+
 
 class Assets;
+class Item;
+
+enum class EntityType {
+    Default, Item, Player, Npc, Projectile, Tile
+};
 
 class Entity
 {
 public:
-    Entity(int entityId, uint32_t width, uint32_t height, float pos_x, float pos_y, bool solid = false);
-    virtual ~Entity() = default;
+    Entity(int entityId, uint32_t width, uint32_t height, float pos_x, float pos_y, bool solid = false, EntityType type = EntityType::Default);
+    virtual ~Entity();
 
     ImVec2   getPosition() const;
     uint32_t getWidth() const;
     uint32_t getHeight() const;
+    void setSize(uint32_t w, uint32_t h);
     int      getEntityId() const;
+    void     setEntityId(int id);
     bool     isVisible() const;
 
     void setVisible(bool visible);
@@ -21,6 +31,12 @@ public:
 
     virtual void update(float /*dt*/) {}
     void         moveBy(float dx, float dy);
+
+    EntityType     getEntityType() const {return type_ ;}
+
+    bool isItem() const { return type_ == EntityType::Item ;}
+    bool isNpc() const { return type_ == EntityType::Npc ;}
+
 
     bool isSolid() const
     {
@@ -31,7 +47,6 @@ public:
         solid_ = solid;
     }
 
-    // Lewy gorny rog kafelka w spritesheet (w pikselach)
     void setTexOffset(uint32_t x, uint32_t y)
     {
         texX_ = x;
@@ -50,21 +65,28 @@ public:
     bool getFlipV() const { return flipV_; }
     bool getFlipD() const { return flipD_; }
 
+    void setDroppingItem(std::unique_ptr<Item> itemToDrop);
+
+    Item* getDroppingItem();
+
+    std::unique_ptr<Item> takeDroppingItem();
+
 protected:
     int      entityId;
+    EntityType type_ = EntityType::Default;
     uint32_t width   = 0;
     uint32_t height  = 0;
     bool     visible = true;
     bool     solid_  = false;
+    std::unique_ptr<Item> itemToDrop_ = nullptr;
 
-    // Lewy gorny rog w spritesheet (0,0 = pelna tekstura)
-    uint32_t texX_ = 0;
-    uint32_t texY_ = 0;
+     uint32_t texX_ = 0;
+     uint32_t texY_ = 0;
 
-    bool flipH_ = false;
-    bool flipV_ = false;
-    bool flipD_ = false;
+     bool flipH_ = false;
+     bool flipV_ = false;
+     bool flipD_ = false;
 
-private:
-    ImVec2 pos{0.0f, 0.0f};
-};
+ private:
+     ImVec2 pos{0.0f, 0.0f};
+ };

@@ -8,7 +8,7 @@ class Npc : public LivingEntity
 {
 public:
     Npc(int NpcId, uint32_t width, uint32_t height, float pos_x, float pos_y, int maxHp)
-        : LivingEntity(NpcId, width, height, pos_x, pos_y, maxHp)
+        : LivingEntity(NpcId, width, height, pos_x, pos_y, maxHp, EntityType::Npc )
     {
     }
 
