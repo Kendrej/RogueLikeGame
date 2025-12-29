@@ -292,6 +292,26 @@ void VulkanImGuiApp::mainLoop()
                     }
                 }
             }
+            static bool lastE    = false;
+            bool        ePressed = glfwGetKey(window_, GLFW_KEY_E) == GLFW_PRESS;
+            if (ePressed && !lastE)
+            {
+                auto* map = world_->getMap(world_->getCurrentMapIndex());
+                if (map && !map->isChestOpened())
+                {
+                    ImVec2 p  = player->getPosition();
+                    float  pw = static_cast<float>(player->getWidth());
+                    float  ph = static_cast<float>(player->getHeight());
+
+                    ChestInfo info = map->getChestInfo();
+                    if (p.x + pw > info.posX && p.x < info.posX + info.width && p.y + ph > info.posY &&
+                        p.y < info.posY + info.height)
+                    {
+                        map->setChestOpened(true);
+                    }  
+                }         
+            }
+            lastE = ePressed;
         }
         }
 

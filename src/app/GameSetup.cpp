@@ -5,7 +5,7 @@
 
 void setupGame(World& world)
 {
-    world.addMapfromTmx("assets/maps/00.tmx");
+    world.addMapfromTmx("assets/maps/10.tmx");
     world.addMapfromTmx("assets/maps/01.tmx");
     world.addMapfromTmx("assets/maps/02.tmx");
     world.addMapfromTmx("assets/maps/03.tmx");
@@ -16,7 +16,7 @@ void setupGame(World& world)
 
     world.spawnPlayer({200.0f, 200.0f + World::UI_TOP_BAR_HEIGHT});
 
-    world.givePlayerConsumable(World::ConsumableType::HealthPotion);
+    //world.givePlayerConsumable(World::ConsumableType::HealthPotion);
     world.givePlayerConsumable(World::ConsumableType::StrengthPotion);
     world.givePlayerConsumable(World::ConsumableType::SpeedPotion);
 

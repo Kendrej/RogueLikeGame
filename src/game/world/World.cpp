@@ -269,6 +269,16 @@ void World::buildFromTmxMap() {
                                     at.entity->setTexOffset(fi->texX, fi->texY);
                                 }
                             }
+                            else if (map.isChestOpened() && at.use == "chest")
+                            {
+                                at.frameIndex           = static_cast<int>(at.frames->size()) - 1;
+                                at.oneTimeAnimationDone = true;
+                                std::uint32_t gidLast   = (*(at.frames))[at.frameIndex];
+                                if (const TileInfo* fi = map.getTileInfo(gidLast))
+                                {
+                                    at.entity->setTexOffset(fi->texX, fi->texY);
+                                }
+                            }
                             animatedTiles_.push_back(at);
                         }
                     }
@@ -284,6 +294,14 @@ void World::buildFromTmxMap() {
             {
                 int target = -1;
 
+                if (obj.getName() == "chest")
+                {
+                    float posX   = obj.getPosition().x;
+                    float posY   = obj.getPosition().y + UI_TOP_BAR_HEIGHT;
+                    float width  = obj.getAABB().width;
+                    float height = obj.getAABB().height;
+                    map.addChestInfo(posX, posY, width, height);
+                }
                 // czytamy property "target" z obiektu
                 for (const auto& prop : obj.getProperties())
                 {
@@ -292,23 +310,29 @@ void World::buildFromTmxMap() {
                         target = prop.getIntValue();
                         break;
                     }
+                    if (prop.getName() == "items")
+                    {
+                        std::string itemsStr = prop.getStringValue();\
+                        map.addItemToChest(itemsStr);
+                        
+                    }
                 }
 
                 if (target < 0)
-                    continue; // obiekt nie jest teleportem
+                    continue;
+                else
+                {
+                    float posX = obj.getPosition().x;
+                    float posY = obj.getPosition().y + UI_TOP_BAR_HEIGHT; // dostosowanie do świata gry
 
-                // Pozycja obiektu w układzie mapy (Tiled: bez UI offsetu)
-                float posX = obj.getPosition().x;
-                float posY = obj.getPosition().y + UI_TOP_BAR_HEIGHT; // dostosowanie do świata gry
+                    // Zapisujemy gateway w Map (tak jak wcześniej przy '0'..'9')
+                    map.addGateway(target, posX, posY);
 
-                // Zapisujemy gateway w Map (tak jak wcześniej przy '0'..'9')
-                map.addGateway(target, posX, posY);
+                    int newGwIdx = static_cast<int>(map.gateways().size()) - 1;
 
-                int newGwIdx = static_cast<int>(map.gateways().size()) - 1;
-
-                // Ustalamy stronę (Top/Bottom/Left/Right) na podstawie pozycji
-                map.setGatewaySide(newGwIdx, getSide(newGwIdx));
-
+                    // Ustalamy stronę (Top/Bottom/Left/Right) na podstawie pozycji
+                    map.setGatewaySide(newGwIdx, getSide(newGwIdx));
+                }      
             }
         }
     }
@@ -573,64 +597,123 @@ void World::updateEntityLogic(LivingEntity* livingEntity, float dt) {
         animationController->update(dt);
 }
 
+void World::updateAnimatedTiles(float dt) {
+    Map& m = *maps_[currentMapIndex];
+    for (auto& at : animatedTiles_)
+    {
+        if (!at.entity || !at.frames || at.frames->empty())
+            continue;
+
+        // Door tiles: animate only after doors are unlocked, play once and freeze on last frame
+        if (at.use == "door")
+        {
+            if (!doorsUnlocked_)
+                continue; // still locked
+            if (at.oneTimeAnimationDone)
+                continue; // already played
+
+            at.timer += dt;
+            if (at.timer >= at.frameDuration)
+            {
+                at.timer -= at.frameDuration;
+                // advance towards final frame; when reaching last frame, mark done (no wrap)
+                if (at.frameIndex + 1 < static_cast<int>(at.frames->size()))
+                {
+                    at.frameIndex += 1;
+                }
+                else
+                {
+                    // reached last frame -> freeze
+                    at.oneTimeAnimationDone = true;
+                }
+
+                std::uint32_t   gid = (*(at.frames))[at.frameIndex];
+                const TileInfo* fi  = m.getTileInfo(gid);
+                if (fi)
+                    at.entity->setTexOffset(fi->texX, fi->texY);
+            }
+        }
+        else if (at.use == "chest")
+        {
+
+            if (!maps_[currentMapIndex]->isChestOpened())
+                continue; // still locked
+            if (at.oneTimeAnimationDone)
+                continue; // already played
+            if (!maps_[currentMapIndex]->isChestItemsTaken())
+            {
+                std::vector<std::string> chestItems = maps_[currentMapIndex]->getChestItems();
+                for (int i = 0; i < chestItems.size(); i++)
+                {
+                    std::string itemsStr = chestItems[i];
+                    if (itemsStr == "HealthPotion")
+                    {
+                        this->givePlayerConsumable(ConsumableType::HealthPotion);
+                        maps_[currentMapIndex]->setChestItemsTaken(true);
+                        break;
+                    }
+                    else if (itemsStr == "SpeedPotion")
+                    {
+                        this->givePlayerConsumable(ConsumableType::SpeedPotion);
+                        maps_[currentMapIndex]->setChestItemsTaken(true);
+                        break;
+                    }
+                    else if (itemsStr == "StrengthPotion")
+                    {
+                        this->givePlayerConsumable(ConsumableType::StrengthPotion);
+                        maps_[currentMapIndex]->setChestItemsTaken(true);
+                        break;
+                    }
+                }
+                
+                maps_[currentMapIndex]->setChestItemsTaken(true);
+            }
+            at.timer += dt;
+            if (at.timer >= at.frameDuration)
+            {
+                at.timer -= at.frameDuration;
+                // advance towards final frame; when reaching last frame, mark done (no wrap)
+                if (at.frameIndex + 1 < static_cast<int>(at.frames->size()))
+                {
+                    at.frameIndex += 1;
+                }
+                else
+                {
+                    // reached last frame -> freeze
+                    at.oneTimeAnimationDone = true;
+                }
+
+                std::uint32_t   gid = (*(at.frames))[at.frameIndex];
+                const TileInfo* fi  = m.getTileInfo(gid);
+                if (fi)
+                    at.entity->setTexOffset(fi->texX, fi->texY);
+            }
+        }
+        else
+        {
+            // normal looping animation
+            at.timer += dt;
+            if (at.timer >= at.frameDuration)
+            {
+                at.timer -= at.frameDuration;
+                at.frameIndex += 1;
+                if (at.frameIndex >= static_cast<int>(at.frames->size()))
+                    at.frameIndex = 0;
+                std::uint32_t   gid = (*(at.frames))[at.frameIndex];
+                const TileInfo* fi  = m.getTileInfo(gid);
+                if (fi)
+                    at.entity->setTexOffset(fi->texX, fi->texY);
+            }
+        }
+    }
+}
+
 void World::update(float dt)
 {
     // Update per-instance animated tile
-    if (!animatedTiles_.empty() && currentMapIndex >= 0 && currentMapIndex < static_cast<int>(maps_.size()) &&
-        maps_[currentMapIndex])
+    if (!animatedTiles_.empty())
     {
-        Map& m = *maps_[currentMapIndex];
-        for (auto& at : animatedTiles_)
-        {
-            if (!at.entity || !at.frames || at.frames->empty())
-                continue;
-
-            // Door tiles: animate only after doors are unlocked, play once and freeze on last frame
-            if (at.use == "door")
-            {
-                if (!doorsUnlocked_)
-                    continue; // still locked
-                if (at.oneTimeAnimationDone)
-                    continue; // already played
-
-                at.timer += dt;
-                if (at.timer >= at.frameDuration)
-                {
-                    at.timer -= at.frameDuration;
-                    // advance towards final frame; when reaching last frame, mark done (no wrap)
-                    if (at.frameIndex + 1 < static_cast<int>(at.frames->size()))
-                    {
-                        at.frameIndex += 1;
-                    }
-                    else
-                    {
-                        // reached last frame -> freeze
-                        at.oneTimeAnimationDone = true;
-                    }
-
-                    std::uint32_t   gid = (*(at.frames))[at.frameIndex];
-                    const TileInfo* fi  = m.getTileInfo(gid);
-                    if (fi)
-                        at.entity->setTexOffset(fi->texX, fi->texY);
-                }
-            }
-            else
-            {
-                // normal looping animation
-                at.timer += dt;
-                if (at.timer >= at.frameDuration)
-                {
-                    at.timer -= at.frameDuration;
-                    at.frameIndex += 1;
-                    if (at.frameIndex >= static_cast<int>(at.frames->size()))
-                        at.frameIndex = 0;
-                    std::uint32_t   gid = (*(at.frames))[at.frameIndex];
-                    const TileInfo* fi  = m.getTileInfo(gid);
-                    if (fi)
-                        at.entity->setTexOffset(fi->texX, fi->texY);
-                }
-            }
-        }
+        updateAnimatedTiles(dt);
     }
 
     if (player_)
