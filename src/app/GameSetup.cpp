@@ -2,6 +2,8 @@
 #include <iostream>
 #include "game/world/World.h"
 #include "../game/factory/NpcFactory.h"
+#include "game/factory/ItemFactory.h"
+
 
 void setupGame(World& world)
 {
@@ -16,7 +18,7 @@ void setupGame(World& world)
 
     world.spawnPlayer({200.0f, 200.0f + World::UI_TOP_BAR_HEIGHT});
 
-    //world.givePlayerConsumable(World::ConsumableType::HealthPotion);
+    world.givePlayerItem(ItemId::Key);
     //world.givePlayerConsumable(World::ConsumableType::StrengthPotion);
     //world.givePlayerConsumable(World::ConsumableType::SpeedPotion);
 

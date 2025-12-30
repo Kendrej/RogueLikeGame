@@ -1,9 +1,6 @@
 #pragma once
 #include "game/item/Item.h"
 
-class StrengthPotion;
-class SpeedPotion;
-class HealthPotion;
 class Assets;
 
 enum class ItemId
@@ -11,6 +8,7 @@ enum class ItemId
     HealthPotion,
     SpeedPotion,
     StrengthPotion,
+    Key,
     None
 };
 

@@ -1150,6 +1150,9 @@ void World::givePlayerItem(ItemId id) {
     case ItemId::StrengthPotion:
         item = ItemFactory::createItem(ItemId::StrengthPotion, assets_);
         break;
+    case ItemId::Key:
+        item = ItemFactory::createItem(ItemId::Key, assets_);
+        break;
     }
 
     if (item)
@@ -1171,6 +1174,10 @@ ItemId World::getItemIdfromString(const std::string& itemStr)
     else if (itemStr == "StrengthPotion")
     {
         return ItemId::StrengthPotion;
+    }
+    else if (itemStr == "Key")
+    {
+        return ItemId::Key;
     }
     else
     {

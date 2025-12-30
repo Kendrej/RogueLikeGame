@@ -8,7 +8,7 @@ public:
     float speedBoost = 150.0f;
     float accelerationBoost = 500.0f;
 
-    SpeedPotion() : Consumable(2, "Speed Potion") {}
+    SpeedPotion() : Consumable(-1, "Speed Potion") {}
 
     bool use(LivingEntity& target) override
     {
