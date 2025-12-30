@@ -88,8 +88,8 @@ public:
 
 
     enum class ConsumableType { HealthPotion, SpeedPotion, StrengthPotion };
-    void        givePlayerConsumable(ConsumableType type);
-
+    void givePlayerItem(ItemId id);
+    ItemId getItemIdfromString(const std::string& itemStr); 
 
 private:
     template <class T, class... Args> T& addEntity(Args&&... args)

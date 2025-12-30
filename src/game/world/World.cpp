@@ -682,22 +682,10 @@ void World::updateAnimatedTiles(float dt) {
                 std::vector<std::string> chestItems = maps_[currentMapIndex]->getChestItems();
                 for (int i = 0; i < chestItems.size(); i++)
                 {
-                    std::string itemsStr = chestItems[i];
-                    if (itemsStr == "HealthPotion")
+                    ItemId itemId = getItemIdfromString(chestItems[i]);
+                    if (itemId != ItemId::None)
                     {
-                        this->givePlayerConsumable(ConsumableType::HealthPotion);
-                        maps_[currentMapIndex]->setChestItemsTaken(true);
-                        break;
-                    }
-                    else if (itemsStr == "SpeedPotion")
-                    {
-                        this->givePlayerConsumable(ConsumableType::SpeedPotion);
-                        maps_[currentMapIndex]->setChestItemsTaken(true);
-                        break;
-                    }
-                    else if (itemsStr == "StrengthPotion")
-                    {
-                        this->givePlayerConsumable(ConsumableType::StrengthPotion);
+                        this->givePlayerItem(itemId);
                         maps_[currentMapIndex]->setChestItemsTaken(true);
                         break;
                     }
@@ -1009,13 +997,19 @@ void World::spawnNpcs()
             // czytamy property "target" z obiektu
             int maxHp = -1;
             float size  = 1.0f;
+            ItemId itemToDropId= ItemId::None;
             for (const auto& p : obj.getProperties())
             {
                 if (p.getName() == "maxHp")
                 {
                     maxHp = p.getIntValue();
                 }
-                if (p.getName() == "size")
+                else if (p.getName() == "item")
+                {
+                    std::string itemStr = p.getStringValue();
+                    itemToDropId = getItemIdfromString(itemStr);
+                }
+                else if (p.getName() == "size")
                 {
                     size = p.getFloatValue();
                 }
@@ -1024,6 +1018,7 @@ void World::spawnNpcs()
                 auto& npc = spawnNpc(NpcType::Orc, {x, y});
                 if (maxHp > 0)
                 {
+                    npc.setDroppingItem(ItemFactory::createItem(itemToDropId, this->getAssets()));
                     npc.setHp(maxHp);
                     npc.setSpriteScale(size);
                 }
@@ -1033,6 +1028,7 @@ void World::spawnNpcs()
                 auto& npc = spawnNpc(NpcType::Skeleton_Archer, {x, y});
                 if (maxHp > 0)
                 {
+                    npc.setDroppingItem(ItemFactory::createItem(itemToDropId, this->getAssets()));
                     npc.setHp(maxHp);
                     npc.setSpriteScale(size);
                 }
@@ -1042,6 +1038,7 @@ void World::spawnNpcs()
                 auto& npc = spawnNpc(NpcType::Knight, {x, y});
                 if (maxHp > 0)
                 {
+                    npc.setDroppingItem(ItemFactory::createItem(itemToDropId, this->getAssets()));
                     npc.setHp(maxHp);
                     npc.setSpriteScale(size);
                 }
@@ -1051,6 +1048,7 @@ void World::spawnNpcs()
                 auto& npc = spawnNpc(NpcType::Elite_Orc, {x, y});
                 if (maxHp > 0)
                 {
+                    npc.setDroppingItem(ItemFactory::createItem(itemToDropId, this->getAssets()));
                     npc.setHp(maxHp);
                     npc.setSpriteScale(size);
                 }
@@ -1136,28 +1134,47 @@ void World::addMapfromTmx(const std::string& path) {
     maps_.push_back(std::move(m));
 }
 
-void World::givePlayerConsumable(ConsumableType type)
-{
+void World::givePlayerItem(ItemId id) {
     if (!player_ || !assets_)
         return;
 
     std::unique_ptr<Item> item;
-    switch (type)
+    switch (id)
     {
-        case ConsumableType::HealthPotion:
-            item = ItemFactory::createItem(ItemId::HealthPotion, assets_);
-            break;
-        case ConsumableType::SpeedPotion:
-            item = ItemFactory::createItem(ItemId::SpeedPotion, assets_);
-            break;
-        case ConsumableType::StrengthPotion:
-            item = ItemFactory::createItem(ItemId::StrengthPotion, assets_);
-            break;
+    case ItemId::HealthPotion:
+        item = ItemFactory::createItem(ItemId::HealthPotion, assets_);
+        break;
+    case ItemId::SpeedPotion:
+        item = ItemFactory::createItem(ItemId::SpeedPotion, assets_);
+        break;
+    case ItemId::StrengthPotion:
+        item = ItemFactory::createItem(ItemId::StrengthPotion, assets_);
+        break;
     }
 
     if (item)
     {
         player_->getInventory().addItem(std::move(item));
+    }
+}
+
+ItemId World::getItemIdfromString(const std::string& itemStr)
+{
+    if (itemStr == "HealthPotion")
+    {
+        return ItemId::HealthPotion;
+    }
+    else if (itemStr == "SpeedPotion")
+    {
+        return ItemId::SpeedPotion;
+    }
+    else if (itemStr == "StrengthPotion")
+    {
+        return ItemId::StrengthPotion;
+    }
+    else
+    {
+        return ItemId::None;
     }
 }
 
