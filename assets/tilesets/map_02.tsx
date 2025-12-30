@@ -123,7 +123,7 @@
  </tile>
  <tile id="34">
   <properties>
-   <property name="solid" type="bool" value="true"/>
+   <property name="solid" type="bool" value="false"/>
   </properties>
  </tile>
  <tile id="35">
@@ -513,7 +513,7 @@
  </tile>
  <tile id="162">
   <properties>
-   <property name="solid" type="bool" value="true"/>
+   <property name="solid" type="bool" value="false"/>
   </properties>
  </tile>
  <tile id="163">

@@ -17,9 +17,10 @@ enum class GatewaySide
 
 struct Gateway
 {
-    int         targetMapIndex;
-    float       posX;
-    float       posY;
+    int level;
+    int targetMapIndex;
+    float posX;
+    float posY;
     GatewaySide side;
 };
 
@@ -65,9 +66,9 @@ public:
     {
         return columns;
     };
-    void addGateway(int targetIndex, float posX, float posY)
+    void addGateway(int level, int targetIndex, float posX, float posY)
     {
-        gateways_.push_back(Gateway{targetIndex, posX, posY, GatewaySide::Top});
+        gateways_.push_back(Gateway{level, targetIndex, posX, posY, GatewaySide::Top});
     }
     void addChestInfo(float posX, float posY, float width, float height)
     {

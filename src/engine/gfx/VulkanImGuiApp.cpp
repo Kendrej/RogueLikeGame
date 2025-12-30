@@ -304,7 +304,7 @@ void VulkanImGuiApp::mainLoop()
             bool        ePressed = glfwGetKey(window_, GLFW_KEY_E) == GLFW_PRESS;
             if (ePressed && !lastE)
             {
-                auto* map = world_->getMap(world_->getCurrentMapIndex());
+                auto* map = world_->getMap(world_->getCurrentMapLevel(), world_->getCurrentMapIndex());
                 if (map && !map->isChestOpened())
                 {
                     ImVec2 p  = player->getPosition();

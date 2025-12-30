@@ -3,7 +3,7 @@
 #include "game/world/Map.h"
 #include "game/entities/Player.h"
 #include "game/npc/Npc.h"
-
+#include <iostream>
 #include <cstdint>
 #include <functional>
 #include <memory>
@@ -18,7 +18,11 @@ class Assets;
 class Entity;
 class Npc;
 class LivingEntity;
-
+struct GatewayIndex
+{
+    int level;
+    int index;
+};
 class World
 {
 public:
@@ -53,10 +57,15 @@ public:
         screenHeight_ = height;
     }
 
-    Map* getMap(size_t index) const noexcept
+    Map* getMap(size_t level, size_t index) const noexcept
     {
-        if (index < maps_.size())
-            return maps_[index].get();
+        if (level < maps_.size())
+        {
+            if (index < maps_[level].size())
+            {
+                return maps_[level][index].get();
+            }
+        }
         return nullptr;
     }
     Player* getPlayer() const noexcept
@@ -69,7 +78,7 @@ public:
     }
     void forEachEntity(const std::function<void(Entity&)>& fn);
     bool remove(Entity* ptr);
-    void setCurrentMapIndex(int index)
+    void setCurrentMapIndex(size_t index)
     {
         currentMapIndex = index;
     }
@@ -77,8 +86,17 @@ public:
     {
         return currentMapIndex;
     }
+    void setCurrentMapLevel(size_t index)
+    {
+        currentMapLevel = index;
+    }
+    int getCurrentMapLevel() const
+    {
+        return currentMapLevel;
+    }
+
     void addMapfromTmx(const std::string& path);
-    int playerInGateway();
+    GatewayIndex playerInGateway();
     Assets* getAssets() const noexcept
     {
         return assets_;
@@ -115,13 +133,15 @@ private:
     void        spawnNpcs();
     bool        collectItem(Player* collector, Item* item);
 
-    int currentMapIndex = 0;
-    int gatewayIndex    = -1;
-    std::vector<std::unique_ptr<Map>> maps_;
+    size_t currentMapIndex = 0;
+    size_t currentMapLevel = 0;
+    std::vector<std::vector<std::unique_ptr<Map>>> maps_;
     std::vector<Entity*> doorEntities_;
     Assets* assets_{nullptr};
     std::vector<std::unique_ptr<Entity>> entities_;
     std::unique_ptr<Player> player_{nullptr};
+    
+    GatewayIndex gatewayIndex = {-1, -1};
     struct AnimatedTile
     {
         Entity* entity = nullptr;
@@ -132,6 +152,7 @@ private:
         std::string use; // optional property value (e.g., "door")
         bool oneTimeAnimationDone = false;
     };
+    
     std::vector<AnimatedTile> animatedTiles_;
     float screenWidth_ = 0.0f;
     float screenHeight_ = 0.0f;

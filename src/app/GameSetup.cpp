@@ -7,11 +7,16 @@
 
 void setupGame(World& world)
 {
+    world.setCurrentMapLevel(0);
     world.addMapfromTmx("assets/maps/00.tmx");
     world.addMapfromTmx("assets/maps/01.tmx");
     world.addMapfromTmx("assets/maps/02.tmx");
     world.addMapfromTmx("assets/maps/03.tmx");
     world.addMapfromTmx("assets/maps/04.tmx");
+    world.setCurrentMapLevel(1);
+    world.addMapfromTmx("assets/maps/10.tmx");
+    world.addMapfromTmx("assets/maps/11.tmx");
+    world.setCurrentMapLevel(0);
 
 
     world.buildFromTmxMap();
@@ -27,8 +32,6 @@ void setupGame(World& world)
 }
 
 void restartGame(World& world) {
-    world.setCurrentMapIndex(0);
     world.reset();
     setupGame(world);
-
 }
