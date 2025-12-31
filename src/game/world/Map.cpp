@@ -83,7 +83,7 @@ bool Map::loadFromTmxFile(const std::string& path, Assets *assets)
                 info.texY      = 0;
                 info.texWidth  = tileSize.x; // 64
                 info.texHeight = tileSize.y; // 64
-                info.solid     = false;
+                
                 for (const auto& prop : tile.properties)
                 {
                     if (prop.getName() == "solid" && prop.getBoolValue())
@@ -93,6 +93,11 @@ bool Map::loadFromTmxFile(const std::string& path, Assets *assets)
                     if (prop.getName() == "door" && prop.getBoolValue())
                     {
                         info.door = true;
+                    }
+                    if (prop.getName() == "locked" && prop.getBoolValue())
+                    {
+                        info.locked = true;
+                        lockedDoors = true;
                     }
                     if (prop.getName() == "use")
                     {
@@ -143,8 +148,6 @@ bool Map::loadFromTmxFile(const std::string& path, Assets *assets)
                 info.texY      = texY;
                 info.texWidth  = tileW;
                 info.texHeight = tileH;
-                info.solid     = false;
-                info.door      = false;
 
                 const auto& tileList = ts.getTiles(); // vector<Tile>
                 auto it = std::find_if(tileList.begin(), tileList.end(), [&](const auto& t) { return t.ID == localId; });
@@ -159,6 +162,9 @@ bool Map::loadFromTmxFile(const std::string& path, Assets *assets)
                             info.solid = true;
                         if (prop.getName() == "door" && prop.getBoolValue())
                             info.door = true;
+                        if (prop.getName() == "locked" && prop.getBoolValue())
+                            info.locked = true;
+                            lockedDoors = true;
                         if (prop.getName() == "use")
                         {
                             info.use = prop.getStringValue();

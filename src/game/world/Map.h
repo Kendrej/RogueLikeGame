@@ -35,6 +35,15 @@ struct ChestInfo
     std::vector<std::string> items;
 };
 
+struct LockedDoorInfo
+{
+    float posX;
+    float posY;
+    float width;
+    float height;
+    bool locked = true;
+};
+
 struct TileInfo
 {
     int textureId = -1; // ID tekstury z Assets
@@ -48,6 +57,7 @@ struct TileInfo
 
     bool solid = false; // czy kafelek jest "sztywny" (kolizje)
     bool door  = false; // czy kafelek jest drzwiami
+    bool locked = false;
     std::string use = "";    // optional string property read from TMX (e.g., "use")
     bool animated = false;
 };
@@ -73,6 +83,14 @@ public:
     void addChestInfo(float posX, float posY, float width, float height)
     {
         chestInfo_ = ChestInfo{posX, posY, width, height, false};
+    }
+    void addLockedDoorInfo(float posX, float posY, float width, float height)
+    {
+        lockedDoorInfo_ = LockedDoorInfo{posX, posY, width, height};
+    }
+    LockedDoorInfo getLockedDoorInfo() const
+    {
+        return lockedDoorInfo_;
     }
     void setChestOpened(bool opened)
     {
@@ -125,8 +143,15 @@ public:
     {
         return visited;
     }
+    void setLockedDoors(bool locked)
+    {
+        lockedDoors = locked;
+    }
+    bool isLockedDoors() const
+    {
+        return lockedDoors;
+    }
 
-    
     tmx::Map& getTmxMap()
     {
         return mapTmx;
@@ -154,9 +179,11 @@ public:
     }
 private:
     bool visited = 0;
+    bool lockedDoors = false;
     int rows = 0;
     int columns = 0;
     std::vector<Gateway> gateways_;
+    LockedDoorInfo lockedDoorInfo_;
     ChestInfo chestInfo_;
     tmx::Map mapTmx;
     float mapWidth = 0.f;

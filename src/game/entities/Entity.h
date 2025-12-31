@@ -25,7 +25,14 @@ public:
     int      getEntityId() const;
     void     setEntityId(int id);
     bool     isVisible() const;
-
+    bool isLockedDoorHelper() const
+    {
+        return lockedDoorHelper_;
+    }
+    void setLockedDoorHelper(bool val)
+    {
+        lockedDoorHelper_ = val;
+    }
     void setVisible(bool visible);
     void setPosition(float x, float y);
 
@@ -79,7 +86,7 @@ protected:
     bool     visible = true;
     bool     solid_  = false;
     std::unique_ptr<Item> itemToDrop_ = nullptr;
-
+    bool lockedDoorHelper_ = false;
      uint32_t texX_ = 0;
      uint32_t texY_ = 0;
 

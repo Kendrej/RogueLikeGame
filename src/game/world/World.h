@@ -22,6 +22,7 @@ struct GatewayIndex
 {
     int level;
     int index;
+    int side;
 };
 class World
 {
@@ -141,7 +142,7 @@ private:
     std::vector<std::unique_ptr<Entity>> entities_;
     std::unique_ptr<Player> player_{nullptr};
     
-    GatewayIndex gatewayIndex = {-1, -1};
+    GatewayIndex gatewayIndex = {-1, -1, -1};
     struct AnimatedTile
     {
         Entity* entity = nullptr;
@@ -151,11 +152,13 @@ private:
         float frameDuration = 0.1f; // default 100ms
         std::string use; // optional property value (e.g., "door")
         bool oneTimeAnimationDone = false;
+        bool lockedDoor = false;
     };
     
     std::vector<AnimatedTile> animatedTiles_;
     float screenWidth_ = 0.0f;
     float screenHeight_ = 0.0f;
     bool doorsUnlocked_ = false;
+    bool lockedDoorsUnlocked_ = false;
     std::vector<Entity*> toRemove;
 };

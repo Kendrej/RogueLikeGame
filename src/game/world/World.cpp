@@ -249,6 +249,7 @@ void World::buildFromTmxMap() {
                     tile.setFlipFlags(flipH, flipV, flipD);
                     if (info->door)
                     {
+                        tile.setLockedDoorHelper(info->locked);
                         doorEntities_.push_back(&tile);
                     }
 
@@ -266,14 +267,25 @@ void World::buildFromTmxMap() {
                             at.frameIndex = info->currentAnimationState % static_cast<int>(regFrames->size());
                             at.timer = 0.0f;
                             at.use = info->use;
+                            at.lockedDoor = info->locked;
                             // prefer duration from TileInfo if available, else fallback to 0.1s
                             at.frameDuration = (info->animationDuration > 0.0f) ? info->animationDuration : 0.1f;
                             // If this map was already visited or doors were unlocked, freeze door animations on last frame
-                            if (map.isVisited() && at.use == "door")
+                            if (map.isVisited() && at.use == "door" && !at.lockedDoor)
                             {
                                 at.frameIndex = static_cast<int>(at.frames->size()) - 1;
                                 at.oneTimeAnimationDone = true;
                                 std::uint32_t gidLast = (*(at.frames))[at.frameIndex];
+                                if (const TileInfo* fi = map.getTileInfo(gidLast))
+                                {
+                                    at.entity->setTexOffset(fi->texX, fi->texY);
+                                }
+                            }
+                            else if (map.isVisited() && at.use == "door" && !map.isLockedDoors())
+                            {
+                                at.frameIndex           = static_cast<int>(at.frames->size()) - 1;
+                                at.oneTimeAnimationDone = true;
+                                std::uint32_t gidLast   = (*(at.frames))[at.frameIndex];
                                 if (const TileInfo* fi = map.getTileInfo(gidLast))
                                 {
                                     at.entity->setTexOffset(fi->texX, fi->texY);
@@ -311,6 +323,14 @@ void World::buildFromTmxMap() {
                     float width  = obj.getAABB().width;
                     float height = obj.getAABB().height;
                     map.addChestInfo(posX, posY, width, height);
+                }
+                else if (obj.getName() == "door")
+                {
+                    float posX   = obj.getPosition().x;
+                    float posY   = obj.getPosition().y + UI_TOP_BAR_HEIGHT;
+                    float width  = obj.getAABB().width;
+                    float height = obj.getAABB().height;
+                    map.addLockedDoorInfo(posX, posY, width, height);
                 }
                 // czytamy property "target" z obiektu
                 for (const auto& prop : obj.getProperties())
@@ -492,12 +512,13 @@ void World::pushOutOfSolids(Entity& mover, const std::vector<std::unique_ptr<Ent
 GatewayIndex World::playerInGateway()
 {
     if (!player_)
-        return {-1,-1};
+        return {-1,-1, -1};
 
     ImVec2 pos = player_->getPosition();
     float  pw  = static_cast<float>(player_->getWidth());
     float  ph  = static_cast<float>(player_->getHeight());
 
+    int gwIdx = 0;
     for (auto& g : maps_[currentMapLevel][currentMapIndex]->gateways())
     {
         // Gateway size is 64x64 (same as tiles)
@@ -516,13 +537,14 @@ GatewayIndex World::playerInGateway()
         // Check if overlap is sufficient in both dimensions
         if (overlapLeft >= requiredOverlapX && overlapTop >= requiredOverlapY)
         {
-            std::cout << "Player in gateway to level " << g.level << " map index " << g.targetMapIndex << "\n";
             gwIndex.level = g.level;
             gwIndex.index = g.targetMapIndex;
+            gwIndex.side = static_cast<int>(maps_[currentMapLevel][currentMapIndex]->gatewaySide(gwIdx));
             return gwIndex;
         }
+        gwIdx++;
     }
-    return {-1, -1};
+    return {-1, -1, -1};
 }
 
 ImVec2 World::getDirToPlayer(LivingEntity* entity)
@@ -648,9 +670,37 @@ void World::updateAnimatedTiles(float dt) {
             continue;
 
         // Door tiles: animate only after doors are unlocked, play once and freeze on last frame
-        if (at.use == "door")
+        if (at.use == "door" && !at.lockedDoor)
         {
             if (!doorsUnlocked_)
+                continue; // still locked
+            if (at.oneTimeAnimationDone)
+                continue; // already played
+
+            at.timer += dt;
+            if (at.timer >= at.frameDuration)
+            {
+                at.timer -= at.frameDuration;
+                // advance towards final frame; when reaching last frame, mark done (no wrap)
+                if (at.frameIndex + 1 < static_cast<int>(at.frames->size()))
+                {
+                    at.frameIndex += 1;
+                }
+                else
+                {
+                    // reached last frame -> freeze
+                    at.oneTimeAnimationDone = true;
+                }
+
+                std::uint32_t   gid = (*(at.frames))[at.frameIndex];
+                const TileInfo* fi  = m.getTileInfo(gid);
+                if (fi)
+                    at.entity->setTexOffset(fi->texX, fi->texY);
+            }
+        }
+        else if (at.use == "door" && at.lockedDoor)
+        {
+            if (!lockedDoorsUnlocked_)
                 continue; // still locked
             if (at.oneTimeAnimationDone)
                 continue; // already played
@@ -917,13 +967,31 @@ void World::update(float dt)
     {
         for (Entity* doorEntity : doorEntities_)
         {
-            if (doorEntity) doorEntity->setSolid(false);
+            if (doorEntity && !doorEntity->isLockedDoorHelper())
+                doorEntity->setSolid(false);
         }
         doorsUnlocked_ = true;
         // Persist that doors are unlocked on this map by marking it visited
         if (currentMapIndex >= 0 && currentMapIndex < static_cast<int>(maps_[currentMapLevel].size()) && maps_[currentMapLevel][currentMapIndex])
         {
-            std::cout << "odwiedzona";
+            maps_[currentMapLevel][currentMapIndex]->setVisited(true);
+        }
+    }
+    if (aliveNpcCount == 0 && !lockedDoorsUnlocked_ && !maps_[currentMapLevel][currentMapIndex]->isLockedDoors())
+    {
+        for (Entity* doorEntity : doorEntities_)
+        {
+            if (doorEntity && doorEntity->isLockedDoorHelper())
+            {
+                doorEntity->setSolid(false);
+            }
+            lockedDoorsUnlocked_ = true;
+
+        }
+        // Persist that doors are unlocked on this map by marking it visited
+        if (currentMapIndex >= 0 && currentMapIndex < static_cast<int>(maps_[currentMapLevel].size()) &&
+            maps_[currentMapLevel][currentMapIndex])
+        {
             maps_[currentMapLevel][currentMapIndex]->setVisited(true);
         }
     }
@@ -945,37 +1013,13 @@ void World::newScene()
         return;
     }
     // Save the gateway side from the current map BEFORE switching
-    GatewaySide entrySide = GatewaySide::Top;
-    float       gatewayX  = 0.0f;
-    float       gatewayY  = 0.0f;
-
-    for (const auto& g : maps_[currentMapLevel][currentMapIndex]->gateways())
-    {
-        if (g.level == gatewayIndex.level && gatewayIndex.level>=0)
-        {
-            //
-            int gwIndex = static_cast<int>(&g - &maps_[currentMapLevel][currentMapIndex]->gateways()[0]);
-            std::cout << "gwIndexindex: " << gwIndex << "\n";
-            entrySide = maps_[currentMapLevel][currentMapIndex]->gatewaySide(gwIndex);
-            gatewayX  = g.posX;
-            gatewayY  = g.posY;
-            break;
-        }
-        else if (g.targetMapIndex == gatewayIndex.index)
-        {
-            int gwIndex = static_cast<int>(&g - &maps_[currentMapLevel][currentMapIndex]->gateways()[0]);
-            std::cout << "gwIndexindex: " << gwIndex << "\n";
-            entrySide   = maps_[currentMapLevel][currentMapIndex]->gatewaySide(gwIndex);
-            gatewayX    = g.posX;
-            gatewayY    = g.posY;
-            break;
-        }
-    }
+    GatewaySide entrySide = static_cast<GatewaySide>(gatewayIndex.side);
 
     entities_.clear();
 
     this->setCurrentMapIndex(gatewayIndex.index);
     this->setCurrentMapLevel(gatewayIndex.level);
+    lockedDoorsUnlocked_ = false;
     doorsUnlocked_ = false;
 
     this->buildFromTmxMap();
@@ -987,7 +1031,7 @@ void World::newScene()
     // Move player to new position (player attributes are preserved!)
     if (player_)
     {
-        spawnPlayerInNewScene(entrySide, gatewayX, gatewayY);
+        spawnPlayerInNewScene(entrySide, 0.0f, 0.0f);
     }
 
     // std::cout << "Switched to map: " << gatewayIndex << "\n";

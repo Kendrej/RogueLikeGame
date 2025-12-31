@@ -1,6 +1,7 @@
 #include "Inventory.h"
 #include "Consumable.h"
 #include "game/entities/LivingEntity.h"
+#include "game/factory/ItemFactory.h"
 Inventory::Inventory(int capacity) {
     items_.resize(capacity);
 }

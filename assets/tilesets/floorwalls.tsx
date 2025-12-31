@@ -2302,12 +2302,14 @@
  <tile id="454">
   <properties>
    <property name="door" type="bool" value="true"/>
+   <property name="locked" type="bool" value="true"/>
    <property name="solid" type="bool" value="true"/>
   </properties>
  </tile>
  <tile id="455">
   <properties>
    <property name="door" type="bool" value="true"/>
+   <property name="locked" type="bool" value="true"/>
    <property name="solid" type="bool" value="true"/>
   </properties>
  </tile>
@@ -2403,12 +2405,14 @@
  <tile id="471">
   <properties>
    <property name="door" type="bool" value="true"/>
+   <property name="locked" type="bool" value="true"/>
    <property name="solid" type="bool" value="true"/>
   </properties>
  </tile>
  <tile id="472">
   <properties>
    <property name="door" type="bool" value="true"/>
+   <property name="locked" type="bool" value="true"/>
    <property name="solid" type="bool" value="true"/>
   </properties>
  </tile>

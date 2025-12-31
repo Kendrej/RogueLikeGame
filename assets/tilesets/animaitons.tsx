@@ -3,6 +3,7 @@
  <image source="../designs/doors_lever_chest_animation.png" width="640" height="768"/>
  <tile id="40">
   <properties>
+   <property name="locked" type="bool" value="true"/>
    <property name="use" value="door"/>
   </properties>
   <animation>
@@ -15,6 +16,7 @@
  </tile>
  <tile id="41">
   <properties>
+   <property name="locked" type="bool" value="true"/>
    <property name="use" value="door"/>
   </properties>
   <animation>
@@ -27,6 +29,7 @@
  </tile>
  <tile id="50">
   <properties>
+   <property name="locked" type="bool" value="true"/>
    <property name="use" value="door"/>
   </properties>
   <animation>
@@ -39,6 +42,7 @@
  </tile>
  <tile id="51">
   <properties>
+   <property name="locked" type="bool" value="true"/>
    <property name="use" value="door"/>
   </properties>
   <animation>
