@@ -4,7 +4,7 @@
 #include <memory>
 
 
-
+enum class ItemId : int;
 class Assets;
 class Item;
 
@@ -73,8 +73,10 @@ public:
     bool getFlipD() const { return flipD_; }
 
     void setDroppingItem(std::unique_ptr<Item> itemToDrop);
+    void  setGivingItem(ItemId item);
 
     Item* getDroppingItem();
+    ItemId getGivingItem();
 
     std::unique_ptr<Item> takeDroppingItem();
 
@@ -86,6 +88,7 @@ protected:
     bool     visible = true;
     bool     solid_  = false;
     std::unique_ptr<Item> itemToDrop_ = nullptr;
+    ItemId itemTogiveId_;
     bool lockedDoorHelper_ = false;
      uint32_t texX_ = 0;
      uint32_t texY_ = 0;

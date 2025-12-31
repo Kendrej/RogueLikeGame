@@ -828,6 +828,12 @@ void World::update(float dt)
             {
                 livingEntity->setSolid(false);
 
+                ItemId itemToGive = livingEntity->getGivingItem();
+                if (itemToGive != ItemId::None)
+                {
+                    givePlayerItem(itemToGive);
+                    livingEntity->setGivingItem(ItemId::None);
+                }
 
                 std::unique_ptr<Item> itemFromLivingEntity = livingEntity->takeDroppingItem();
                 if (itemFromLivingEntity) {
@@ -1060,6 +1066,7 @@ void World::spawnNpcs()
             int maxHp = -1;
             float size  = 1.0f;
             ItemId itemToDropId= ItemId::None;
+            ItemId itemToGiveId = ItemId::None;
             for (const auto& p : obj.getProperties())
             {
                 if (p.getName() == "maxHp")
@@ -1071,6 +1078,11 @@ void World::spawnNpcs()
                     std::string itemStr = p.getStringValue();
                     itemToDropId = getItemIdfromString(itemStr);
                 }
+                else if (p.getName() == "itemEq")
+                {
+                    std::string itemStr = p.getStringValue();
+                    itemToGiveId = getItemIdfromString(itemStr);
+                }
                 else if (p.getName() == "size")
                 {
                     size = p.getFloatValue();
@@ -1080,6 +1092,7 @@ void World::spawnNpcs()
                 auto& npc = spawnNpc(NpcType::Orc, {x, y});
                 if (maxHp > 0)
                 {
+                    npc.setGivingItem(itemToGiveId);
                     npc.setDroppingItem(ItemFactory::createItem(itemToDropId, this->getAssets()));
                     npc.setHp(maxHp);
                     npc.setSpriteScale(size);
@@ -1090,6 +1103,7 @@ void World::spawnNpcs()
                 auto& npc = spawnNpc(NpcType::Skeleton_Archer, {x, y});
                 if (maxHp > 0)
                 {
+                    npc.setGivingItem(itemToGiveId);
                     npc.setDroppingItem(ItemFactory::createItem(itemToDropId, this->getAssets()));
                     npc.setHp(maxHp);
                     npc.setSpriteScale(size);
@@ -1100,6 +1114,7 @@ void World::spawnNpcs()
                 auto& npc = spawnNpc(NpcType::Knight, {x, y});
                 if (maxHp > 0)
                 {
+                    npc.setGivingItem(itemToGiveId);
                     npc.setDroppingItem(ItemFactory::createItem(itemToDropId, this->getAssets()));
                     npc.setHp(maxHp);
                     npc.setSpriteScale(size);
@@ -1110,6 +1125,7 @@ void World::spawnNpcs()
                 auto& npc = spawnNpc(NpcType::Elite_Orc, {x, y});
                 if (maxHp > 0)
                 {
+                    npc.setGivingItem(itemToGiveId);
                     npc.setDroppingItem(ItemFactory::createItem(itemToDropId, this->getAssets()));
                     npc.setHp(maxHp);
                     npc.setSpriteScale(size);

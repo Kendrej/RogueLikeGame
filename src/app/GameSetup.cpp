@@ -27,8 +27,10 @@ void setupGame(World& world)
     //world.givePlayerConsumable(World::ConsumableType::StrengthPotion);
     //world.givePlayerConsumable(World::ConsumableType::SpeedPotion);
 
-    world.spawnNpc(NpcType::Orc, {12 * 64.0f, 3 * 64.0f + World::UI_TOP_BAR_HEIGHT});
-    world.spawnNpc(NpcType::Skeleton_Archer, {17 * 64.0f, 3 * 64.0f + World::UI_TOP_BAR_HEIGHT});
+    auto& npc = world.spawnNpc(NpcType::Orc, {12 * 64.0f, 3 * 64.0f + World::UI_TOP_BAR_HEIGHT});
+    npc.setGivingItem(ItemId::None);
+    auto& npc2 = world.spawnNpc(NpcType::Skeleton_Archer, {17 * 64.0f, 3 * 64.0f + World::UI_TOP_BAR_HEIGHT});
+    npc2.setGivingItem(ItemId::None);
 }
 
 void restartGame(World& world) {
