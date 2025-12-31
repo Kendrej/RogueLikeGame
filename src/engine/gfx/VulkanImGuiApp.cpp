@@ -9,7 +9,6 @@
 #include "game/world/World.h"
 #include "game/item/Inventory.h"
 #include "game/item/Item.h"
-
 #include <GLFW/glfw3.h>
 #include <algorithm>
 #include <cmath>
@@ -21,7 +20,7 @@
 #include <stdexcept>
 #include <vector>
 #include <vk_utils.h>
-
+#include "game/factory/ItemFactory.h"
 #include "utils/MathUtils.h"
 
 int VulkanImGuiApp::run()
@@ -304,7 +303,7 @@ void VulkanImGuiApp::mainLoop()
             bool        ePressed = glfwGetKey(window_, GLFW_KEY_E) == GLFW_PRESS;
             if (ePressed && !lastE)
             {
-                auto* map = world_->getMap(world_->getCurrentMapIndex());
+                auto* map = world_->getMap(world_->getCurrentMapLevel(), world_->getCurrentMapIndex());
                 if (map && !map->isChestOpened())
                 {
                     ImVec2 p  = player->getPosition();
@@ -317,7 +316,29 @@ void VulkanImGuiApp::mainLoop()
                     {
                         map->setChestOpened(true);
                     }  
-                }         
+                }
+                if (map && map->isLockedDoors())
+                {
+                    ImVec2 p  = player->getPosition();
+                    auto& inventory = player->getInventory();
+                    float  pw = static_cast<float>(player->getWidth());
+                    float  ph = static_cast<float>(player->getHeight());
+
+                    LockedDoorInfo info = map->getLockedDoorInfo();
+                    if (p.x + pw > info.posX && p.x < info.posX + info.width && p.y + ph > info.posY &&
+                        p.y < info.posY + info.height)
+                    {
+                        for (int i = 0; i < inventory.getItemCount(); i++)
+                        {
+                            Item* item = inventory.getItem(i);
+                            if (item && item->getName() == "Key")
+                            {
+                                inventory.removeItem(i);
+                                map->setLockedDoors(false); // for testing purposes
+                            }
+                        }
+                    }
+                }
             }
             lastE = ePressed;
         }

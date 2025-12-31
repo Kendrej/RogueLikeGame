@@ -7,7 +7,7 @@ class HealthPotion : public Consumable
 public:
     int healAmount = 20;
 
-    HealthPotion() : Consumable(1, "Health Potion") {}
+    HealthPotion() : Consumable(-1, "Health Potion") {}
 
     bool use(LivingEntity& target) override
     {

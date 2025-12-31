@@ -65,6 +65,13 @@ void Entity::setDroppingItem(std::unique_ptr<Item> itemToDrop) {
     itemToDrop_ = std::move(itemToDrop);
 }
 
+void Entity::setGivingItem(ItemId item) {
+    itemTogiveId_ = item;
+}
+ItemId Entity::getGivingItem() {
+    return itemTogiveId_;
+}
+
 Item* Entity::getDroppingItem() {
     return itemToDrop_.get();
 }

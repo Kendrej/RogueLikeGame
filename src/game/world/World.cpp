@@ -198,12 +198,12 @@ void World::buildFromTmxMap() {
     doorEntities_.clear();
     animatedTiles_.clear();
 
-    if (currentMapIndex >= maps_.size() || !maps_[currentMapIndex])
+    if (currentMapIndex >= maps_[currentMapLevel].size() || !maps_[currentMapLevel][currentMapIndex])
     {
         throw std::runtime_error("Invalid map index or map not loaded");
     }
 
-    Map& map = *maps_[currentMapIndex];
+    Map& map = *maps_[currentMapLevel][currentMapIndex];
     const auto& tmxMap = map.getTmxMap();
     const auto& layers = map.getLayers();
     const auto tileSize = tmxMap.getTileSize(); // np. 64x64
@@ -249,6 +249,7 @@ void World::buildFromTmxMap() {
                     tile.setFlipFlags(flipH, flipV, flipD);
                     if (info->door)
                     {
+                        tile.setLockedDoorHelper(info->locked);
                         doorEntities_.push_back(&tile);
                     }
 
@@ -266,14 +267,25 @@ void World::buildFromTmxMap() {
                             at.frameIndex = info->currentAnimationState % static_cast<int>(regFrames->size());
                             at.timer = 0.0f;
                             at.use = info->use;
+                            at.lockedDoor = info->locked;
                             // prefer duration from TileInfo if available, else fallback to 0.1s
                             at.frameDuration = (info->animationDuration > 0.0f) ? info->animationDuration : 0.1f;
                             // If this map was already visited or doors were unlocked, freeze door animations on last frame
-                            if (map.isVisited() && at.use == "door")
+                            if (map.isVisited() && at.use == "door" && !at.lockedDoor)
                             {
                                 at.frameIndex = static_cast<int>(at.frames->size()) - 1;
                                 at.oneTimeAnimationDone = true;
                                 std::uint32_t gidLast = (*(at.frames))[at.frameIndex];
+                                if (const TileInfo* fi = map.getTileInfo(gidLast))
+                                {
+                                    at.entity->setTexOffset(fi->texX, fi->texY);
+                                }
+                            }
+                            else if (map.isVisited() && at.use == "door" && !map.isLockedDoors())
+                            {
+                                at.frameIndex           = static_cast<int>(at.frames->size()) - 1;
+                                at.oneTimeAnimationDone = true;
+                                std::uint32_t gidLast   = (*(at.frames))[at.frameIndex];
                                 if (const TileInfo* fi = map.getTileInfo(gidLast))
                                 {
                                     at.entity->setTexOffset(fi->texX, fi->texY);
@@ -303,7 +315,7 @@ void World::buildFromTmxMap() {
             for (const auto& obj : objGroup->getObjects())
             {
                 int target = -1;
-
+                int level = currentMapLevel;
                 if (obj.getName() == "chest")
                 {
                     float posX   = obj.getPosition().x;
@@ -312,9 +324,21 @@ void World::buildFromTmxMap() {
                     float height = obj.getAABB().height;
                     map.addChestInfo(posX, posY, width, height);
                 }
+                else if (obj.getName() == "door")
+                {
+                    float posX   = obj.getPosition().x;
+                    float posY   = obj.getPosition().y + UI_TOP_BAR_HEIGHT;
+                    float width  = obj.getAABB().width;
+                    float height = obj.getAABB().height;
+                    map.addLockedDoorInfo(posX, posY, width, height);
+                }
                 // czytamy property "target" z obiektu
                 for (const auto& prop : obj.getProperties())
                 {
+                    if (prop.getName() == "level")
+                    {
+                        level = prop.getIntValue();
+                    }
                     if (prop.getName() == "target")
                     {
                         target = prop.getIntValue();
@@ -336,7 +360,7 @@ void World::buildFromTmxMap() {
                     float posY = obj.getPosition().y + UI_TOP_BAR_HEIGHT; // dostosowanie do świata gry
 
                     // Zapisujemy gateway w Map (tak jak wcześniej przy '0'..'9')
-                    map.addGateway(target, posX, posY);
+                    map.addGateway(level, target, posX, posY);
 
                     int newGwIdx = static_cast<int>(map.gateways().size()) - 1;
 
@@ -351,12 +375,12 @@ void World::buildFromTmxMap() {
 
 GatewaySide World::getSide(int gwIdx)
 {
-    const Gateway& g     = maps_[currentMapIndex]->gateways()[gwIdx];
+    const Gateway& g     = maps_[currentMapLevel][currentMapIndex]->gateways()[gwIdx];
     int            tileX = static_cast<int>(g.posX / 64.0f);
     int            tileY = static_cast<int>((g.posY - UI_TOP_BAR_HEIGHT) / 64.0f); // Account for UI offset
 
-    int mapRows = maps_[currentMapIndex]->getRows();
-    int mapCols = maps_[currentMapIndex]->getColumns();
+    int mapRows = maps_[currentMapLevel][currentMapIndex]->getRows();
+    int mapCols = maps_[currentMapLevel][currentMapIndex]->getColumns();
 
     if (tileY <= 2)
         return GatewaySide::Top;
@@ -485,21 +509,22 @@ void World::pushOutOfSolids(Entity& mover, const std::vector<std::unique_ptr<Ent
     mover.setPosition(p.x, p.y);
 }
 
-int World::playerInGateway()
+GatewayIndex World::playerInGateway()
 {
     if (!player_)
-        return -1;
+        return {-1,-1, -1};
 
     ImVec2 pos = player_->getPosition();
     float  pw  = static_cast<float>(player_->getWidth());
     float  ph  = static_cast<float>(player_->getHeight());
 
-    for (auto& g : maps_[currentMapIndex]->gateways())
+    int gwIdx = 0;
+    for (auto& g : maps_[currentMapLevel][currentMapIndex]->gateways())
     {
         // Gateway size is 64x64 (same as tiles)
         float gw = 64.0f;
         float gh = 64.0f;
-
+        GatewayIndex gwIndex;
         // Reduced threshold to 30% - allows easy passage through single doors
         // Player (64x64) needs only ~19px overlap (less than 1/3 of player size)
         float overlapThreshold = 0.50f;
@@ -509,14 +534,17 @@ int World::playerInGateway()
         // Calculate actual overlap
         float overlapLeft = std::max(0.0f, std::min(pos.x + pw, g.posX + gw) - std::max(pos.x, g.posX));
         float overlapTop  = std::max(0.0f, std::min(pos.y + ph, g.posY + gh) - std::max(pos.y, g.posY));
-
         // Check if overlap is sufficient in both dimensions
         if (overlapLeft >= requiredOverlapX && overlapTop >= requiredOverlapY)
         {
-            return g.targetMapIndex;
+            gwIndex.level = g.level;
+            gwIndex.index = g.targetMapIndex;
+            gwIndex.side = static_cast<int>(maps_[currentMapLevel][currentMapIndex]->gatewaySide(gwIdx));
+            return gwIndex;
         }
+        gwIdx++;
     }
-    return -1;
+    return {-1, -1, -1};
 }
 
 ImVec2 World::getDirToPlayer(LivingEntity* entity)
@@ -635,16 +663,44 @@ void World::updateEntityLogic(LivingEntity* livingEntity, float dt) {
 }
 
 void World::updateAnimatedTiles(float dt) {
-    Map& m = *maps_[currentMapIndex];
+    Map& m = *maps_[currentMapLevel][currentMapIndex];
     for (auto& at : animatedTiles_)
     {
         if (!at.entity || !at.frames || at.frames->empty())
             continue;
 
         // Door tiles: animate only after doors are unlocked, play once and freeze on last frame
-        if (at.use == "door")
+        if (at.use == "door" && !at.lockedDoor)
         {
             if (!doorsUnlocked_)
+                continue; // still locked
+            if (at.oneTimeAnimationDone)
+                continue; // already played
+
+            at.timer += dt;
+            if (at.timer >= at.frameDuration)
+            {
+                at.timer -= at.frameDuration;
+                // advance towards final frame; when reaching last frame, mark done (no wrap)
+                if (at.frameIndex + 1 < static_cast<int>(at.frames->size()))
+                {
+                    at.frameIndex += 1;
+                }
+                else
+                {
+                    // reached last frame -> freeze
+                    at.oneTimeAnimationDone = true;
+                }
+
+                std::uint32_t   gid = (*(at.frames))[at.frameIndex];
+                const TileInfo* fi  = m.getTileInfo(gid);
+                if (fi)
+                    at.entity->setTexOffset(fi->texX, fi->texY);
+            }
+        }
+        else if (at.use == "door" && at.lockedDoor)
+        {
+            if (!lockedDoorsUnlocked_)
                 continue; // still locked
             if (at.oneTimeAnimationDone)
                 continue; // already played
@@ -673,37 +729,25 @@ void World::updateAnimatedTiles(float dt) {
         else if (at.use == "chest")
         {
 
-            if (!maps_[currentMapIndex]->isChestOpened())
+            if (!maps_[currentMapLevel][currentMapIndex]->isChestOpened())
                 continue; // still locked
             if (at.oneTimeAnimationDone)
                 continue; // already played
-            if (!maps_[currentMapIndex]->isChestItemsTaken())
+            if (!maps_[currentMapLevel][currentMapIndex]->isChestItemsTaken())
             {
-                std::vector<std::string> chestItems = maps_[currentMapIndex]->getChestItems();
+                std::vector<std::string> chestItems = maps_[currentMapLevel][currentMapIndex]->getChestItems();
                 for (int i = 0; i < chestItems.size(); i++)
                 {
-                    std::string itemsStr = chestItems[i];
-                    if (itemsStr == "HealthPotion")
+                    ItemId itemId = getItemIdfromString(chestItems[i]);
+                    if (itemId != ItemId::None)
                     {
-                        this->givePlayerConsumable(ConsumableType::HealthPotion);
-                        maps_[currentMapIndex]->setChestItemsTaken(true);
-                        break;
-                    }
-                    else if (itemsStr == "SpeedPotion")
-                    {
-                        this->givePlayerConsumable(ConsumableType::SpeedPotion);
-                        maps_[currentMapIndex]->setChestItemsTaken(true);
-                        break;
-                    }
-                    else if (itemsStr == "StrengthPotion")
-                    {
-                        this->givePlayerConsumable(ConsumableType::StrengthPotion);
-                        maps_[currentMapIndex]->setChestItemsTaken(true);
+                        this->givePlayerItem(itemId);
+                        maps_[currentMapLevel][currentMapIndex]->setChestItemsTaken(true);
                         break;
                     }
                 }
                 
-                maps_[currentMapIndex]->setChestItemsTaken(true);
+                maps_[currentMapLevel][currentMapIndex]->setChestItemsTaken(true);
             }
             at.timer += dt;
             if (at.timer >= at.frameDuration)
@@ -784,6 +828,12 @@ void World::update(float dt)
             {
                 livingEntity->setSolid(false);
 
+                ItemId itemToGive = livingEntity->getGivingItem();
+                if (itemToGive != ItemId::None)
+                {
+                    givePlayerItem(itemToGive);
+                    livingEntity->setGivingItem(ItemId::None);
+                }
 
                 std::unique_ptr<Item> itemFromLivingEntity = livingEntity->takeDroppingItem();
                 if (itemFromLivingEntity) {
@@ -923,18 +973,37 @@ void World::update(float dt)
     {
         for (Entity* doorEntity : doorEntities_)
         {
-            if (doorEntity) doorEntity->setSolid(false);
+            if (doorEntity && !doorEntity->isLockedDoorHelper())
+                doorEntity->setSolid(false);
         }
         doorsUnlocked_ = true;
         // Persist that doors are unlocked on this map by marking it visited
-        if (currentMapIndex >= 0 && currentMapIndex < static_cast<int>(maps_.size()) && maps_[currentMapIndex])
+        if (currentMapIndex >= 0 && currentMapIndex < static_cast<int>(maps_[currentMapLevel].size()) && maps_[currentMapLevel][currentMapIndex])
         {
-            maps_[currentMapIndex]->setVisited(true);
+            maps_[currentMapLevel][currentMapIndex]->setVisited(true);
+        }
+    }
+    if (aliveNpcCount == 0 && !lockedDoorsUnlocked_ && !maps_[currentMapLevel][currentMapIndex]->isLockedDoors())
+    {
+        for (Entity* doorEntity : doorEntities_)
+        {
+            if (doorEntity && doorEntity->isLockedDoorHelper())
+            {
+                doorEntity->setSolid(false);
+            }
+            lockedDoorsUnlocked_ = true;
+
+        }
+        // Persist that doors are unlocked on this map by marking it visited
+        if (currentMapIndex >= 0 && currentMapIndex < static_cast<int>(maps_[currentMapLevel].size()) &&
+            maps_[currentMapLevel][currentMapIndex])
+        {
+            maps_[currentMapLevel][currentMapIndex]->setVisited(true);
         }
     }
 
     this->gatewayIndex = playerInGateway();
-    if (gatewayIndex >= 0)
+    if (gatewayIndex.index >= 0 || gatewayIndex.level >= 0)
     {
         this->newScene();
     }
@@ -943,37 +1012,24 @@ void World::update(float dt)
 void World::newScene()
 {
     // Validate gatewayIndex before using it
-    if (gatewayIndex < 0 || static_cast<size_t>(gatewayIndex) >= maps_.size())
+    if (gatewayIndex.index < 0 || static_cast<size_t>(gatewayIndex.index) >= maps_[currentMapLevel].size())
     {
-        std::cout << "Invalid gateway index: " << gatewayIndex << "\n";
-        gatewayIndex = -1;
+        std::cout << "Invalid gateway index: " << gatewayIndex.index << "\n";
+        gatewayIndex.index = -1;
         return;
     }
-
     // Save the gateway side from the current map BEFORE switching
-    GatewaySide entrySide = GatewaySide::Top;
-    float       gatewayX  = 0.0f;
-    float       gatewayY  = 0.0f;
-
-    for (const auto& g : maps_[currentMapIndex]->gateways())
-    {
-        if (g.targetMapIndex == gatewayIndex)
-        {
-            int gwIndex = static_cast<int>(&g - &maps_[currentMapIndex]->gateways()[0]);
-            entrySide   = maps_[currentMapIndex]->gatewaySide(gwIndex);
-            gatewayX    = g.posX;
-            gatewayY    = g.posY;
-            break;
-        }
-    }
+    GatewaySide entrySide = static_cast<GatewaySide>(gatewayIndex.side);
 
     entities_.clear();
 
-    this->setCurrentMapIndex(gatewayIndex);
+    this->setCurrentMapIndex(gatewayIndex.index);
+    this->setCurrentMapLevel(gatewayIndex.level);
+    lockedDoorsUnlocked_ = false;
     doorsUnlocked_ = false;
 
     this->buildFromTmxMap();
-    if (!maps_[currentMapIndex]->isVisited())
+    if (!maps_[currentMapLevel][currentMapIndex]->isVisited())
     {
         spawnNpcs();
     }
@@ -981,16 +1037,16 @@ void World::newScene()
     // Move player to new position (player attributes are preserved!)
     if (player_)
     {
-        spawnPlayerInNewScene(entrySide, gatewayX, gatewayY);
+        spawnPlayerInNewScene(entrySide, 0.0f, 0.0f);
     }
 
     // std::cout << "Switched to map: " << gatewayIndex << "\n";
-    gatewayIndex = -1;
+    gatewayIndex.index = -1;
 }
 
 void World::spawnNpcs()
 {
-    Map& map = *maps_[currentMapIndex];
+    Map& map = *maps_[currentMapLevel][currentMapIndex];
     const auto& layers = map.getLayers();
 
     for (const auto& layer : layers)
@@ -1009,13 +1065,25 @@ void World::spawnNpcs()
             // czytamy property "target" z obiektu
             int maxHp = -1;
             float size  = 1.0f;
+            ItemId itemToDropId= ItemId::None;
+            ItemId itemToGiveId = ItemId::None;
             for (const auto& p : obj.getProperties())
             {
                 if (p.getName() == "maxHp")
                 {
                     maxHp = p.getIntValue();
                 }
-                if (p.getName() == "size")
+                else if (p.getName() == "item")
+                {
+                    std::string itemStr = p.getStringValue();
+                    itemToDropId = getItemIdfromString(itemStr);
+                }
+                else if (p.getName() == "itemEq")
+                {
+                    std::string itemStr = p.getStringValue();
+                    itemToGiveId = getItemIdfromString(itemStr);
+                }
+                else if (p.getName() == "size")
                 {
                     size = p.getFloatValue();
                 }
@@ -1024,6 +1092,8 @@ void World::spawnNpcs()
                 auto& npc = spawnNpc(NpcType::Orc, {x, y});
                 if (maxHp > 0)
                 {
+                    npc.setGivingItem(itemToGiveId);
+                    npc.setDroppingItem(ItemFactory::createItem(itemToDropId, this->getAssets()));
                     npc.setHp(maxHp);
                     npc.setSpriteScale(size);
                 }
@@ -1033,6 +1103,8 @@ void World::spawnNpcs()
                 auto& npc = spawnNpc(NpcType::Skeleton_Archer, {x, y});
                 if (maxHp > 0)
                 {
+                    npc.setGivingItem(itemToGiveId);
+                    npc.setDroppingItem(ItemFactory::createItem(itemToDropId, this->getAssets()));
                     npc.setHp(maxHp);
                     npc.setSpriteScale(size);
                 }
@@ -1042,6 +1114,8 @@ void World::spawnNpcs()
                 auto& npc = spawnNpc(NpcType::Knight, {x, y});
                 if (maxHp > 0)
                 {
+                    npc.setGivingItem(itemToGiveId);
+                    npc.setDroppingItem(ItemFactory::createItem(itemToDropId, this->getAssets()));
                     npc.setHp(maxHp);
                     npc.setSpriteScale(size);
                 }
@@ -1051,6 +1125,8 @@ void World::spawnNpcs()
                 auto& npc = spawnNpc(NpcType::Elite_Orc, {x, y});
                 if (maxHp > 0)
                 {
+                    npc.setGivingItem(itemToGiveId);
+                    npc.setDroppingItem(ItemFactory::createItem(itemToDropId, this->getAssets()));
                     npc.setHp(maxHp);
                     npc.setSpriteScale(size);
                 }
@@ -1064,8 +1140,8 @@ void World::spawnPlayerInNewScene(GatewaySide entrySide, float sourceGatewayX, f
 {
     constexpr float tile = 64.0f;
 
-    int mapRows = maps_[currentMapIndex]->getRows();
-    int mapCols = maps_[currentMapIndex]->getColumns();
+    int mapRows = maps_[currentMapLevel][currentMapIndex]->getRows();
+    int mapCols = maps_[currentMapLevel][currentMapIndex]->getColumns();
     float mapWidth = mapCols * tile;
     float mapHeight = mapRows * tile;
 
@@ -1133,26 +1209,31 @@ void World::addMapfromTmx(const std::string& path) {
     {
         throw std::runtime_error("Could not load TMX map file: " + path);
     }
-    maps_.push_back(std::move(m));
+    if (currentMapLevel >= maps_.size()) {
+        maps_.resize(currentMapLevel + 1);
+    }
+    maps_[currentMapLevel].push_back(std::move(m));
 }
 
-void World::givePlayerConsumable(ConsumableType type)
-{
+void World::givePlayerItem(ItemId id) {
     if (!player_ || !assets_)
         return;
 
     std::unique_ptr<Item> item;
-    switch (type)
+    switch (id)
     {
-        case ConsumableType::HealthPotion:
-            item = ItemFactory::createItem(ItemId::HealthPotion, assets_);
-            break;
-        case ConsumableType::SpeedPotion:
-            item = ItemFactory::createItem(ItemId::SpeedPotion, assets_);
-            break;
-        case ConsumableType::StrengthPotion:
-            item = ItemFactory::createItem(ItemId::StrengthPotion, assets_);
-            break;
+    case ItemId::HealthPotion:
+        item = ItemFactory::createItem(ItemId::HealthPotion, assets_);
+        break;
+    case ItemId::SpeedPotion:
+        item = ItemFactory::createItem(ItemId::SpeedPotion, assets_);
+        break;
+    case ItemId::StrengthPotion:
+        item = ItemFactory::createItem(ItemId::StrengthPotion, assets_);
+        break;
+    case ItemId::Key:
+        item = ItemFactory::createItem(ItemId::Key, assets_);
+        break;
     }
 
     if (item)
@@ -1161,10 +1242,42 @@ void World::givePlayerConsumable(ConsumableType type)
     }
 }
 
+ItemId World::getItemIdfromString(const std::string& itemStr)
+{
+    if (itemStr == "HealthPotion")
+    {
+        return ItemId::HealthPotion;
+    }
+    else if (itemStr == "SpeedPotion")
+    {
+        return ItemId::SpeedPotion;
+    }
+    else if (itemStr == "StrengthPotion")
+    {
+        return ItemId::StrengthPotion;
+    }
+    else if (itemStr == "Key")
+    {
+        return ItemId::Key;
+    }
+    else
+    {
+        return ItemId::None;
+    }
+}
+
 void World::reset() {
     this->clear();
-    for ( auto&& map: maps_)
+    for (size_t i = 0; i < maps_.size(); i++)
     {
-        map->setVisited(false);
+        for (auto& map : maps_[i])
+        {
+            if (map != nullptr)
+            {
+                map->setVisited(false);
+            }
+        }
     }
+    this->setCurrentMapIndex(0);
+    this->setCurrentMapLevel(0);
 }

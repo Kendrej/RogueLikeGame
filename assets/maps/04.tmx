@@ -149,6 +149,7 @@
  <objectgroup id="8" name="npcs" offsetx="-25.5829" offsety="-5.11659">
   <object id="9" name="EliteOrc" x="493.867" y="518.022">
    <properties>
+    <property name="itemEq" value="Key"/>
     <property name="maxHp" type="int" value="250"/>
     <property name="size" type="float" value="2"/>
    </properties>
