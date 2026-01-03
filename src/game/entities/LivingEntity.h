@@ -3,8 +3,15 @@
 
 #include <memory>
 #include <string>
+#include <vector>
+#include <functional>
 #include "animation/AnimationController.h"
 class AnimationController;
+
+struct TimedEffect {
+    float duration;
+    std::function<void()> onExpire;
+};
 
 class LivingEntity : public Entity
 {
@@ -191,6 +198,10 @@ public:
     float getSpriteScale() const { return spriteScale_; }
     void setSpriteScale(float scale) { spriteScale_ = scale; }
 
+    void addTimedEffect(float duration, std::function<void()> onExpire) {
+        activeEffects_.push_back({duration, std::move(onExpire)});
+    }
+
 protected:
     ImVec2 velocity{0.0f, 0.0f};
     float  maxSpeed     = 5.0f;
@@ -219,4 +230,5 @@ private:
     bool                                 isPerformingMelee  = false;
     bool                                 isPerformingRanged = false;
     std::unique_ptr<AnimationController> animationController_{nullptr};
+    std::vector<TimedEffect>             activeEffects_;
 };
