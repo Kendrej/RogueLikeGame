@@ -21,7 +21,7 @@ void setupGame(World& world)
 
     world.buildFromTmxMap();
 
-    world.spawnPlayer({200.0f, 200.0f + World::UI_TOP_BAR_HEIGHT});
+    auto& player = world.spawnPlayer({200.0f, 200.0f + World::UI_TOP_BAR_HEIGHT});
 
     //world.givePlayerItem(ItemId::Key);
     //world.givePlayerConsumable(World::ConsumableType::StrengthPotion);

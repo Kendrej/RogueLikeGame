@@ -14,8 +14,20 @@ public:
         if (!target.isAlive())
             return false;
 
-        target.setMeleeDamage(target.getMeleeDamage() + damageBoost);
-        target.setRangedDamage(target.getRangedDamage() + damageBoost);
+
+        int prevMeleeDamage = target.getMeleeDamage();
+        int prevRangedDamage = target.getRangedDamage();
+        target.addTimedEffect(duration, [&target, prevMeleeDamage, prevRangedDamage]() {
+           target.setMeleeDamage(prevMeleeDamage);
+            target.setRangedDamage(prevRangedDamage);
+        });
+        target.setMeleeDamage(prevMeleeDamage + damageBoost);
+        target.setRangedDamage(prevRangedDamage + damageBoost);
         return true;
     }
+private:
+    float duration = 10.0f;
+
+
 };
+

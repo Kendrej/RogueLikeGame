@@ -112,6 +112,21 @@ void LivingEntity::update(float dt)
         if (aimLockTimer < 0.f)
             aimLockTimer = 0.f;
     }
+
+    for (auto it = activeEffects_.begin(); it != activeEffects_.end(); )
+    {
+        it->duration -= dt;
+        if (it->duration <= 0.0f)
+        {
+            if (it->onExpire)
+                it->onExpire();
+            it = activeEffects_.erase(it);
+        }
+        else
+        {
+            ++it;
+        }
+    }
 }
 
 void LivingEntity::takeDamage(int dmg)
