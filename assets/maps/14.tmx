@@ -96,8 +96,8 @@
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 0,0,0,0,0,0,0,0,0,0,0,0,0,1075,1076,1077,1078,0,0,0,0,0,0,0,0,0,0,0,0,0,
 0,0,0,0,0,0,0,0,0,0,0,0,0,1101,1102,1103,1104,0,0,0,0,0,0,0,0,0,0,0,0,0,
-0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,574,575,0,0,0,
-0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,584,585,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
@@ -111,13 +111,7 @@
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
 </data>
  </layer>
- <objectgroup id="10" name="chest">
-  <object id="20" name="chest" x="1526" y="184" width="202" height="174">
-   <properties>
-    <property name="items" value="HealthPotion"/>
-   </properties>
-  </object>
- </objectgroup>
+ <objectgroup id="10" name="chest"/>
  <objectgroup id="2" name="gateways">
   <object id="21" name="3" x="898" y="89.6282" width="58" height="64">
    <properties>
@@ -131,15 +125,10 @@
   </object>
  </objectgroup>
  <objectgroup id="8" name="npcs">
-  <object id="23" name="Orc" x="537.242" y="360.72">
+  <object id="23" name="EliteOrc" x="1056.58" y="703.531">
    <properties>
-    <property name="maxHp" type="int" value="20"/>
-   </properties>
-   <point/>
-  </object>
-  <object id="24" name="Orc" x="1274.03" y="365.836">
-   <properties>
-    <property name="maxHp" type="int" value="15"/>
+    <property name="maxHp" type="int" value="400"/>
+    <property name="size" type="float" value="2"/>
    </properties>
    <point/>
   </object>
