@@ -168,6 +168,12 @@ public:
     {
         facingDir = dir;
     }
+    void setWinAfterDeath(bool win) {
+        winAfterDeath = win;
+    }
+    bool isWinAfterDeath() {
+        return winAfterDeath;
+    }
 
 
 
@@ -225,6 +231,7 @@ protected:
 
     float spriteScale_ = 1.0f; // Visual scale for sprite rendering
     bool isDead_ = false;
+    bool  winAfterDeath  = false;
 
 private:
     bool                                 isPerformingMelee  = false;

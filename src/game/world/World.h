@@ -95,6 +95,10 @@ public:
     {
         return currentMapLevel;
     }
+    bool isGameWon() const
+    {
+        return gameWon_;
+    }
 
     void addMapfromTmx(const std::string& path);
     GatewayIndex playerInGateway();
@@ -161,4 +165,5 @@ private:
     bool doorsUnlocked_ = false;
     bool lockedDoorsUnlocked_ = false;
     std::vector<Entity*> toRemove;
+    bool gameWon_ = false;
 };

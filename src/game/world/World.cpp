@@ -857,6 +857,10 @@ void World::update(float dt)
                     ac->setToDeath(facingRight);
                     ac->update(dt);
                 }
+                if (livingEntity->isWinAfterDeath())
+                {
+                    gameWon_ = true;
+                }
                 continue;
             }
             updateEntityLogic(livingEntity, dt);
@@ -1065,6 +1069,7 @@ void World::spawnNpcs()
             // czytamy property "target" z obiektu
             int maxHp = -1;
             float size  = 1.0f;
+            bool win= false;
             ItemId itemToDropId= ItemId::None;
             ItemId itemToGiveId = ItemId::None;
             for (const auto& p : obj.getProperties())
@@ -1087,6 +1092,10 @@ void World::spawnNpcs()
                 {
                     size = p.getFloatValue();
                 }
+                else if (p.getName() == "win")
+                {
+                    win = p.getBoolValue();
+                }
             }
             if (obj.getName() == "Orc") {
                 auto& npc = spawnNpc(NpcType::Orc, {x, y});
@@ -1096,6 +1105,7 @@ void World::spawnNpcs()
                     npc.setDroppingItem(ItemFactory::createItem(itemToDropId, this->getAssets()));
                     npc.setHp(maxHp);
                     npc.setSpriteScale(size);
+                    npc.setWinAfterDeath(win);
                 }
             }
             else if (obj.getName() == "Skeleton_Archer")
@@ -1107,6 +1117,7 @@ void World::spawnNpcs()
                     npc.setDroppingItem(ItemFactory::createItem(itemToDropId, this->getAssets()));
                     npc.setHp(maxHp);
                     npc.setSpriteScale(size);
+                    npc.setWinAfterDeath(win);
                 }
             }
             else if (obj.getName() == "Knight")
@@ -1118,6 +1129,7 @@ void World::spawnNpcs()
                     npc.setDroppingItem(ItemFactory::createItem(itemToDropId, this->getAssets()));
                     npc.setHp(maxHp);
                     npc.setSpriteScale(size);
+                    npc.setWinAfterDeath(win);
                 }
             }
             else if (obj.getName() == "EliteOrc")
@@ -1129,6 +1141,7 @@ void World::spawnNpcs()
                     npc.setDroppingItem(ItemFactory::createItem(itemToDropId, this->getAssets()));
                     npc.setHp(maxHp);
                     npc.setSpriteScale(size);
+                    npc.setWinAfterDeath(win);
                 }
             }
         }

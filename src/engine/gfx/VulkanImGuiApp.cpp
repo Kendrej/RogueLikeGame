@@ -224,7 +224,11 @@ void VulkanImGuiApp::mainLoop()
         // --- Proste sterowanie WASD oparte o GLFW (nie zależne od stanu przechwycenia klawiatury przez ImGui) ---
         if (!player->isAlive()) drawDeathView();
 
-        if (!isPaused_ && world_ && player->isAlive())
+        if (world_->isGameWon())
+        {
+            drawWinView();
+        }
+        if (!isPaused_ && world_ && player->isAlive() && !world_->isGameWon())
         {
         if (player)
         {
@@ -344,7 +348,7 @@ void VulkanImGuiApp::mainLoop()
         }
         }
 
-        if (!isPaused_ && world_ && player->isAlive())
+        if (!isPaused_ && world_ && player->isAlive() && !world_->isGameWon())
             world_->update(dt);
 
         // --- Rysowanie swiata/tla (poza oknami) ---
@@ -921,6 +925,61 @@ void VulkanImGuiApp::drawDeathView() {
         }
         ImGui::EndPopup();
 
+    }
+    ImGui::PopStyleColor(1);
+}
+
+void VulkanImGuiApp::drawWinView()
+{
+    if (!ImGui::IsPopupOpen("Wygrana"))
+    {
+        ImGui::OpenPopup("Wygrana");
+    }
+    auto&       io = ImGui::GetIO();
+    ImDrawList* bg = ImGui::GetBackgroundDrawList();
+    ImGui::PushStyleColor(ImGuiCol_ModalWindowDimBg, ImVec4(0.0f, 0.0f, 0.0f, 0.6f));
+
+    ImVec2 windowSize(300, 200);
+    ImVec2 windowPos((io.DisplaySize.x - windowSize.x) / 2.0f, (io.DisplaySize.y - windowSize.y) / 2.0f);
+
+    ImGui::SetNextWindowPos(windowPos, ImGuiCond_Always);
+    ImGui::SetNextWindowSize(windowSize, ImGuiCond_Always);
+
+    ImGuiWindowFlags flags = ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse |
+                             ImGuiWindowFlags_NoSavedSettings;
+
+    if (ImGui::BeginPopupModal("Wygrana", nullptr, flags))
+    {
+
+        float textWidth = ImGui::CalcTextSize("Wygrales!").x;
+        ImGui::SetCursorPosX((windowSize.x - textWidth) / 2.0f);
+        ImGui::Text("Wygrales!");
+
+        ImGui::Spacing();
+        ImGui::Separator();
+        ImGui::Spacing();
+
+        float buttonWidth = 200.0f;
+        float buttonX     = (windowSize.x - buttonWidth) / 2.0f;
+
+        ImGui::SetCursorPosX(buttonX);
+        if (ImGui::Button("Odrodzenie", ImVec2(buttonWidth, 40)))
+        {
+            if (device_)
+                vkDeviceWaitIdle(device_);
+            resourcesBeingUpdated_ = true;
+            restartGame(*world_);
+            resourcesBeingUpdated_ = false;
+        }
+
+        ImGui::Spacing();
+
+        ImGui::SetCursorPosX(buttonX);
+        if (ImGui::Button("Wyjdz z gry", ImVec2(buttonWidth, 40)))
+        {
+            glfwSetWindowShouldClose(window_, GLFW_TRUE);
+        }
+        ImGui::EndPopup();
     }
     ImGui::PopStyleColor(1);
 }

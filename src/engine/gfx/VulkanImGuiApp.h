@@ -121,6 +121,7 @@ private:
     void drawHeartsUI(ImDrawList* bg, Player* player);
     void drawPauseMenu();
     void drawDeathView();
+    void drawWinView();
     void drawAttackMode(AttackMode attack_mode);
 
     // --- Helpery Vulkan używane przy ładowaniu tekstur ---
