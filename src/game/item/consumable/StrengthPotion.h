@@ -5,7 +5,7 @@
 class StrengthPotion : public Consumable
 {
 public:
-    int damageBoost = 100;
+    int damageBoost = 10;
 
     StrengthPotion() : Consumable(-1, "Strength Potion") {}
 

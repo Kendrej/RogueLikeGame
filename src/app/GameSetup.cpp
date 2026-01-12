@@ -16,13 +16,16 @@ void setupGame(World& world)
     world.setCurrentMapLevel(1);
     world.addMapfromTmx("assets/maps/10.tmx");
     world.addMapfromTmx("assets/maps/11.tmx");
+    world.addMapfromTmx("assets/maps/12.tmx");
+    world.addMapfromTmx("assets/maps/13.tmx");
+    world.addMapfromTmx("assets/maps/14.tmx");
     world.setCurrentMapLevel(0);
 
 
     world.buildFromTmxMap();
 
     auto& player = world.spawnPlayer({200.0f, 200.0f + World::UI_TOP_BAR_HEIGHT});
-
+    world.givePlayerItem(ItemId::Key);
     //world.givePlayerItem(ItemId::Key);
     //world.givePlayerConsumable(World::ConsumableType::StrengthPotion);
     //world.givePlayerConsumable(World::ConsumableType::SpeedPotion);
