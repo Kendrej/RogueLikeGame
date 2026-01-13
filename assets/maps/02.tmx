@@ -175,6 +175,7 @@
   </object>
   <object id="9" name="Knight" x="955.333" y="222">
    <properties>
+    <property name="item" value="StrengthPotion"/>
     <property name="maxHp" type="int" value="50"/>
    </properties>
    <point/>

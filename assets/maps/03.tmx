@@ -155,6 +155,7 @@
   </object>
   <object id="9" name="Skeleton_Archer" x="472.252" y="761.387">
    <properties>
+    <property name="item" value="StrengthPotion"/>
     <property name="maxHp" type="int" value="15"/>
    </properties>
    <point/>

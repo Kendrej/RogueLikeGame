@@ -147,6 +147,7 @@
  <objectgroup id="8" name="npcs">
   <object id="23" name="Orc" x="537.242" y="360.72">
    <properties>
+    <property name="item" value="StrengthPotion"/>
     <property name="maxHp" type="int" value="20"/>
    </properties>
    <point/>

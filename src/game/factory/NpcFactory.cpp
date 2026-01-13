@@ -58,7 +58,6 @@ Npc* NpcFactory::createNpc(NpcType type, World& world, ImVec2 pos)
             animPrefix        = "SkeletonArcher";
             rangedAttackFrames  = 9;
             rangedAttackTrigger = 7;
-            itemToDropId = ItemId::StrengthPotion;
             break;
 
         case NpcType::Orc:
@@ -74,7 +73,6 @@ Npc* NpcFactory::createNpc(NpcType type, World& world, ImVec2 pos)
             animPrefix        = "Orc";
             meleeAttackFrames   = 6;
             meleeAttackTrigger  = 4;
-            itemToDropId = ItemId::SpeedPotion;
             break;
         case NpcType::Knight:
             controller        = std::make_unique<MeleeController>();
@@ -89,7 +87,6 @@ Npc* NpcFactory::createNpc(NpcType type, World& world, ImVec2 pos)
             animPrefix        = "Knight";
             meleeAttackFrames   = 6;
             meleeAttackTrigger  = 4;
-            itemToDropId = ItemId::HealthPotion;
             break;
         case NpcType::Elite_Orc:
             controller         = std::make_unique<MeleeController>();
@@ -104,7 +101,6 @@ Npc* NpcFactory::createNpc(NpcType type, World& world, ImVec2 pos)
             animPrefix         = "EliteOrc";
             meleeAttackFrames  = 9;
             meleeAttackTrigger = 5;
-            itemToDropId = ItemId::HealthPotion;
             break;
     }
 

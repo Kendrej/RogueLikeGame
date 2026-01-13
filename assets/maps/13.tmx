@@ -149,6 +149,7 @@
   </object>
   <object id="24" name="Orc" x="637.015" y="342.811">
    <properties>
+    <property name="item" value="StrengthPotion"/>
     <property name="maxHp" type="int" value="15"/>
    </properties>
    <point/>
