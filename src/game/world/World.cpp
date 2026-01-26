@@ -1293,4 +1293,5 @@ void World::reset() {
     }
     this->setCurrentMapIndex(0);
     this->setCurrentMapLevel(0);
+    gameWon_ = false;
 }

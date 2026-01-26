@@ -965,6 +965,7 @@ void VulkanImGuiApp::drawWinView()
         ImGui::SetCursorPosX(buttonX);
         if (ImGui::Button("Odrodzenie", ImVec2(buttonWidth, 40)))
         {
+            ImGui::CloseCurrentPopup();
             if (device_)
                 vkDeviceWaitIdle(device_);
             resourcesBeingUpdated_ = true;

@@ -68,7 +68,7 @@ Npc* NpcFactory::createNpc(NpcType type, World& world, ImVec2 pos)
             accel             = 2500.0f;
             meleeDamage       = 5;
             meleeCooldown     = 1.0f;
-            meleeRange        = 80.0f;
+            meleeRange        = 90.0f;
             animBasePath      = "assets/animations/orc/";
             animPrefix        = "Orc";
             meleeAttackFrames   = 6;
@@ -82,7 +82,7 @@ Npc* NpcFactory::createNpc(NpcType type, World& world, ImVec2 pos)
             accel             = 1000.0f;
             meleeDamage       = 15;
             meleeCooldown     = 1.0f;
-            meleeRange        = 80.0f;
+            meleeRange        = 90.0f;
             animBasePath      = "assets/animations/knight/";
             animPrefix        = "Knight";
             meleeAttackFrames   = 6;
@@ -96,7 +96,7 @@ Npc* NpcFactory::createNpc(NpcType type, World& world, ImVec2 pos)
             accel              = 1000.0f;
             meleeDamage        = 30;
             meleeCooldown      = 1.0f;
-            meleeRange         = 150.0f;
+            meleeRange         = 160.0f;
             animBasePath       = "assets/animations/eliteOrc/";
             animPrefix         = "EliteOrc";
             meleeAttackFrames  = 9;
