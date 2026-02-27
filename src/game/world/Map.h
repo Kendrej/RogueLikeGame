@@ -152,6 +152,24 @@ public:
         return lockedDoors;
     }
 
+    void reset()
+    {
+        visited = false;
+        // Resetuj stan drzwi na klucz - sprawdü czy jakikolwiek tile ma locked=true
+        lockedDoors = false;
+        for (const auto& [gid, info] : gidToTileInfo_)
+        {
+            if (info.locked)
+            {
+                lockedDoors = true;
+                break;
+            }
+        }
+        // Resetuj stan skrzyni
+        chestInfo_.opened = false;
+        chestInfo_.itemsTaken = false;
+    }
+
     tmx::Map& getTmxMap()
     {
         return mapTmx;

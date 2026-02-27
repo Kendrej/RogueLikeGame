@@ -1287,11 +1287,13 @@ void World::reset() {
         {
             if (map != nullptr)
             {
-                map->setVisited(false);
+                map->reset();
             }
         }
     }
     this->setCurrentMapIndex(0);
     this->setCurrentMapLevel(0);
     gameWon_ = false;
+    doorsUnlocked_ = false;
+    lockedDoorsUnlocked_ = false;
 }
