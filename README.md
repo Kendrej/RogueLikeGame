@@ -146,8 +146,7 @@ Każda mapa może zawierać:
 
 ---
 
-## Autor
+## Autorzy
 
-**[Twoje Imię]**
 - GitHub: [@erybie222](https://github.com/erybie222)
-- LinkedIn: [Twój profil]
+- GitHub: [@Kendrej](https://github.com/Kendrej)
