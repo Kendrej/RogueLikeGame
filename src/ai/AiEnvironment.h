@@ -45,6 +45,7 @@ private:
 
     int  lastPlayerHp_   = -1;
     int  lastMapIndex_   = 0;
+    int  lastMapLevel_   = 0;
     int  lastEnemyCount_ = -1;
     int  lastEnemiesHp_  = -1;
     bool hasKey_         = false;

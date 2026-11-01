@@ -194,6 +194,21 @@ include(CTest)
 if(BUILD_TESTING)
     enable_testing()
     # Uruchamia executable z parametrem --smoke
+    if(ENABLE_VCPKG_DEPS)
+        add_executable(AiEnvironmentTest
+            tests/ai_environment_test.cpp
+            src/engine/gfx/AssetsHeadless.cpp
+            ${GAME_LOGIC_SOURCES}
+        )
+        get_target_property(_SIM_INCLUDES RogueLikeSim INCLUDE_DIRECTORIES)
+        target_include_directories(AiEnvironmentTest PRIVATE ${_SIM_INCLUDES})
+        target_link_libraries(AiEnvironmentTest PRIVATE imgui::imgui glm::glm ${TMXLITE_LINK_LIBRARIES} cppzmq)
+        target_compile_definitions(AiEnvironmentTest PRIVATE NOMINMAX WIN32_LEAN_AND_MEAN)
+        add_dependencies(AiEnvironmentTest RogueLikeGame)
+        add_test(NAME ai_environment
+            COMMAND $<TARGET_FILE:AiEnvironmentTest>
+            WORKING_DIRECTORY $<TARGET_FILE_DIR:AiEnvironmentTest>)
+    endif()
     add_test(NAME smoke
         COMMAND $<TARGET_FILE:RogueLikeGame> --smoke
         WORKING_DIRECTORY $<TARGET_FILE_DIR:RogueLikeGame>)

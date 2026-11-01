@@ -77,6 +77,7 @@ void AiEnvironment::resetTrackers()
     lastEnemiesHp_  = -1;
     hasKey_         = false;
     lastMapIndex_   = world_.getCurrentMapIndex();
+    lastMapLevel_   = world_.getCurrentMapLevel();
     std::memset(visitedTiles_, 0, sizeof(visitedTiles_));
 }
 
@@ -158,11 +159,13 @@ void AiEnvironment::trackEvents()
     }
 
     int  currentMap = world_.getCurrentMapIndex();
-    bool mapChanged = currentMap != lastMapIndex_;
+    int  currentLevel = world_.getCurrentMapLevel();
+    bool mapChanged = currentMap != lastMapIndex_ || currentLevel != lastMapLevel_;
     if (mapChanged)
     {
         events_.mapsChanged++;
         lastMapIndex_ = currentMap;
+        lastMapLevel_ = currentLevel;
         std::memset(visitedTiles_, 0, sizeof(visitedTiles_));
     }
 
@@ -221,6 +224,7 @@ nlohmann::json AiEnvironment::consumeState()
     state["playerY"]  = static_cast<int>((pos.y - World::UI_TOP_BAR_HEIGHT) / TILE_SIZE);
     state["key"]      = hasKey_;
     state["map"]      = world_.getCurrentMapIndex();
+    state["level"]    = world_.getCurrentMapLevel();
     state["grid"]     = world_.getTileGrid();
     state["enemies"]  = enemiesJson;
     state["events"]   = {{"keysPicked", events_.keysPicked},

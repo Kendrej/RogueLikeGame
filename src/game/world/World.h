@@ -47,6 +47,7 @@ public:
     void performRangedAttack(LivingEntity& attacker, ImVec2 direction);
 
     void buildFromTmxMap();
+    void spawnNpcs();
 
     void update(float dt);
     void clear();
@@ -135,7 +136,6 @@ private:
     void        spawnPlayerInNewScene(GatewaySide entrySide, float sourceGatewayX, float sourceGatewayY);
     void        updateEntityLogic(LivingEntity* livingEntity, float dt);
     void        updateAnimatedTiles(float dt);
-    void        spawnNpcs();
     bool        collectItem(Player* collector, Item* item);
 
     size_t currentMapIndex = 0;
