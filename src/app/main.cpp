@@ -1,9 +1,15 @@
 #include "engine/gfx/VulkanImGuiApp.h"
 
+#include <filesystem>
 #include <string>
+#include <system_error>
 
 int main(int argc, char** argv)
 {
+    // Assets leza obok programu, wiec gra dziala niezaleznie od folderu uruchomienia
+    std::error_code ec;
+    std::filesystem::current_path(std::filesystem::absolute(argv[0], ec).parent_path(), ec);
+
     VulkanImGuiApp app;
     bool aiMode = false;
     int  aiPort = 5555;
