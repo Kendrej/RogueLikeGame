@@ -22,7 +22,8 @@
 #include <vk_utils.h>
 #include "game/factory/ItemFactory.h"
 #include "utils/MathUtils.h"
-#include "app/AiServerApp.h"
+#include "ai/AiEnvironment.h"
+#include "ai/AiServer.h"
 #include "game/npc/Npc.h"
 
 VulkanImGuiApp::VulkanImGuiApp() = default;
@@ -52,24 +53,21 @@ int VulkanImGuiApp::run()
         world_ = std::make_unique<World>(assets_.get());
         setupGame(*world_);
 
-        if (aiMode_ && aiServer_)
+        if (aiMode_)
         {
-            aiServer_->start();
+            aiEnv_ = std::make_unique<AiEnvironment>(*world_, [this] { vkDeviceWaitIdle(device_); });
+            aiServer_ = std::make_unique<AiServer>(aiPort_, aiFrameSkip_, 1.0f / 60.0f);
         }
 
         mainLoop();
         vkDeviceWaitIdle(device_);
 
-        if (aiServer_)
-            aiServer_->stop();
 
         cleanup();
     }
     catch (const std::exception& e)
     {
         std::cerr << "Fatal: " << e.what() << std::endl;
-        if (aiServer_)
-            aiServer_->stop();
         cleanup();
         return EXIT_FAILURE;
     }
@@ -237,80 +235,26 @@ void VulkanImGuiApp::mainLoop()
         Player* player = world_->getPlayer();
         AttackMode attack_mode = player->getAttackMode();
 
-        if (!player->isAlive() && aiMode_ && aiServer_)
-        {
-            vkDeviceWaitIdle(device_);
-            restartGame(*world_);
-            player = world_->getPlayer();
-            memset(visitedTiles_, 0, sizeof(visitedTiles_));
-            lastEnemyCount_ = 0;
-            lastPlayerHp_   = -1;
-            playerHasKey_   = false;
-            playerHadKey_   = false;
-            lastMapIndex_   = world_->getCurrentMapIndex();
-        }
-        else if (!player->isAlive()) drawDeathView();
+        if (!aiMode_ && !player->isAlive())
+            drawDeathView();
 
-        if (world_->isGameWon() && aiMode_ && aiServer_)
-        {
-            vkDeviceWaitIdle(device_);
-            restartGame(*world_);
-            player = world_->getPlayer();
-            memset(visitedTiles_, 0, sizeof(visitedTiles_));
-            lastEnemyCount_ = 0;
-            lastPlayerHp_   = -1;
-            playerHasKey_   = false;
-            playerHadKey_   = false;
-            lastMapIndex_   = world_->getCurrentMapIndex();
-        }
-        else if (world_->isGameWon())
-        {
+        if (!aiMode_ && world_->isGameWon())
             drawWinView();
-        }
 
-        if (aiServer_ && aiServer_->consumeReset())
-        {
-            vkDeviceWaitIdle(device_);
-            restartGame(*world_);
-            player = world_->getPlayer();
-            memset(visitedTiles_, 0, sizeof(visitedTiles_));
-            lastEnemyCount_ = 0;
-            lastPlayerHp_ = -1;
-            playerHasKey_   = false;
-            playerHadKey_   = false;
-            lastMapIndex_ = world_->getCurrentMapIndex();
-            std::cout << "[AI] Reset requested by AI server" << std::endl;
-        }
-
-        if (!isPaused_ && world_ && player->isAlive() && !world_->isGameWon())
+        if (!aiMode_ && !isPaused_ && world_ && player->isAlive() && !world_->isGameWon())
         {
         if (player)
         {
             float dx = 0.0f, dy = 0.0f;
 
-            int dir = aiServer_->consumeDirection();
-
-            if (aiMode_ && aiServer_ && dir<=3)
-            {
-                switch (dir)
-                {
-                    case 0: dy = -1.0f; break; // up
-                    case 1: dy =  1.0f; break; // down
-                    case 2: dx = -1.0f; break; // left
-                    case 3: dx =  1.0f; break; // right
-                }
-            }
-            else
-            {
-                if (glfwGetKey(window_, GLFW_KEY_W) == GLFW_PRESS)
-                    dy -= 1.0f;
-                if (glfwGetKey(window_, GLFW_KEY_S) == GLFW_PRESS)
-                    dy += 1.0f;
-                if (glfwGetKey(window_, GLFW_KEY_A) == GLFW_PRESS)
-                    dx -= 1.0f;
-                if (glfwGetKey(window_, GLFW_KEY_D) == GLFW_PRESS)
-                    dx += 1.0f;
-            }
+            if (glfwGetKey(window_, GLFW_KEY_W) == GLFW_PRESS)
+                dy -= 1.0f;
+            if (glfwGetKey(window_, GLFW_KEY_S) == GLFW_PRESS)
+                dy += 1.0f;
+            if (glfwGetKey(window_, GLFW_KEY_A) == GLFW_PRESS)
+                dx -= 1.0f;
+            if (glfwGetKey(window_, GLFW_KEY_D) == GLFW_PRESS)
+                dx += 1.0f;
             player->applyInput(ImVec2(dx, dy));
 
             // change attack mode
@@ -337,25 +281,7 @@ void VulkanImGuiApp::mainLoop()
             }
 
             // player attack
-            if (aiMode_ && aiServer_ && dir==4)
-            {
-                if (player->isMeleeMode())
-                {
-                    if (player->canMelee())
-                    {
-                        if (!player->getAnimationController())
-                        {
-                            world_->performMeleeAttack(*player);
-                        }
-                        else
-                        {
-                            player->setIsPerformingMeleeAttack(true);
-                        }
-                        player->startMeleeCooldown();
-                    }
-                }
-            }
-            else if (glfwGetKey(window_, GLFW_KEY_SPACE) == GLFW_PRESS)
+            if (glfwGetKey(window_, GLFW_KEY_SPACE) == GLFW_PRESS)
             {
                 if (player->isMeleeMode())
                 {
@@ -432,153 +358,20 @@ void VulkanImGuiApp::mainLoop()
                     }
                 }
             }
-            else if (aiMode_ && aiServer_ && playerHasKey_)
-            {
-                auto* map = world_->getMap(world_->getCurrentMapLevel(), world_->getCurrentMapIndex());
-                if (map && map->isLockedDoors())
-                {
-                    ImVec2 p = player->getPosition();
-                    float pw = static_cast<float>(player->getWidth());
-                    float ph = static_cast<float>(player->getHeight());
-                    auto&  inventory = player->getInventory();
-                    LockedDoorInfo info = map->getLockedDoorInfo();
-                    if (p.x + pw > info.posX && p.x < info.posX + info.width && p.y + ph > info.posY &&
-                        p.y < info.posY + info.height)
-                    {
-                        for (int i = 0; i < inventory.getItemCount(); i++)
-                        {
-                            Item* item = inventory.getItem(i);
-                            if (item && item->getName() == "Key")
-                            {
-                                inventory.removeItem(i);
-                                map->setLockedDoors(false); // for testing purposes
-                                break;
-                            }
-                        }
-                        playerHasKey_ = false;
-                        playerHadKey_ = true;
-                    }
-                }
-
-            }
             lastE = ePressed;
         }
         }
 
-        if (!isPaused_ && world_ && player->isAlive() && !world_->isGameWon())
+        if (aiMode_)
+        {
+            // Krok wykonuje sie tylko na zadanie klienta; ta petla jedynie rysuje wynik
+            if (!isPaused_ && aiServer_->poll(*aiEnv_, 0) == AiServer::Result::Quit)
+                glfwSetWindowShouldClose(window_, GLFW_TRUE);
+            attack_mode = world_->getPlayer()->getAttackMode();
+        }
+        else if (!isPaused_ && world_ && player->isAlive() && !world_->isGameWon())
         {
             world_->update(dt);
-            
-            if (aiMode_ && aiServer_)
-            {
-                int currentEnemiesHp = -1;
-                std::vector<Enemy> enemies;
-                for (const auto& up : world_->entities())
-                {
-                    if (!up)
-                        continue;
-                    if (world_->getPlayer() && up.get() == world_->getPlayer())
-                        continue;
-                    auto* npc = dynamic_cast<Npc*>(up.get());
-                    if (npc && npc->isAlive())
-                    {
-                        ImVec2 np = npc->getPosition();
-                        int ex = static_cast<int>(np.x / 64.0f);
-                        int ey = static_cast<int>((np.y - World::UI_TOP_BAR_HEIGHT) / 64.0f);
-                        int etype = npc->getAttackClass() +1;
-                        int hp = npc->getHp();
-                        if (currentEnemiesHp == -1)
-                            currentEnemiesHp = hp;
-                        else
-                            currentEnemiesHp += hp;
-                        enemies.push_back(Enemy{ex, ey, etype,hp});
-                    }
-                }
-
-                ImVec2 pPos = player->getPosition();
-                int tileX = static_cast<int>(pPos.x / 64.0f);
-                int tileY = static_cast<int>((pPos.y - World::UI_TOP_BAR_HEIGHT) / 64.0f);
-
-                float n_steps = 4000;
-
-                float reward = -50.0f / n_steps;
-                
-                // KEY
-                if (!playerHasKey_)
-                {
-                    auto& inventory = player->getInventory();
-                    for (int i = 0; i < inventory.getItemCount(); i++)
-                    {
-                        Item* item = inventory.getItem(i);
-                        if (item && item->getName() == "Key")
-                        {
-                            reward += 40.0f;
-                            playerHasKey_ = true;
-                            break;
-                        }
-                    }
-                }
-                if (playerHadKey_ && !playerHasKey_)
-                {
-                    reward += 40.0f;
-                    playerHadKey_ = false;
-                }
-
-                // enemies and hp
-                int currentEnemyCount = enemies.size();
-                if (currentEnemyCount < lastEnemyCount_)
-                {
-                    reward += (lastEnemyCount_ - currentEnemyCount) * 10.0f;
-                }
-                lastEnemyCount_ = currentEnemyCount;
-                if (currentEnemiesHp != -1 && lastEnemiesHpSum_ != -1)
-                {
-                    int hpDiff = lastEnemiesHpSum_ - currentEnemiesHp;
-                    if (hpDiff > 0)
-                        reward += hpDiff * 0.5f;
-                }
-                lastEnemiesHpSum_ = currentEnemiesHp;
-
-
-                //player damage
-                int currentHp = world_->getPlayer()->getHp();
-                if (lastPlayerHp_ != -1)
-                {
-                    reward += (currentHp - lastPlayerHp_) * 0.5f;
-                }
-                lastPlayerHp_ = currentHp;
-                
-
-                // exploration
-                if (tileX >= 0 && tileX < 30 && tileY >= 0 && tileY < 16)
-                {
-                    if (!visitedTiles_[tileX][tileY])
-                    {
-                        visitedTiles_[tileX][tileY] = true;
-                        reward += 25.0f / 480.0f;
-                    }
-                }
-                 
-                 // map progression
-                int currentMap = world_->getCurrentMapIndex();
-                if (currentMap != lastMapIndex_)
-                {
-                    reward += 100.0f;
-                    lastMapIndex_ = currentMap;
-                    memset(visitedTiles_, 0, sizeof(visitedTiles_));
-                }
-
-                if (world_->isGameWon())
-                {
-                    reward += 500.0f;
-                }
-                else if (!player->isAlive())
-                {
-                    reward -= 100.0f;
-                    //std::cout << "Player died. Reward: " << reward << std::endl;
-                }
-                aiServer_->updateResponse(currentHp, player->isAlive(), tileX, tileY, world_->getTileGrid(), reward, enemies, playerHasKey_);
-            }
         }
 
 
@@ -1216,8 +1009,9 @@ void VulkanImGuiApp::drawWinView()
     ImGui::PopStyleColor(1);
 }
 
-void VulkanImGuiApp::enableAiMode()
+void VulkanImGuiApp::enableAiMode(int port, int frameSkip)
 {
     aiMode_ = true;
-    aiServer_ = std::make_unique<AiServerApp>();
+    aiPort_ = port;
+    aiFrameSkip_ = frameSkip;
 }

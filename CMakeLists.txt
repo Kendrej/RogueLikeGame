@@ -28,18 +28,9 @@ option(ENABLE_VCPKG_DEPS "Find and link deps via vcpkg (GLFW, GLM, Vulkan, ImGui
 
 # ===== Sources =====
 # Dodaj swoje pliki źródłowe tutaj (na start mamy tylko main.cpp)
-add_executable(RogueLikeGame
-        src/app/main.cpp
-
-        src/engine/gfx/VulkanImGuiApp.cpp
-        src/engine/vk/Window.cpp
-        src/engine/vk/Instance.cpp
-        src/engine/vk/Device.cpp
-        src/engine/vk/Swapchain.cpp
-        src/engine/vk/SyncAndDescriptors.cpp
-        src/engine/gfx/ImGuiInit.cpp
+# Logika gry i AI, wspolna dla gry z grafika i symulacji bez grafiki
+set(GAME_LOGIC_SOURCES
         src/game/entities/Entity.cpp
-        src/engine/gfx/Assets.cpp
         src/app/GameSetup.cpp
         src/game/entities/Player.cpp
         src/game/world/Map.cpp
@@ -74,7 +65,21 @@ add_executable(RogueLikeGame
         src/game/factory/ItemFactory.cpp
         src/game/factory/ItemFactory.h
         src/game/item/usable/Key.h
-        src/app/AiServerApp.cpp
+        src/ai/AiEnvironment.cpp
+        src/ai/AiServer.cpp
+)
+
+add_executable(RogueLikeGame
+        src/app/main.cpp
+        src/engine/gfx/VulkanImGuiApp.cpp
+        src/engine/vk/Window.cpp
+        src/engine/vk/Instance.cpp
+        src/engine/vk/Device.cpp
+        src/engine/vk/Swapchain.cpp
+        src/engine/vk/SyncAndDescriptors.cpp
+        src/engine/gfx/ImGuiInit.cpp
+        src/engine/gfx/Assets.cpp
+        ${GAME_LOGIC_SOURCES}
 )
 
 # Katalogi z nagłówkami
@@ -155,6 +160,33 @@ endif()
 # ===== Platformowe definicje =====
 if(WIN32)
     target_compile_definitions(RogueLikeGame PRIVATE VK_USE_PLATFORM_WIN32_KHR NOMINMAX WIN32_LEAN_AND_MEAN)
+endif()
+
+# ===== Symulacja bez grafiki (trening AI) =====
+if(ENABLE_VCPKG_DEPS)
+    add_executable(RogueLikeSim
+        src/app/sim_main.cpp
+        src/engine/gfx/AssetsHeadless.cpp
+        ${GAME_LOGIC_SOURCES}
+    )
+    target_include_directories(RogueLikeSim PRIVATE
+        ${CMAKE_SOURCE_DIR}/include
+        ${CMAKE_SOURCE_DIR}/src
+        ${STB_INCLUDE_DIR}
+        ${TMXLITE_INCLUDE_DIRS}
+    )
+    if(DEFINED Vulkan_INCLUDE_DIR)
+        target_include_directories(RogueLikeSim PRIVATE ${Vulkan_INCLUDE_DIR})
+    endif()
+    if(DEFINED VCPKG_INSTALLED_DIR AND DEFINED VCPKG_TARGET_TRIPLET)
+        target_include_directories(RogueLikeSim PRIVATE ${VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/include)
+    endif()
+    target_link_libraries(RogueLikeSim PRIVATE imgui::imgui glm::glm ${TMXLITE_LINK_LIBRARIES} cppzmq)
+    if(WIN32)
+        target_compile_definitions(RogueLikeSim PRIVATE NOMINMAX WIN32_LEAN_AND_MEAN)
+    endif()
+    # DLL-e i assets kopiuje cel RogueLikeGame do tego samego katalogu bin
+    add_dependencies(RogueLikeSim RogueLikeGame)
 endif()
 
 # ===== Testy (smoke test) =====

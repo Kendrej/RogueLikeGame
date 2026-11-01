@@ -10,10 +10,8 @@
 
 struct GLFWwindow;
 class Player;
-class AiServerApp;
-
-// forward-declare global Enemy struct defined in app/AiServerApp.h
-struct Enemy;
+class AiEnvironment;
+class AiServer;
 
 #include <cstdint>
 #include <optional>
@@ -26,7 +24,7 @@ public:
     ~VulkanImGuiApp();
     int run();
     int runSmokeTest();
-    void enableAiMode();
+    void enableAiMode(int port, int frameSkip);
 
 private:
     struct QueueFamilyIndices
@@ -90,7 +88,10 @@ private:
 
     std::unique_ptr<Assets> assets_ = nullptr;
     std::unique_ptr<World>  world_;
-    std::unique_ptr<AiServerApp> aiServer_;
+    std::unique_ptr<AiEnvironment> aiEnv_;
+    std::unique_ptr<AiServer> aiServer_;
+    int                     aiPort_ = 5555;
+    int                     aiFrameSkip_ = 4;
     bool                    aiMode_ = false;
     IconId                  heartIconId_ = -1;
     IconId                  bowIconId_ = -1;
@@ -99,13 +100,6 @@ private:
     bool                    resourcesBeingUpdated_ = false;
     float const             slotSize = 45.0f;
     float const             padding = 4.0f;
-    int lastPlayerHp_ = -1;
-    int lastMapIndex_ = 0;
-    int lastEnemyCount_ = 0;
-    int lastEnemiesHpSum_ = -1;
-    bool visitedTiles_[30][16] = {};
-    bool playerHasKey_ = false;
-    bool playerHadKey_ = false;
     // High-level steps
     void initWindow();
     void initVulkan();

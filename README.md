@@ -151,3 +151,13 @@ You don't need to compile the project to play. The game has been prepared as a S
 
 - GitHub: [@erybie222](https://github.com/erybie222)
 - GitHub: [@Kendrej](https://github.com/Kendrej)
+
+## Trening AI
+
+Cel `RogueLikeSim` to gra bez okna i bez Vulkana, sterowana krok po kroku przez ZeroMQ. Logika jest w `src/ai` i korzysta z niej też `RogueLikeGame --ai-mode`. Odpowiedź wychodzi dopiero po wykonaniu kroku, a nagrody liczy klient z repozytorium [roguelikeAI](https://github.com/Kendrej/roguelikeAI).
+
+```powershell
+cmake --preset win-ninja-release
+cmake --build --preset win-ninja-release-build
+.\build\win-ninja-release\bin\RogueLikeSim.exe --port 5555 --frame-skip 4
+```

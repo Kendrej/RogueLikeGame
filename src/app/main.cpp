@@ -5,6 +5,9 @@
 int main(int argc, char** argv)
 {
     VulkanImGuiApp app;
+    bool aiMode = false;
+    int  aiPort = 5555;
+    int  aiFrameSkip = 4;
 
     for (int i = 1; i < argc; ++i)
     {
@@ -21,8 +24,18 @@ int main(int argc, char** argv)
 
         if (arg == "--ai-mode")
         {
-            app.enableAiMode();
+            aiMode = true;
+        }
+        else if (arg == "--port" && i + 1 < argc)
+        {
+            aiPort = std::stoi(argv[++i]);
+        }
+        else if (arg == "--frame-skip" && i + 1 < argc)
+        {
+            aiFrameSkip = std::stoi(argv[++i]);
         }
     }
+    if (aiMode)
+        app.enableAiMode(aiPort, aiFrameSkip);
     return app.run();
 }
