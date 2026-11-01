@@ -80,6 +80,10 @@ public:
     {
         gateways_.push_back(Gateway{level, targetIndex, posX, posY, GatewaySide::Top});
     }
+    void clearGateways()
+    {
+        gateways_.clear();
+    }
     void addChestInfo(float posX, float posY, float width, float height)
     {
         chestInfo_ = ChestInfo{posX, posY, width, height, false};

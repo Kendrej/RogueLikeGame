@@ -204,6 +204,7 @@ void World::buildFromTmxMap() {
     }
 
     Map& map = *maps_[currentMapLevel][currentMapIndex];
+    map.clearGateways(); // ponizej dodawane od nowa przy kazdej przebudowie mapy
     const auto& tmxMap = map.getTmxMap();
     const auto& layers = map.getLayers();
     const auto tileSize = tmxMap.getTileSize(); // np. 64x64

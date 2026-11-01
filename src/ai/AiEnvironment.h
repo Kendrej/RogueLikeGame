@@ -10,7 +10,7 @@ class World;
 class AiEnvironment
 {
 public:
-    static constexpr int PROTOCOL_VERSION = 2;
+    static constexpr int PROTOCOL_VERSION = 3;
     static constexpr int ACTION_COUNT     = 5; // 0-3 ruch, 4 atak
 
     // beforeReset pozwala aplikacji graficznej poczekac na GPU przed przebudowa swiata

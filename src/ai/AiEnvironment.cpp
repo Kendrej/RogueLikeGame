@@ -1,5 +1,6 @@
 #include "ai/AiEnvironment.h"
 
+#include <cmath>
 #include <cstring>
 #include <string>
 #include <utility>
@@ -215,8 +216,40 @@ nlohmann::json AiEnvironment::consumeState()
             enemiesJson.push_back({{"x", -1}, {"y", -1}, {"type", -1}, {"hp", -1}});
     }
 
+    nlohmann::json itemsJson = nlohmann::json::array();
+    for (const auto& up : world_.entities())
+    {
+        if (up && up->isItem())
+        {
+            ImVec2 itemPos = up->getPosition();
+            itemsJson.push_back({{"x", static_cast<int>(itemPos.x / TILE_SIZE)},
+                                 {"y", static_cast<int>((itemPos.y - World::UI_TOP_BAR_HEIGHT) / TILE_SIZE)}});
+        }
+    }
+
+    nlohmann::json gatewaysJson = nlohmann::json::array();
+    auto*          map          = world_.getMap(world_.getCurrentMapLevel(), world_.getCurrentMapIndex());
+    if (map)
+    {
+        for (const auto& g : map->gateways())
+        {
+            gatewaysJson.push_back({{"x", static_cast<int>(g.posX / TILE_SIZE)},
+                                    {"y", static_cast<int>((g.posY - World::UI_TOP_BAR_HEIGHT) / TILE_SIZE)},
+                                    {"level", g.level},
+                                    {"map", g.targetMapIndex}});
+        }
+    }
+
     nlohmann::json state;
-    state["protocol"] = PROTOCOL_VERSION;
+    state["protocol"]   = PROTOCOL_VERSION;
+    state["items"]      = itemsJson;
+    state["gateways"]   = gatewaysJson;
+    state["lockedDoor"] = map && map->isLockedDoors();
+    state["facingX"]    = player->getFacingDir().x;
+    state["facingY"]    = player->getFacingDir().y;
+    state["meleeReady"] = player->canMelee();
+    state["fracX"]      = pos.x / TILE_SIZE - std::floor(pos.x / TILE_SIZE);
+    state["fracY"]      = (pos.y - World::UI_TOP_BAR_HEIGHT) / TILE_SIZE - std::floor((pos.y - World::UI_TOP_BAR_HEIGHT) / TILE_SIZE);
     state["hp"]       = player->getHp();
     state["alive"]    = player->isAlive();
     state["won"]      = world_.isGameWon();
