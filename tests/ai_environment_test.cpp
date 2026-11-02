@@ -47,9 +47,14 @@ template <typename Pred> nlohmann::json killNpc(World& world, AiEnvironment& env
         if (npc && npc->isAlive() && pred(*npc))
             target = npc;
     }
-    nlohmann::json totals = {{"enemiesKilled", 0}, {"keysPicked", 0}, {"won", false}, {"found", target != nullptr}};
+    nlohmann::json totals = {{"enemiesKilled", 0}, {"keysPicked", 0}, {"roomsCleared", 0}, {"won", false}, {"found", target != nullptr}};
     if (!target)
         return totals;
+    auto add = [&totals](const nlohmann::json& state)
+    {
+        for (const char* key : {"enemiesKilled", "keysPicked", "roomsCleared"})
+            totals[key] = totals[key].get<int>() + state["events"][key].get<int>();
+    };
 
     target->setHp(1);
     for (int i = 0; i < MAX_STEPS && target->isAlive(); ++i)
@@ -60,15 +65,13 @@ template <typename Pred> nlohmann::json killNpc(World& world, AiEnvironment& env
         player->setFacingDir(ImVec2(1.0f, 0.0f));
         env.step(4, 4, DT);
         auto state = env.consumeState();
-        totals["enemiesKilled"] = totals["enemiesKilled"].get<int>() + state["events"]["enemiesKilled"].get<int>();
-        totals["keysPicked"]    = totals["keysPicked"].get<int>() + state["events"]["keysPicked"].get<int>();
+        add(state);
     }
     for (int i = 0; i < 5; ++i)
     {
         env.step(0, 1, DT);
         auto state = env.consumeState();
-        totals["enemiesKilled"] = totals["enemiesKilled"].get<int>() + state["events"]["enemiesKilled"].get<int>();
-        totals["keysPicked"]    = totals["keysPicked"].get<int>() + state["events"]["keysPicked"].get<int>();
+        add(state);
         totals["won"]           = state["won"];
     }
     return totals;
@@ -83,6 +86,39 @@ int main()
     world.setScreenBounds(1920.0f, 1080.0f);
     setupGame(world);
     std::optional<AiEnvironment> env;
+
+    // Na mapie 0/1 drzwi otwieraja sie dopiero po zabiciu wszystkich wrogow
+    loadMap(world, 0, 1);
+    env.emplace(world);
+    env->consumeState();
+    int clearedEarly = 0, clearedTotal = 0, killed = 0;
+    while (env->consumeState()["enemyCount"].get<int>() > 0)
+    {
+        auto run = killNpc(world, *env, [](Npc&) { return true; });
+        if (!run["found"].get<bool>() || run["enemiesKilled"].get<int>() != 1)
+            break;
+        killed++;
+        clearedTotal += run["roomsCleared"].get<int>();
+        if (env->consumeState()["enemyCount"].get<int>() > 0)
+            clearedEarly += run["roomsCleared"].get<int>();
+    }
+    check("enemyCount spada do zera po zabiciu wszystkich", killed > 0 && env->consumeState()["enemyCount"].get<int>() == 0);
+    check("wyczyszczenie pokoju liczy sie raz, po ostatnim wrogu", clearedTotal == 1 && clearedEarly == 0);
+
+    // Strzal z auto-celem trafia wrogow bez celowania myszka
+    loadMap(world, 0, 1);
+    env.emplace(world);
+    env->consumeState();
+    int shotDamage = 0, shotKills = 0;
+    for (int i = 0; i < MAX_STEPS && shotKills == 0; ++i)
+    {
+        world.getPlayer()->setHp(world.getPlayer()->getMaxHp());
+        env->step(5, 4, DT);
+        auto state = env->consumeState();
+        shotDamage += state["events"]["damageDealt"].get<int>();
+        shotKills += state["events"]["enemiesKilled"].get<int>();
+    }
+    check("strzal zadaje obrazenia i zabija", shotDamage > 0 && shotKills > 0);
 
     // Klucz wypada z bossa na mapie 0/4
     loadMap(world, 0, 4);

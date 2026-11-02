@@ -10,8 +10,8 @@ class World;
 class AiEnvironment
 {
 public:
-    static constexpr int PROTOCOL_VERSION = 3;
-    static constexpr int ACTION_COUNT     = 5; // 0-3 ruch, 4 atak
+    static constexpr int PROTOCOL_VERSION = 4;
+    static constexpr int ACTION_COUNT     = 6; // 0-3 ruch, 4 atak wrecz, 5 strzal w najblizszego wroga
 
     // beforeReset pozwala aplikacji graficznej poczekac na GPU przed przebudowa swiata
     explicit AiEnvironment(World& world, std::function<void()> beforeReset = {});
@@ -32,9 +32,11 @@ private:
         int  hpDelta       = 0;
         int  newTiles      = 0;
         int  mapsChanged   = 0;
+        int  roomsCleared  = 0; // ostatni wrog na mapie zginal, drzwi sie otwieraja
     };
 
     void applyAction(int action);
+    void shootNearestEnemy();
     void useKeyOnDoor();
     void trackEvents();
     void resetTrackers();

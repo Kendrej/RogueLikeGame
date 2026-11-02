@@ -119,6 +119,37 @@ void AiEnvironment::applyAction(int action)
             player->setIsPerformingMeleeAttack(true);
         player->startMeleeCooldown();
     }
+    if (action == 5 && player->canShoot())
+        shootNearestEnemy();
+}
+
+void AiEnvironment::shootNearestEnemy()
+{
+    // Gra dla czlowieka celuje myszka, ktorej w symulatorze nie ma, wiec agent dostaje auto-cel
+    Player* player = world_.getPlayer();
+    ImVec2  p      = player->getPosition();
+    ImVec2  from{p.x + 0.5f * static_cast<float>(player->getWidth()), p.y + 0.5f * static_cast<float>(player->getHeight())};
+    ImVec2  aim{0.0f, 0.0f};
+    float   best = -1.0f;
+    for (const auto& up : world_.entities())
+    {
+        auto* npc = dynamic_cast<Npc*>(up.get());
+        if (!npc || !npc->isAlive())
+            continue;
+        ImVec2 q = npc->getPosition();
+        float  dx = q.x + 0.5f * static_cast<float>(npc->getWidth()) - from.x;
+        float  dy = q.y + 0.5f * static_cast<float>(npc->getHeight()) - from.y;
+        float  d  = dx * dx + dy * dy;
+        if (best < 0.0f || d < best)
+        {
+            best = d;
+            aim  = ImVec2(dx, dy);
+        }
+    }
+    if (best <= 0.0f)
+        return;
+    world_.performRangedAttack(*player, aim);
+    player->startRangedCooldown();
 }
 
 void AiEnvironment::useKeyOnDoor()
@@ -182,6 +213,8 @@ void AiEnvironment::trackEvents()
             events_.enemiesKilled += lastEnemyCount_ - count;
         if (enemyHp < lastEnemiesHp_)
             events_.damageDealt += lastEnemiesHp_ - enemyHp;
+        if (count == 0 && lastEnemyCount_ > 0)
+            events_.roomsCleared++;
     }
     lastEnemyCount_ = count;
     lastEnemiesHp_  = enemyHp;
@@ -242,12 +275,14 @@ nlohmann::json AiEnvironment::consumeState()
 
     nlohmann::json state;
     state["protocol"]   = PROTOCOL_VERSION;
+    state["enemyCount"] = static_cast<int>(enemies.size());
     state["items"]      = itemsJson;
     state["gateways"]   = gatewaysJson;
     state["lockedDoor"] = map && map->isLockedDoors();
     state["facingX"]    = player->getFacingDir().x;
     state["facingY"]    = player->getFacingDir().y;
     state["meleeReady"] = player->canMelee();
+    state["rangedReady"] = player->canShoot();
     state["fracX"]      = pos.x / TILE_SIZE - std::floor(pos.x / TILE_SIZE);
     state["fracY"]      = (pos.y - World::UI_TOP_BAR_HEIGHT) / TILE_SIZE - std::floor((pos.y - World::UI_TOP_BAR_HEIGHT) / TILE_SIZE);
     state["hp"]       = player->getHp();
@@ -266,7 +301,8 @@ nlohmann::json AiEnvironment::consumeState()
                          {"damageDealt", events_.damageDealt},
                          {"hpDelta", events_.hpDelta},
                          {"newTiles", events_.newTiles},
-                         {"mapsChanged", events_.mapsChanged}};
+                         {"mapsChanged", events_.mapsChanged},
+                         {"roomsCleared", events_.roomsCleared}};
     events_ = Events{};
     return state;
 }
