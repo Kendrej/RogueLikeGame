@@ -37,10 +37,10 @@ struct ChestInfo
 
 struct LockedDoorInfo
 {
-    float posX;
-    float posY;
-    float width;
-    float height;
+    float posX = 0.0f;
+    float posY = 0.0f;
+    float width = 0.0f;
+    float height = 0.0f;
     bool locked = true;
 };
 

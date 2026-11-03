@@ -273,12 +273,27 @@ nlohmann::json AiEnvironment::consumeState()
         }
     }
 
+    // Srodek zamknietych drzwi na klucz, -1 gdy na mapie ich nie ma.
+    // isLockedDoors() bywa prawdziwe na mapach bez takich drzwi (Map.cpp ustawia je dla kazdego kafelka z animacja),
+    // dlatego liczy sie tylko mapa z obiektem "door" z Tiled.
+    LockedDoorInfo door = map ? map->getLockedDoorInfo() : LockedDoorInfo{};
+    bool hasLockedDoor = map && map->isLockedDoors() && door.width > 0.0f;
+    int  lockedDoorX = -1;
+    int  lockedDoorY = -1;
+    if (hasLockedDoor)
+    {
+        lockedDoorX = static_cast<int>((door.posX + door.width / 2) / TILE_SIZE);
+        lockedDoorY = static_cast<int>((door.posY + door.height / 2 - World::UI_TOP_BAR_HEIGHT) / TILE_SIZE);
+    }
+
     nlohmann::json state;
     state["protocol"]   = PROTOCOL_VERSION;
     state["enemyCount"] = static_cast<int>(enemies.size());
     state["items"]      = itemsJson;
     state["gateways"]   = gatewaysJson;
-    state["lockedDoor"] = map && map->isLockedDoors();
+    state["lockedDoor"] = hasLockedDoor;
+    state["lockedDoorX"] = lockedDoorX;
+    state["lockedDoorY"] = lockedDoorY;
     state["facingX"]    = player->getFacingDir().x;
     state["facingY"]    = player->getFacingDir().y;
     state["meleeReady"] = player->canMelee();
